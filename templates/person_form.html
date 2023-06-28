@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Person</title>
+</head>
+<body>
+    <h1>Create Person</h1>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <ul class="flash-messages">
+            {% for message in messages %}
+                <li class="{{ message[1] }}">{{ message[0] }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        {{ form.is_admin.label }} {{ form.is_admin() }}
+        <br>
+        {{ form.employee_id.label }} {{ form.employee_id() }}
+        <br>
+        {{ form.name.label }} {{ form.name() }}
+        <br>
+        {{ form.email.label }} {{ form.email() }}
+        <br>
+        {{ form.phone_no.label }} {{ form.phone_no() }}
+        <br>
+        {{ form.savings.label }} {{ form.savings() }}
+        <br>
+        {{ form.total_balance.label }} {{ form.total_balance() }}
+        <br>
+        {{ form.loan_balance.label }} {{ form.loan_balance() }}
+        <br>
+        {{ form.company_id.label }}
+        <select name="{{ form.company_id.name }}">
+            {% for company in companies %}
+                <option value="{{ company.id }}">{{ company.name }}</option>
+            {% endfor %}
+        </select>
+        <br>
+        <input type="submit" value="Create">
+    </form>
+</body>
+</html>

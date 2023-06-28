@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Make Payment</title>
+</head>
+<body>
+    <h1>Make Payment</h1>
+    {% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class="flash-messages">
+      {% for message in messages %}
+        <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <label for="person_id">Select Person:</label>
+        <select id="person_id" name="person_id">
+            {% for person in persons %}
+                <option value="{{ person.id }}">{{ person.name }}</option>
+            {% endfor %}
+        </select>
+        <br>
+        {{ form.amount.label }} {{ form.amount() }}
+        <br>
+        {{ form.date.label }} {{ form.date() }}
+        <br>
+        {{ form.payment_type.label }} {{ form.payment_type() }}
+        <br>
+        <input type="submit" value="Submit">
+    </form>
+</body>
+</html>
