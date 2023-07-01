@@ -14,18 +14,21 @@ class CompanyForm(FlaskForm):
     submit = SubmitField('Submit')
 
 
+class BankForm(FlaskForm):
+    name = StringField('Name',validators=[DataRequired()] )
+    balance = FloatField('Bank Balance')
+
+
 class PersonForm(FlaskForm):
     is_admin = BooleanField('Is Admin')
     employee_id = StringField('Employee ID', validators=[DataRequired()])
     name = StringField('Name', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
     phone_no = StringField('Phone No')
-    savings = FloatField('Savings')
     total_balance = FloatField('Total Balance')
     loan_balance = FloatField('Loan Balance')
     company_id = IntegerField('Company ID', validators=[DataRequired()])
     submit = SubmitField('Submit')
-
 
 
 class PaymentForm(FlaskForm):
@@ -33,13 +36,14 @@ class PaymentForm(FlaskForm):
     date = DateField('Date', validators=[DataRequired()])
     payment_type = SelectField('Payment Type', choices=[('savings', 'Savings'), ('loan', 'Loan')], validators=[DataRequired()])
     person_id = SelectField('Person', coerce=int, validators=[DataRequired()])
+    description = StringField('Description')
     submit = SubmitField('Submit')
 
 
 class LoanForm(FlaskForm):
     employee_id = StringField('Employee ID', validators=[DataRequired()])
     amount = IntegerField('Amount', validators=[DataRequired()])
-    interest_rate = SelectField('Interest Rate', choices=[(1, '1%'), (2, '2%'), (3, '3%')], validators=[DataRequired()])
+    interest_rate = SelectField('Interest Rate', choices=[(5, '5%'), (10, '10%'), (15, '15%')], validators=[DataRequired()])
     start_date = DateField('Start Date', validators=[DataRequired()])
     end_date = DateField('End Date', validators=[DataRequired()])
     submit = SubmitField('Submit')

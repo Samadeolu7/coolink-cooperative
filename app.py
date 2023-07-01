@@ -1,8 +1,9 @@
 from flask import Flask, render_template, request, redirect,send_file, render_template, redirect, url_for, flash , get_flashed_messages
-from forms import CompanyForm, PersonForm, PaymentForm, LoanForm, ExpenseForm, InvestmentForm
-from models import db,Company, Person, Payment, Loan, Expense, Investment
+from forms import CompanyForm, PersonForm, PaymentForm, LoanForm, ExpenseForm, InvestmentForm,BankForm
+from models import db,Company, Person, Payment, Loan, Expense, Investment,Bank
 from excel_helper import process_excel,generate_repayment_schedule,export_repayment_schedule_to_excel
 from queries import Queries
+from sqlalchemy.orm import subqueryload
 import pandas as pd
 
 app = Flask(__name__)
@@ -21,10 +22,7 @@ def log_report(report):
 def index():
     return 'Welcome to the Cooperative App!'
 
-@app.route('/persons/<int:person_id>', methods=['GET'])
-def get_person(person_id):
-    person = Person.query.get(person_id)
-    return render_template('person.html', person=person)
+#creating data
 
 @app.route('/company/create', methods=['GET', 'POST'])
 def create_company():
@@ -43,6 +41,24 @@ def create_company():
 
     return render_template('company_form.html', form=form)
 
+@app.route('/bank/create', methods=['GET', 'POST'])
+def create_bank():
+    form = BankForm()
+    if form.validate_on_submit():
+        bank = Bank(name=form.name.data, balance=form.balance.data)#remember to add to form for admin or ask in meeting
+        db.session.add(bank)
+        db.session.commit()
+        flash('Company created successfully.', 'success')
+        return redirect(url_for('index'))
+    else:
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f'Error in field "{getattr(form, field).label.text}": {error}', 'error')
+    if form.errors:
+        log_report(form.errors)
+    return render_template('bank_form.html', form=form)
+
+
 @app.route('/person/create', methods=['GET', 'POST'])
 def create_person():
     form = PersonForm()
@@ -54,7 +70,7 @@ def create_person():
             name=form.name.data,
             email=form.email.data,
             phone_no=form.phone_no.data,
-            savings=form.savings.data,
+            
             total_balance=form.total_balance.data,
             loan_balance=form.loan_balance.data,
             company_id=form.company_id.data
@@ -78,22 +94,20 @@ def make_payment():
         log_report('IT VALIDATED')
         amount = form.amount.data
         payment_type = form.payment_type.data
-
+        description = form.description.data
         selected_person_id = form.person_id.data
         selected_person = Person.query.get(selected_person_id)
-
+        date = form.date.data
         if selected_person:
             log_report('IT VALIDATED selected person')
             if payment_type == 'savings':
-                query.save_amount(selected_person_id,amount)
+                query.save_amount(selected_person_id,amount,date,description)
                 
             elif payment_type == 'loan':
-                if selected_person.loan_balance >= float(amount) :
-                    query.repay_loan(selected_person_id,amount)
-                    
-                else:
-                    flash('Invalid payment amount. Loan balance is lower than the payment amount.')
-            
+                log_report('IT entered loan')
+
+                query.repay_loan(selected_person.id,amount,date,description)
+   
             flash('Payment submitted successfully.')
             return redirect(url_for('index'))
         else:
@@ -105,6 +119,38 @@ def make_payment():
         log_report(form.errors)
 
     return render_template('payment.html', form=form, persons=Person.query.all())
+
+#making queries
+
+@app.route('/persons', methods=['GET'])
+def get_person():
+    persons = Person.query.all()
+    return render_template('person.html', persons=persons)
+
+@app.route('/savings_payments', methods=['GET'])
+def get_payments():
+    payments = Payment.query.filter_by(loan=0).all()
+    persons = Person.query.all()
+    return render_template('savings_payment.html', payments=payments, persons=persons)
+
+
+
+
+@app.route('/savings/<person_id>', methods=['GET', 'POST'])
+def savings_acccount(person_id):
+    payments = query.get_payments(person_id)
+    person = query.get_person(person_id)
+    company = Company.query.get(person.company_id)
+    return render_template('savings_account.html', payments= payments,person=person,company = company)
+
+@app.route('/loans/<person_id>', methods=['GET', 'POST'])
+def loan_acccount(person_id):
+    payments = query.get_payments(person_id)
+    person = query.get_person(person_id)
+    company = query.get_company(person.company_id)
+    return render_template('loan_account.html', payments= payments,person=person,company = company)
+
+#create loan 
 
 @app.route('/loan/create', methods=['GET', 'POST'])
 def create_loan():
@@ -122,7 +168,6 @@ def create_loan():
         start_date=pd.to_datetime(form.start_date.data)
         end_date=pd.to_datetime(form.end_date.data)
         
-
         # Generate the repayment schedule
         repayment_schedule = generate_repayment_schedule(person_id, amount, interest_rate, start_date, end_date)
 

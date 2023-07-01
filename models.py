@@ -29,7 +29,7 @@ class Person(db.Model):
     is_admin = db.Column(db.Boolean, default=False)
     employee_id = db.Column(db.String, nullable=False)
     name = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String, nullable=False)
+    email = db.Column(db.String)
     phone_no = db.Column(db.String)
     savings = db.Column(db.Float, default=0.0)
     total_balance = db.Column(db.Float, default=0.0)
@@ -60,8 +60,10 @@ class Payment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     amount = db.Column(db.Float, nullable=False)
     loan = db.Column(db.Boolean, default=False)
-    date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    exact_date = db.Column(db.DateTime,nullable = False, default=datetime.utcnow)
+    date = db.Column(db.DateTime, nullable=False)
     person_id = db.Column(db.Integer, db.ForeignKey('persons.id'), nullable=False, index=True)
+    description = db.Column(db.String, nullable=True)
 
     def to_json(self):
         return {
@@ -129,6 +131,19 @@ class Investment(db.Model):
             'date': self.date.isoformat()
         }
 
+
+class Bank(db.Model):
+    __tablename__ = 'banks'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable = False)
+    balance = db.Column(db.Float, default = 0.0)
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'description': self.name,
+            'amount': self.balance,
+        }
 
 with app.app_context():
     db.create_all()

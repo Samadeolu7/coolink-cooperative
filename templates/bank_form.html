@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Bank</title>
+</head>
+<body>
+    <h1>Create Bank</h1>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <ul class="flash-messages">
+            {% for message in messages %}
+                <li class="{{ message[1] }}">{{ message[0] }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        {{ form.name.label }} {{ form.name() }}
+        {{ form.balance.label }} {{ form.balance() }}
+        <br>
+        <input type="submit" value="Create">
+    </form>
+</body>
+</html>

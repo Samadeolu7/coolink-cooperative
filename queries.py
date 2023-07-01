@@ -1,9 +1,11 @@
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
-from models import Company, Person, Payment , Loan, Expense,Investment
+from models import Company, Person, Payment , Loan, Expense,Investment,Bank
 from datetime import datetime
 
-
+def log_report(report):
+    with open("report.txt", 'a', encoding='utf-8') as f:
+            f.write(f'{report}\n')
 class Queries():
 
     def __init__(self,db) -> None:
@@ -16,13 +18,13 @@ class Queries():
     def create_new_company(self,name):
         self.db.session.add(Company(name=name))
 
-    def save_amount(self,employee_id,amount):
+    def save_amount(self,employee_id,amount,date,description=None):
         person = Person.query.filter_by(id=employee_id).first()
         if person:
             person.total_balance += float(amount)
             self.db.session.commit()
             
-            payment = Payment(amount=amount, date=datetime.utcnow(), person_id=person.id)
+            payment = Payment(amount=amount, date=date, person_id=person.id,exact_date=datetime.utcnow(),description=description)
             self.db.session.add(payment)
             self.db.session.commit()
 
@@ -31,12 +33,10 @@ class Queries():
             self.db.session.add(company)
             self.db.session.commit()
 
-
-
     def make_loan(self,employee_id,amount,interest_rate,start_date,end_date):
         person = Person.query.filter_by(employee_id=employee_id).first()
         if person:
-            person.loan_balance += float(amount)
+            person.loan_balance += float(amount) +( float(amount) * (float(interest_rate)/100))
             self.db.session.commit()
 
             loan = Loan(
@@ -48,21 +48,36 @@ class Queries():
         )
             self.db.session.add(loan)
             self.db.session.commit()
-
-    def repay_loan(self,employee_id,amount):
-        person = Person.query.filter_by(employee_id=employee_id)
-        if person:
-            person.loan_balance -= amount
+        bank = Bank.query.filter_by(id=1).first()
+        if bank:
+            bank.balance -= float(amount)
             self.db.session.commit()
 
-            payment =Payment(amount=amount,date=datetime.utcnow(),person=person.id,loan=True)
+    def repay_loan(self,id,amount,date,description=None):
+        person = Person.query.filter_by(id=id).first()
+        if person:
+            log_report('what is going on')
+            person.loan_balance -= float(amount)
+            self.db.session.commit()
+
+            payment =Payment(amount=amount,exact_date=datetime.utcnow(),date=date,person_id=person.id,loan=True,description=description)
             self.db.session.add(payment)
             self.db.session.commit()
 
-            company = Company.query.filter_by(id = Person.company_id)
-            company.amount_accumulated += amount
+            company = Company.query.filter_by(id = Person.company_id).first()
+            company.amount_accumulated += float(amount)
+            self.db.session.commit()
 
 
+    def company_payment(self,company_id,amount):
+        company = Company.query.filter_by(id=company_id).first()
+        if company:
+            company.amount_acumulated -= float(amount)
+            self.db.session.commit()
+        bank =Bank.query.filter_by(id=1).first()
+        if bank:
+            bank.balance += float(amount)
+            self.db.session.commit()
 
     def get_companies(self):
         company = Company.query.all()
@@ -73,16 +88,16 @@ class Queries():
         person = Person.query.all()
         return person
     
-    def get_person(self,employee_id):
-        person = Person.query.filter_by(employee_id=employee_id)
+    def get_person(self,person_id):
+        person = Person.query.filter_by(id=person_id).first()
         return person
 
-    def get_payments(employee_id):
-        payments = Payment.query.filter_by(Person_id=employee_id)
+    def get_payments(self,employee_id):
+        payments = Payment.query.filter_by(person_id=employee_id)
         return payments
 
     def get_loans(employee_id):
-        loans = Loan.query.filter_by(employee_id=employee_id)
+        loans = Loan.query.filter_by(employee_id=employee_id).first()
         return loans
     
     def get_investments():

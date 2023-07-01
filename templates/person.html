@@ -19,6 +19,7 @@
             <th>Monthly Payment Amount</th>
             <th>Company ID</th>
         </tr>
+        {%for person in persons%}
         <tr>
             <td>{{ person.id }}</td>
             <td>{{ person.is_admin }}</td>
@@ -32,6 +33,7 @@
             <td>{{ person.monthly_payment_amount }}</td>
             <td>{{ person.company_id }}</td>
         </tr>
+        {%endfor%}
     </table>
 </body>
 </html>
