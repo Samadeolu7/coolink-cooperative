@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect,send_file, render_template, redirect, url_for, flash , get_flashed_messages
 from forms import CompanyForm, PersonForm, PaymentForm, LoanForm, ExpenseForm, InvestmentForm,BankForm
-from models import db,Company, Person, Payment, Loan, Expense, Investment,Bank
+from models import db,Company, Person, Payment, Loan, Expense, Investment,Bank,Income
 from excel_helper import process_excel,generate_repayment_schedule,export_repayment_schedule_to_excel
 from queries import Queries
 from sqlalchemy.orm import subqueryload
@@ -20,7 +20,7 @@ def log_report(report):
 
 @app.route('/')
 def index():
-    return 'Welcome to the Cooperative App!'
+    return render_template('index.html')
 
 #creating data
 
@@ -45,7 +45,7 @@ def create_company():
 def create_bank():
     form = BankForm()
     if form.validate_on_submit():
-        bank = Bank(name=form.name.data, balance=form.balance.data)#remember to add to form for admin or ask in meeting
+        bank = Bank(name=form.name.data, balance_bfd=form.balance.data,new_balance=form.balance.data)#remember to add to form for admin or ask in meeting
         db.session.add(bank)
         db.session.commit()
         flash('Company created successfully.', 'success')
@@ -123,32 +123,52 @@ def make_payment():
 #making queries
 
 @app.route('/persons', methods=['GET'])
-def get_person():
+def get_persons():
     persons = Person.query.all()
     return render_template('person.html', persons=persons)
 
-@app.route('/savings_payments', methods=['GET'])
+@app.route('/savings_account', methods=['GET'])
 def get_payments():
     payments = Payment.query.filter_by(loan=0).all()
     persons = Person.query.all()
     return render_template('savings_payment.html', payments=payments, persons=persons)
 
+@app.route('/loans', methods=['GET', 'POST'])
+def get_loan():
+    loans = Loan.query.all()
+    return render_template('loans.html',loans=loans)
 
+@app.route('/income', methods=['GET'])
+def get_income():
+    incomes = Income.query.all()
+    return render_template('income.html', incomes=incomes)
 
-
-@app.route('/savings/<person_id>', methods=['GET', 'POST'])
-def savings_acccount(person_id):
+@app.route('/savings_account/<person_id>', methods=['GET', 'POST'])
+def savings_account(person_id):
     payments = query.get_payments(person_id)
     person = query.get_person(person_id)
     company = Company.query.get(person.company_id)
     return render_template('savings_account.html', payments= payments,person=person,company = company)
 
-@app.route('/loans/<person_id>', methods=['GET', 'POST'])
+@app.route('/loan/<person_id>', methods=['GET', 'POST'])
 def loan_acccount(person_id):
+    loans = Loan.query.filter_by(person_id=person_id)
     payments = query.get_payments(person_id)
     person = query.get_person(person_id)
-    company = query.get_company(person.company_id)
-    return render_template('loan_account.html', payments= payments,person=person,company = company)
+    company = Company.query.get(person.company_id)
+    return render_template('loan_account.html', payments= payments,person=person,company = company,loans=loans)
+
+@app.route('/bank_report')
+def bank_report():
+    # Query the bank and its associated payments
+    bank = Bank.query.first()
+    payments = bank.payments
+
+    # Calculate the total amount received by the bank
+    total_amount = sum(payment.amount for payment in payments)
+
+    # Render the bank report template with the data
+    return render_template('bank_report.html', bank=bank, payments=payments, total_amount=total_amount)
 
 #create loan 
 

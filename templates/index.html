@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accounting Website</title>
+</head>
+<body>
+    <header>
+        <h1>Welcome to our Accounting Website</h1>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('get_persons') }}">View Members</a></li>
+            <li><a href="{{ url_for('get_payments') }}">Members Savings Account</a></li>
+            <li><a href="{{ url_for('get_loan') }}">Members Loan</a></li>
+            <li><a href="{{ url_for('bank_report') }}">Bank Report</a></li>
+            <li><a href="{{ url_for('get_income') }}">Income Statement</a></li>
+            <!-- <li><a href="url_for('debtors_report') }}">Debtors Report</a></li>
+            <li><a href=" url_for('payables_report') }}">Payables Report</a></li>
+            <li><a href="url_for('ledger_report') }}">Ledger Report</a></li>
+            <li><a href=" url_for('financial_position') }}">Financial Position Statement</a></li> -->
+        </ul>
+    </nav>
+
+    <header>
+        <h1>Create New Entries</h1>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="{{ url_for('create_bank') }}">Create Bank</a></li>
+            <li><a href="{{ url_for('create_company') }}">Create Company</a></li>
+            <li><a href="{{ url_for('create_person') }}">Create Member</a></li>
+            <li><a href="{{ url_for('make_payment') }}">Make Payment</a></li>
+            <li><a href="{{ url_for('get_income') }}">Input Income </a></li>
+            
+        </ul>
+    </nav>
+    <footer>
+        <p>&copy; 2023 Your Accounting Website</p>
+    </footer>
+</body>
+</html>

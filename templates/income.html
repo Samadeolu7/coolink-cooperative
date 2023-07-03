@@ -1,0 +1,38 @@
+<!-- payments.html -->
+<html>
+<head>
+    <title>Person Payments</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>Coolink Cooperative Income Account</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>Balance</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for income in incomes %}
+                <tr>
+                    <td>{{ income.description }}</td>
+                    <td>{{ income.amount }}</td>
+                    <td>{{ income.balance}}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

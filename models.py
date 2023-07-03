@@ -12,6 +12,7 @@ class Company(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     amount_accumulated = db.Column(db.Float, default=0.0)
+    payments_made = db.relationship('Payment', backref='company_payer', lazy=True)
     employees = db.relationship('Person', backref='company', lazy=True)
     
     def to_json(self):
@@ -26,17 +27,17 @@ class Person(db.Model):
     __tablename__ = 'persons'
 
     id = db.Column(db.Integer, primary_key=True)
+    company_id = db.Column(db.Integer, db.ForeignKey('companies.id'))
     is_admin = db.Column(db.Boolean, default=False)
     employee_id = db.Column(db.String, nullable=False)
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String)
     phone_no = db.Column(db.String)
-    savings = db.Column(db.Float, default=0.0)
     total_balance = db.Column(db.Float, default=0.0)
     loan_balance = db.Column(db.Float, default=0.0)
-    monthly_payment_amount = db.Column(db.Float, default=0.0)
-    payment_history = db.relationship('Payment', backref='person', lazy=True)
-    company_id = db.Column(db.Integer, db.ForeignKey('companies.id'))
+    loans = db.relationship('Loan', backref='person_loans')
+    payments_made = db.relationship('Payment', backref='payer', lazy=True)
+    
 
     def to_json(self):
         return {
@@ -53,17 +54,20 @@ class Person(db.Model):
             'payment_history': [payment.to_json() for payment in self.payment_history]
         }
 
-
 class Payment(db.Model):
     __tablename__ = 'payments'
-
     id = db.Column(db.Integer, primary_key=True)
     amount = db.Column(db.Float, nullable=False)
-    loan = db.Column(db.Boolean, default=False)
-    exact_date = db.Column(db.DateTime,nullable = False, default=datetime.utcnow)
+    exact_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     date = db.Column(db.DateTime, nullable=False)
-    person_id = db.Column(db.Integer, db.ForeignKey('persons.id'), nullable=False, index=True)
+    person_id = db.Column(db.Integer, db.ForeignKey('persons.id'), nullable=True, index=True)
+    company_id = db.Column(db.Integer, db.ForeignKey('companies.id'), nullable=True, index=True)
     description = db.Column(db.String, nullable=True)
+    balance = db.Column(db.Float, nullable=True)
+    bank_balance = db.Column(db.Float, nullable=True)
+    loan = db.Column(db.Boolean, default=False)
+    bank_id = db.Column(db.Integer, db.ForeignKey('banks.id'), nullable=True, index=True)
+
 
     def to_json(self):
         return {
@@ -80,6 +84,7 @@ class Loan(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     person_id = db.Column(db.Integer, db.ForeignKey('persons.id'), nullable=False, index=True)
+    person = db.relationship('Person', backref='loan')
     amount = db.Column(db.Integer)
     interest_rate = db.Column(db.Integer)
     start_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
@@ -135,8 +140,12 @@ class Investment(db.Model):
 class Bank(db.Model):
     __tablename__ = 'banks'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, nullable = False)
-    balance = db.Column(db.Float, default = 0.0)
+    name = db.Column(db.String, nullable=False)
+    balance_bfd = db.Column(db.Float, default=0.0)
+    new_balance = db.Column(db.Float, default=0.0)
+    payments = db.relationship('Payment', backref='bank')
+
+    
 
     def to_json(self):
         return {
@@ -144,6 +153,13 @@ class Bank(db.Model):
             'description': self.name,
             'amount': self.balance,
         }
+
+
+class Income(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    amount = db.Column(db.Float, default = 0.0)
+    description = db.Column(db.String, nullable = False)
+    balance = db.Column(db.Float, default = 0.0)
 
 with app.app_context():
     db.create_all()

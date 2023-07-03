@@ -26,6 +26,7 @@
                 <th>Payment ID</th>
                 <th>Description</th>
                 <th>Amount</th>
+                <th>Balance</th>
             </tr>
         </thead>
         <tbody>
@@ -36,6 +37,7 @@
                         <td>{{ payment.id }}</td>
                         <td>{{ payment.description }}</td>
                         <td>{{ payment.amount }}</td>
+                        <td>{{ payment.balance }}</td>
                     </tr>
                 {% endif %}
             {% endfor %}

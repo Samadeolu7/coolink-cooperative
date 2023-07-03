@@ -1,6 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
-from models import Company, Person, Payment , Loan, Expense,Investment,Bank
+from models import Company, Person, Payment , Loan, Expense,Investment,Bank,Income
 from datetime import datetime
 
 def log_report(report):
@@ -20,23 +20,28 @@ class Queries():
 
     def save_amount(self,employee_id,amount,date,description=None):
         person = Person.query.filter_by(id=employee_id).first()
+        bank = Bank.query.first()
         if person:
             person.total_balance += float(amount)
-            self.db.session.commit()
+
+            bank.new_balance +=  float(amount)
             
-            payment = Payment(amount=amount, date=date, person_id=person.id,exact_date=datetime.utcnow(),description=description)
+            payment = Payment(amount=amount, date=date, person_id=person.id,
+                              exact_date=datetime.utcnow(),description=description,
+                              balance =person.total_balance,bank_balance=bank.new_balance,
+                              bank_id=bank.id)
+            
+
             self.db.session.add(payment)
             self.db.session.commit()
 
-            company = Company.query.filter_by(id = Person.company_id).first()
-            company.amount_accumulated += float(amount)
-            self.db.session.add(company)
-            self.db.session.commit()
+            
 
     def make_loan(self,employee_id,amount,interest_rate,start_date,end_date):
         person = Person.query.filter_by(employee_id=employee_id).first()
         if person:
-            person.loan_balance += float(amount) +( float(amount) * (float(interest_rate)/100))
+            loan_repay = float(amount) +( float(amount) * (float(interest_rate)/100))
+            person.loan_balance += loan_repay 
             self.db.session.commit()
 
             loan = Loan(
@@ -48,7 +53,21 @@ class Queries():
         )
             self.db.session.add(loan)
             self.db.session.commit()
+
+            amount=loan_repay-float(amount)
+            last_entry = Income.query.order_by(Income.id.desc()).first()
+            if last_entry:
+                balance = last_entry.balance + amount
+                income = Income(amount=amount,description=f'loan intrest on {person.name}',balance=balance )
+                self.db.session.add(income)
+                self.db.session.commit()
+            else:
+                income = Income(amount=amount,description=f'loan intrest on {person.name}',balance=amount )
+                self.db.session.add(income)
+                self.db.session.commit()
+
         bank = Bank.query.filter_by(id=1).first()
+
         if bank:
             bank.balance -= float(amount)
             self.db.session.commit()
@@ -60,7 +79,7 @@ class Queries():
             person.loan_balance -= float(amount)
             self.db.session.commit()
 
-            payment =Payment(amount=amount,exact_date=datetime.utcnow(),date=date,person_id=person.id,loan=True,description=description)
+            payment =Payment(amount=amount,exact_date=datetime.utcnow(),date=date,person_id=person.id,loan=True,description=description,balance =person.loan_balance)
             self.db.session.add(payment)
             self.db.session.commit()
 
