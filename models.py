@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from datetime import datetime, date
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cooperative.db'
@@ -35,9 +35,8 @@ class Person(db.Model):
     phone_no = db.Column(db.String)
     total_balance = db.Column(db.Float, default=0.0)
     loan_balance = db.Column(db.Float, default=0.0)
-    loans = db.relationship('Loan', backref='person_loans')
+    loans = db.relationship('Loan', backref='person')
     payments_made = db.relationship('Payment', backref='payer', lazy=True)
-    
 
     def to_json(self):
         return {
@@ -47,27 +46,27 @@ class Person(db.Model):
             'name': self.name,
             'email': self.email,
             'phone_no': self.phone_no,
-            'savings': self.savings,
             'total_balance': self.total_balance,
             'loan_balance': self.loan_balance,
-            'monthly_payment_amount': self.monthly_payment_amount,
-            'payment_history': [payment.to_json() for payment in self.payment_history]
+            'loans': [loan.to_json() for loan in self.loans],
+            'payments_made': [payment.to_json() for payment in self.payments_made]
         }
+
 
 class Payment(db.Model):
     __tablename__ = 'payments'
+
     id = db.Column(db.Integer, primary_key=True)
     amount = db.Column(db.Float, nullable=False)
     exact_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    date = db.Column(db.DateTime, nullable=False)
-    person_id = db.Column(db.Integer, db.ForeignKey('persons.id'), nullable=True, index=True)
+    date = db.Column(db.Date, nullable=False)
+    person_id = db.Column(db.Integer, db.ForeignKey('persons.id'), nullable=False, index=True)
     company_id = db.Column(db.Integer, db.ForeignKey('companies.id'), nullable=True, index=True)
     description = db.Column(db.String, nullable=True)
     balance = db.Column(db.Float, nullable=True)
     bank_balance = db.Column(db.Float, nullable=True)
     loan = db.Column(db.Boolean, default=False)
     bank_id = db.Column(db.Integer, db.ForeignKey('banks.id'), nullable=True, index=True)
-
 
     def to_json(self):
         return {
@@ -84,11 +83,10 @@ class Loan(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     person_id = db.Column(db.Integer, db.ForeignKey('persons.id'), nullable=False, index=True)
-    person = db.relationship('Person', backref='loan')
     amount = db.Column(db.Integer)
     interest_rate = db.Column(db.Integer)
-    start_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    end_date = db.Column(db.DateTime, nullable=False)
+    start_date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
+    end_date = db.Column(db.Date, nullable=False)
     is_paid = db.Column(db.Boolean, default=False)
 
     def to_json(self):
@@ -103,13 +101,14 @@ class Loan(db.Model):
         }
 
 
+
 class Expense(db.Model):
     __tablename__ = 'expenses'
 
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.Text)
     amount = db.Column(db.Integer)
-    date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
 
     def to_json(self):
         return {
@@ -126,7 +125,7 @@ class Investment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.Text)
     amount = db.Column(db.Integer)
-    date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
 
     def to_json(self):
         return {

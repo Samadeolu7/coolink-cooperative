@@ -54,23 +54,29 @@ class Queries():
             self.db.session.add(loan)
             self.db.session.commit()
 
-            amount=loan_repay-float(amount)
+            intrest_amount=loan_repay-float(amount)
             last_entry = Income.query.order_by(Income.id.desc()).first()
             if last_entry:
-                balance = last_entry.balance + amount
-                income = Income(amount=amount,description=f'loan intrest on {person.name}',balance=balance )
+                balance = last_entry.balance + intrest_amount
+                income = Income(amount=intrest_amount,description=f'loan interest on {person.name}',balance=balance )
                 self.db.session.add(income)
                 self.db.session.commit()
             else:
-                income = Income(amount=amount,description=f'loan intrest on {person.name}',balance=amount )
+                income = Income(amount=intrest_amount,description=f'loan interest on {person.name}',balance=amount )
                 self.db.session.add(income)
                 self.db.session.commit()
 
-        bank = Bank.query.filter_by(id=1).first()
+            bank = Bank.query.filter_by(id=1).first()
 
-        if bank:
-            bank.balance -= float(amount)
-            self.db.session.commit()
+            if bank:
+                bank.new_balance -= float(amount)
+                payment = Payment(amount=-1*amount, date=start_date, person_id=person.id,loan=True,
+                              exact_date=datetime.utcnow(),description=f'loan given {person.name}',
+                              balance =person.loan_balance,bank_balance=bank.new_balance,
+                              bank_id=bank.id)
+            
+                self.db.session.add(payment)
+                self.db.session.commit()
 
     def repay_loan(self,id,amount,date,description=None):
         person = Person.query.filter_by(id=id).first()
@@ -79,13 +85,17 @@ class Queries():
             person.loan_balance -= float(amount)
             self.db.session.commit()
 
-            payment =Payment(amount=amount,exact_date=datetime.utcnow(),date=date,person_id=person.id,loan=True,description=description,balance =person.loan_balance)
+            bank = Bank.query.filter_by(id=1).first()
+            bank.new_balance +=  float(amount)
+            
+            payment = Payment(amount=amount, date=date, person_id=person.id,loan=True,
+                              exact_date=datetime.utcnow(),description=description,
+                              balance =person.total_balance,bank_balance=bank.new_balance,
+                              bank_id=bank.id)
+
             self.db.session.add(payment)
             self.db.session.commit()
 
-            company = Company.query.filter_by(id = Person.company_id).first()
-            company.amount_accumulated += float(amount)
-            self.db.session.commit()
 
 
     def company_payment(self,company_id,amount):

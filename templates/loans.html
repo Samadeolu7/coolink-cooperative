@@ -25,7 +25,7 @@
                 {% for loan in loans %}
                 <tr>
                     <td>{{ loan.id }}</td>
-                    <td>{{ loan.person.name }}</td>  <!-- Fetching the person's name -->
+                    <td><a href="{{url_for('loan_account',person_id=loan.person.id)}}">{{ loan.person.name }}</a></td>  <!-- Fetching the person's name -->
                     <td>{{ loan.amount }}</td>
                     <td>{{ loan.interest_rate }}</td>
                     <td>{{ loan.start_date }}</td>

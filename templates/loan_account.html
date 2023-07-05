@@ -17,7 +17,7 @@
 <body>
     <h1>Coolink Cooperative Loan Account</h1>
     <p>Name: {{ person.name }}</p>
-    <p>Company: {{ person.company }}</p>
+    <p>Company: {{ person.company.name }}</p>
     <p>Member ID: {{ person.employee_id }}</p>
     <p>Loan:{{person.loan_balance}}</p>
     
@@ -43,6 +43,30 @@
             {% endfor %}
         </tbody>
     </table>
-
+    <h2>Payments</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Payment ID</th>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>Balance</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for payment in payments %}
+                {% if payment.loan == True %}
+                    <tr>
+                        <td>{{ payment.date }}</td>
+                        <td>{{ payment.id }}</td>
+                        <td>{{ payment.description }}</td>
+                        <td>{{ payment.amount }}</td>
+                        <td>{{ payment.balance }}</td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+        </tbody>
+    </table>
 </body>
 </html>

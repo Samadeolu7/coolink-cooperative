@@ -151,10 +151,10 @@ def savings_account(person_id):
     return render_template('savings_account.html', payments= payments,person=person,company = company)
 
 @app.route('/loan/<person_id>', methods=['GET', 'POST'])
-def loan_acccount(person_id):
+def loan_account(person_id):
     loans = Loan.query.filter_by(person_id=person_id)
-    payments = query.get_payments(person_id)
     person = query.get_person(person_id)
+    payments = person.payments_made
     company = Company.query.get(person.company_id)
     return render_template('loan_account.html', payments= payments,person=person,company = company,loans=loans)
 

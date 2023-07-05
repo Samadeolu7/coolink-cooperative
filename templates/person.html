@@ -2,6 +2,17 @@
 <html>
 <head>
     <title>Person Details</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
 </head>
 <body>
     <h1>Person Details</h1>
@@ -13,11 +24,9 @@
             <th>Name</th>
             <th>Email</th>
             <th>Phone Number</th>
-            <th>Savings</th>
-            <th>Total Balance</th>
+            <th>Savings Balance</th>
             <th>Loan Balance</th>
-            <th>Monthly Payment Amount</th>
-            <th>Company ID</th>
+            <th>Company </th>
         </tr>
         {%for person in persons%}
         <tr>
@@ -27,11 +36,9 @@
             <td>{{ person.name }}</td>
             <td>{{ person.email }}</td>
             <td>{{ person.phone_no }}</td>
-            <td>{{ person.savings }}</td>
             <td>{{ person.total_balance }}</td>
             <td>{{ person.loan_balance }}</td>
-            <td>{{ person.monthly_payment_amount }}</td>
-            <td>{{ person.company_id }}</td>
+            <td>{{ person.company.name }}</td>
         </tr>
         {%endfor%}
     </table>
