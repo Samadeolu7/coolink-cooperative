@@ -9,7 +9,7 @@
     {% if messages %}
         <ul class="flash-messages">
             {% for message in messages %}
-                <li class="{{ message[1] }}">{{ message[0] }}</li>
+                <li class="{{ message }}">{{ message }}</li>
             {% endfor %}
         </ul>
     {% endif %}

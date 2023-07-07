@@ -25,7 +25,7 @@ class PersonForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
     phone_no = StringField('Phone No')
-    total_balance = FloatField('Total Balance')
+    total_balance = FloatField('Balance B/FWD')
     loan_balance = FloatField('Loan Balance')
     company_id = IntegerField('Company ID', validators=[DataRequired()])
     submit = SubmitField('Submit')

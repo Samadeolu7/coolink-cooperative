@@ -1,0 +1,2 @@
+Assumptions
+No one can have more than one loan on his Account

@@ -5,6 +5,9 @@ from excel_helper import process_excel,generate_repayment_schedule,export_repaym
 from queries import Queries
 from sqlalchemy.orm import subqueryload
 import pandas as pd
+from jinja2 import Environment, FileSystemLoader
+from filters import format_currency
+
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cooperative.db'  # Replace with your database URI
@@ -15,6 +18,9 @@ query= Queries(db)
 def log_report(report):
     with open("report.txt", 'a', encoding='utf-8') as f:
             f.write(f'{report}\n')
+
+env = Environment(loader=FileSystemLoader('./templates'))
+env.filters['currency'] = format_currency
 
 # Routes for creating and submitting forms
 
@@ -80,9 +86,8 @@ def create_person():
         flash('Person created successfully.', 'success')
         return redirect(url_for('index'))
     else:
-        for field, errors in form.errors.items():
-            for error in errors:
-                flash(f'Error in field "{getattr(form, field).label.text}": {error}', 'error')
+        
+                flash(f'Error in field {form.errors}')
     return render_template('person_form.html', form=form, companies=Company.query.all())
 
 @app.route('/payment', methods=['GET', 'POST'])
@@ -154,9 +159,18 @@ def savings_account(person_id):
 def loan_account(person_id):
     loans = Loan.query.filter_by(person_id=person_id)
     person = query.get_person(person_id)
-    payments = person.payments_made
+    payments = [payment for payment in person.payments_made if payment.loan]
     company = Company.query.get(person.company_id)
-    return render_template('loan_account.html', payments= payments,person=person,company = company,loans=loans)
+
+    env = Environment(loader=FileSystemLoader('./templates'))
+    env.filters['currency'] = format_currency
+
+    template = env.get_template('loan_account.html')
+    output = template.render(payments=payments, person=person, company=company, loans=loans)
+
+    return output
+
+
 
 @app.route('/bank_report')
 def bank_report():

@@ -19,7 +19,7 @@
     <p>Name: {{ person.name }}</p>
     <p>Company: {{ person.company.name }}</p>
     <p>Member ID: {{ person.employee_id }}</p>
-    <p>Loan:{{person.loan_balance}}</p>
+    <p>Loan: {{ person.loan_balance | currency }}</p>
     
     <table>
         <thead>
@@ -32,17 +32,16 @@
         </thead>
         <tbody>
             {% for loan in loans %}
-                
-                    <tr>
-                        <td>{{ loan.start_date }}</td>                    
-                        <td>{{ loan.amount }}</td>
-                        <td>{{ (loan.amount * (loan.interest_rate/100)) }}</td>
-                        <td>{{ person.loan_balance}}</td>
-                    </tr>
-                
+                <tr>
+                    <td>{{ loan.start_date }}</td>                    
+                    <td>{{ loan.amount | currency }}</td>
+                    <td>{{ (loan.amount * (loan.interest_rate/100)) | currency }}</td>
+                    <td>{{ person.loan_balance | currency }}</td>
+                </tr>
             {% endfor %}
         </tbody>
     </table>
+    
     <h2>Payments</h2>
     <table>
         <thead>
@@ -55,17 +54,39 @@
             </tr>
         </thead>
         <tbody>
-            {% for payment in payments %}
-                {% if payment.loan == True %}
+            
+            {% if payments %}
+                {% if payments[0].loan %}
                     <tr>
-                        <td>{{ payment.date }}</td>
-                        <td>{{ payment.id }}</td>
-                        <td>{{ payment.description }}</td>
-                        <td>{{ payment.amount }}</td>
-                        <td>{{ payment.balance }}</td>
+                        <td>{{ payments[0].date }}</td>
+                        <td>{{ payments[0].id }}</td>
+                        <td>{{ payments[0].description }}</td>
+                        <td>{{ payments[0].amount | currency }}</td>
+                        <td>{{ person.loans[0].amount | currency }}</td>
                     </tr>
+                    <!-- Add your new transaction row here -->
+                    <tr>
+                        <td>{{ payments[0].date }}</td>
+                        <td>0</td>
+                        <td>Loan interest</td>
+                        <td>{{ -(person.loans[0].amount * (person.loans[0].interest_rate/100)) | currency }}</td>
+                        <td>{{ (person.loans[0].amount + (person.loans[0].amount * (person.loans[0].interest_rate/100))) | currency }}</td>                      
+                    </tr>
+                    
                 {% endif %}
-            {% endfor %}
+                {% for payment in payments[1:] %}
+                    {% if payment.loan %}
+                        <tr>
+                            <td>{{ payment.date }}</td>
+                            <td>{{ payment.id }} </td>
+                            <td>{{ payment.description }}</td>
+                            <td>{{ payment.amount | currency }}</td>
+                            <td>{{ payment.balance | currency }}</td>
+                        </tr>
+                        
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
         </tbody>
     </table>
 </body>

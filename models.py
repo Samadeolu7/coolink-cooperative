@@ -6,6 +6,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cooperative.db'
 db = SQLAlchemy(app)
 
+
 class Company(db.Model):
     __tablename__ = 'companies'
 
@@ -101,7 +102,6 @@ class Loan(db.Model):
         }
 
 
-
 class Expense(db.Model):
     __tablename__ = 'expenses'
 
@@ -159,6 +159,7 @@ class Income(db.Model):
     amount = db.Column(db.Float, default = 0.0)
     description = db.Column(db.String, nullable = False)
     balance = db.Column(db.Float, default = 0.0)
+
 
 with app.app_context():
     db.create_all()

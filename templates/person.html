@@ -36,8 +36,8 @@
             <td>{{ person.name }}</td>
             <td>{{ person.email }}</td>
             <td>{{ person.phone_no }}</td>
-            <td>{{ person.total_balance }}</td>
-            <td>{{ person.loan_balance }}</td>
+            <td>{{ person.total_balance| currency  }}</td>
+            <td>{{ person.loan_balance| currency  }}</td>
             <td>{{ person.company.name }}</td>
         </tr>
         {%endfor%}

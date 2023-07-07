@@ -16,6 +16,7 @@
                     <th>Person Name</th>
                     <th>Amount</th>
                     <th>Interest Rate</th>
+                    <th>Balance</th>
                     <th>Start Date</th>
                     <th>Due Date</th>
                     <th>Is Paid</th>
@@ -28,6 +29,7 @@
                     <td><a href="{{url_for('loan_account',person_id=loan.person.id)}}">{{ loan.person.name }}</a></td>  <!-- Fetching the person's name -->
                     <td>{{ loan.amount }}</td>
                     <td>{{ loan.interest_rate }}</td>
+                    <td>{{ loan.person.loan_balance }}</td>
                     <td>{{ loan.start_date }}</td>
                     <td>{{ loan.end_date }}</td>
                     <td>{{ loan.is_paid }}</td>

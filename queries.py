@@ -27,16 +27,14 @@ class Queries():
             bank.new_balance +=  float(amount)
             
             payment = Payment(amount=amount, date=date, person_id=person.id,
-                              exact_date=datetime.utcnow(),description=description,
+                              exact_date=datetime.utcnow(),description=description +f' from {person.name}',
                               balance =person.total_balance,bank_balance=bank.new_balance,
                               bank_id=bank.id)
             
 
             self.db.session.add(payment)
             self.db.session.commit()
-
-            
-
+          
     def make_loan(self,employee_id,amount,interest_rate,start_date,end_date):
         person = Person.query.filter_by(employee_id=employee_id).first()
         if person:
@@ -71,7 +69,7 @@ class Queries():
             if bank:
                 bank.new_balance -= float(amount)
                 payment = Payment(amount=-1*amount, date=start_date, person_id=person.id,loan=True,
-                              exact_date=datetime.utcnow(),description=f'loan given {person.name}',
+                              exact_date=datetime.utcnow(),description=f'loan given to {person.name}',
                               balance =person.loan_balance,bank_balance=bank.new_balance,
                               bank_id=bank.id)
             
@@ -89,8 +87,8 @@ class Queries():
             bank.new_balance +=  float(amount)
             
             payment = Payment(amount=amount, date=date, person_id=person.id,loan=True,
-                              exact_date=datetime.utcnow(),description=description,
-                              balance =person.total_balance,bank_balance=bank.new_balance,
+                              exact_date=datetime.utcnow(),description=description + f'from {person.name}',
+                              balance =person.loan_balance,bank_balance=bank.new_balance,
                               bank_id=bank.id)
 
             self.db.session.add(payment)
