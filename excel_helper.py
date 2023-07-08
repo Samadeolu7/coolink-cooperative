@@ -31,6 +31,15 @@ def create_loan(rows_to_update):
     for index, row in rows_to_update.iterrows():
          query.make_loan(row['COY'],row['Amount'])
 
+def send_upload_to_savings(filename):
+    df = process_excel(filename)
+    for index, row in df:
+        query.save_amount_company(row['COY'],row['Amount'],row['Date'],row['description'])
+
+def send_upload_to_loan_repayment(filename):
+    df = process_excel(filename)
+    for index, row in df:
+        query.repay_loan_company(row['COY'],row['Amount'],row['Date'],row['description'])
 
 # Function to generate the repayment schedule
 def generate_repayment_schedule(person_id, loan_amount, interest_rate, start_date, end_date):

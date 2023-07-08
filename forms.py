@@ -20,11 +20,11 @@ class BankForm(FlaskForm):
 
 
 class PersonForm(FlaskForm):
-    is_admin = BooleanField('Is Admin')
+    # user_group = SelectField('User Group',choices=[(, '5%'), (10, '10%'), (15, '15%')])
     employee_id = StringField('Employee ID', validators=[DataRequired()])
     name = StringField('Name', validators=[DataRequired()])
-    email = StringField('Email', validators=[DataRequired(), Email()])
-    phone_no = StringField('Phone No')
+    email = StringField('Email', validators=[ Email()])
+    phone_no = StringField('Phone No',validators=[DataRequired()])
     total_balance = FloatField('Balance B/FWD')
     loan_balance = FloatField('Loan Balance')
     company_id = IntegerField('Company ID', validators=[DataRequired()])
@@ -35,8 +35,10 @@ class PaymentForm(FlaskForm):
     amount = DecimalField('Amount', validators=[DataRequired()])
     date = DateField('Date', validators=[DataRequired()])
     payment_type = SelectField('Payment Type', choices=[('savings', 'Savings'), ('loan', 'Loan')], validators=[DataRequired()])
+    bank = SelectField('Bank',coerce=int, validators=[DataRequired()])
     person_id = SelectField('Person', coerce=int, validators=[DataRequired()])
     description = StringField('Description')
+    ref_no = StringField('Ref Number', validators=[DataRequired()])
     submit = SubmitField('Submit')
 
 

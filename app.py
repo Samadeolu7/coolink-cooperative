@@ -1,12 +1,11 @@
-from flask import Flask, render_template, request, redirect,send_file, render_template, redirect, url_for, flash , get_flashed_messages
+from flask import Flask, render_template, request, redirect,send_file, render_template, redirect, url_for, flash
 from forms import CompanyForm, PersonForm, PaymentForm, LoanForm, ExpenseForm, InvestmentForm,BankForm
-from models import db,Company, Person, Payment, Loan, Expense, Investment,Bank,Income
-from excel_helper import process_excel,generate_repayment_schedule,export_repayment_schedule_to_excel
+from models import db,Company,Person
+from excel_helper import generate_repayment_schedule,export_repayment_schedule_to_excel,send_upload_to_savings,send_upload_to_loan_repayment
 from queries import Queries
 from sqlalchemy.orm import subqueryload
 import pandas as pd
-from jinja2 import Environment, FileSystemLoader
-from filters import format_currency
+from filters import render_template_with_currency
 
 
 app = Flask(__name__)
@@ -18,10 +17,6 @@ query= Queries(db)
 def log_report(report):
     with open("report.txt", 'a', encoding='utf-8') as f:
             f.write(f'{report}\n')
-
-env = Environment(loader=FileSystemLoader('./templates'))
-env.filters['currency'] = format_currency
-
 # Routes for creating and submitting forms
 
 @app.route('/')
@@ -35,15 +30,11 @@ def create_company():
     form = CompanyForm()
 
     if form.validate_on_submit():
-        company = Company(name=form.name.data, amount_accumulated=0.0)#remember to add to form for admin or ask in meeting
-        db.session.add(company)
-        db.session.commit()
+        company =query.create_new_company(name=form.name.data)#remember to add to form for admin or ask in meeting
         flash('Company created successfully.', 'success')
         return redirect(url_for('index'))
     else:
-        for field, errors in form.errors.items():
-            for error in errors:
-                flash(f'Error in field "{getattr(form, field).label.text}": {error}', 'error')
+        flash(form.errors)
 
     return render_template('company_form.html', form=form)
 
@@ -51,17 +42,13 @@ def create_company():
 def create_bank():
     form = BankForm()
     if form.validate_on_submit():
-        bank = Bank(name=form.name.data, balance_bfd=form.balance.data,new_balance=form.balance.data)#remember to add to form for admin or ask in meeting
-        db.session.add(bank)
-        db.session.commit()
+        query.create_bank(form.name.data,form.balance.data)#remember to add to form for admin or ask in meeting
+        
         flash('Company created successfully.', 'success')
         return redirect(url_for('index'))
     else:
-        for field, errors in form.errors.items():
-            for error in errors:
-                flash(f'Error in field "{getattr(form, field).label.text}": {error}', 'error')
-    if form.errors:
-        log_report(form.errors)
+        flash(form.errors)
+    
     return render_template('bank_form.html', form=form)
 
 
@@ -70,19 +57,15 @@ def create_person():
     form = PersonForm()
     form.company_id.choices = [(company.id, company.name) for company in Company.query.all()]
     if form.validate_on_submit():
-        person = Person(
-            is_admin=form.is_admin.data,
-            employee_id=form.employee_id.data,
+        query.create_new_user(employee_id=form.employee_id.data,
             name=form.name.data,
             email=form.email.data,
             phone_no=form.phone_no.data,
-            
-            total_balance=form.total_balance.data,
+            balance=form.total_balance.data,
             loan_balance=form.loan_balance.data,
             company_id=form.company_id.data
         )
-        db.session.add(person)
-        db.session.commit()
+        
         flash('Person created successfully.', 'success')
         return redirect(url_for('index'))
     else:
@@ -93,23 +76,26 @@ def create_person():
 @app.route('/payment', methods=['GET', 'POST'])
 def make_payment():
     form = PaymentForm()
-    form.person_id.choices = [(person.id, person.name) for person in Person.query.all()]
-    log_report('IT did not VALIDATE')
+    form.person_id.choices = [(person.id, (f'{person.name} ({person.employee_id})')) for person in query.get_persons()]
+    form.bank.choices=[(bank.id,bank.name) for bank in query.get_banks()]
+    
     if form.validate_on_submit():
-        log_report('IT VALIDATED')
+       
         amount = form.amount.data
         payment_type = form.payment_type.data
         description = form.description.data
         selected_person_id = form.person_id.data
         selected_person = Person.query.get(selected_person_id)
         date = form.date.data
+        bank_id = form.bank.data
+        ref_no=form.ref_no.data
         if selected_person:
-            log_report('IT VALIDATED selected person')
+            
             if payment_type == 'savings':
-                query.save_amount(selected_person_id,amount,date,description)
+                query.save_amount(employee_id=selected_person_id,amount=amount,date=date,description=description,bank_id=bank_id,ref_no=ref_no)
                 
             elif payment_type == 'loan':
-                log_report('IT entered loan')
+                
 
                 query.repay_loan(selected_person.id,amount,date,description)
    
@@ -120,69 +106,61 @@ def make_payment():
            flash('Invalid person selection.')
 
         return redirect(url_for('get_person', person_id=selected_person_id))
-    if form.errors:
-        log_report(form.errors)
+    
 
-    return render_template('payment.html', form=form, persons=Person.query.all())
+    return render_template('payment.html', form=form)
 
 #making queries
 
 @app.route('/persons', methods=['GET'])
 def get_persons():
-    persons = Person.query.all()
-    return render_template('person.html', persons=persons)
+    persons = query.get_persons()
+    return render_template_with_currency('person.html', persons=persons)
 
 @app.route('/savings_account', methods=['GET'])
 def get_payments():
-    payments = Payment.query.filter_by(loan=0).all()
-    persons = Person.query.all()
+    payments = query.get_savings()
+    persons = query.get_persons()
     return render_template('savings_payment.html', payments=payments, persons=persons)
 
 @app.route('/loans', methods=['GET', 'POST'])
 def get_loan():
-    loans = Loan.query.all()
+    loans = query.get_loans()
     return render_template('loans.html',loans=loans)
 
 @app.route('/income', methods=['GET'])
 def get_income():
-    incomes = Income.query.all()
-    return render_template('income.html', incomes=incomes)
+    incomes = query.get_income()
+    return render_template_with_currency('income.html', incomes=incomes)
 
 @app.route('/savings_account/<person_id>', methods=['GET', 'POST'])
 def savings_account(person_id):
-    payments = query.get_payments(person_id)
+    payments = query.get_individual_savings(person_id)
     person = query.get_person(person_id)
-    company = Company.query.get(person.company_id)
-    return render_template('savings_account.html', payments= payments,person=person,company = company)
+    return render_template_with_currency('savings_account.html', payments= payments,person=person)
 
 @app.route('/loan/<person_id>', methods=['GET', 'POST'])
 def loan_account(person_id):
-    loans = Loan.query.filter_by(person_id=person_id)
+    loans = query.get_person_loans(person_id)
     person = query.get_person(person_id)
-    payments = [payment for payment in person.payments_made if payment.loan]
-    company = Company.query.get(person.company_id)
+    payments = [payment for payment in person.loan_payments_made ]
+    return render_template_with_currency('loan_account.html',payments=payments, person=person, loans=loans)
 
-    env = Environment(loader=FileSystemLoader('./templates'))
-    env.filters['currency'] = format_currency
-
-    template = env.get_template('loan_account.html')
-    output = template.render(payments=payments, person=person, company=company, loans=loans)
-
-    return output
-
-
-
-@app.route('/bank_report')
+@app.route('/banks_report')
 def bank_report():
+    bank = query.get_banks()
+    return render_template_with_currency('bank_report.html', bank=bank)
+    
+@app.route('/bank_report/<bank_id>')
+def individual_bank_report(bank_id):
     # Query the bank and its associated payments
-    bank = Bank.query.first()
+    bank = query.get_bank(bank_id)
     payments = bank.payments
 
     # Calculate the total amount received by the bank
     total_amount = sum(payment.amount for payment in payments)
-
     # Render the bank report template with the data
-    return render_template('bank_report.html', bank=bank, payments=payments, total_amount=total_amount)
+    return render_template_with_currency('bank_report.html', bank=bank, payments=payments, total_amount=total_amount)
 
 #create loan 
 
@@ -219,47 +197,62 @@ def download_repayment_schedule(file_path):
     # Send the file back to the user as a response
     return send_file(file_path, as_attachment=True)
 
-@app.route('/expense/create', methods=['GET', 'POST'])
-def create_expense():
-    form = ExpenseForm()
-    if form.validate_on_submit():
-        expense = Expense(
-            description=form.description.data,
-            amount=form.amount.data,
-            date=form.date.data
-        )
-        db.session.add(expense)
-        db.session.commit()
-        return redirect(url_for('index'))
-    return render_template('expense_form.html', form=form)
+# @app.route('/expense/create', methods=['GET', 'POST'])
+# def create_expense():
+#     form = ExpenseForm()
+#     if form.validate_on_submit():
+#         expense = Expense(
+#             description=form.description.data,
+#             amount=form.amount.data,
+#             date=form.date.data
+#         )
+#         db.session.add(expense)
+#         db.session.commit()
+#         return redirect(url_for('index'))
+#     return render_template('expense_form.html', form=form)
 
-@app.route('/investment/create', methods=['GET', 'POST'])
-def create_investment():
-    form = InvestmentForm()
-    if form.validate_on_submit():
-        investment = Investment(
-            description=form.description.data,
-            amount=form.amount.data,
-            date=form.date.data
-        )
-        db.session.add(investment)
-        db.session.commit()
-        return redirect(url_for('index'))
-    return render_template('investment_form.html', form=form)
+# @app.route('/investment/create', methods=['GET', 'POST'])
+# def create_investment():
+#     form = InvestmentForm()
+#     if form.validate_on_submit():
+#         investment = Investment(
+#             description=form.description.data,
+#             amount=form.amount.data,
+#             date=form.date.data
+#         )
+#         db.session.add(investment)
+#         db.session.commit()
+#         return redirect(url_for('index'))
+#     return render_template('investment_form.html', form=form)
 
-@app.route('/upload', methods=['GET', 'POST'])
-def upload_file():
+
+#uploads 
+
+@app.route('/upload_savings', methods=['GET', 'POST'])
+def upload_savings():
     if request.method == 'POST':
         file = request.files['file']
-        if file and file.filename.endswith('.xlsx'):
+        if file :
             # Save the uploaded file
             file.save(file.filename)
             # Process the uploaded file
-            process_excel(file.filename)
+            send_upload_to_savings(file.filename)
 
             return redirect('/download')
     return render_template('upload.html')
 
+@app.route('/upload_loan_repayment', methods=['GET', 'POST'])
+def upload_loan():
+    if request.method == 'POST':
+        file = request.files['file']
+        if file :
+            # Save the uploaded file
+            file.save(file.filename)
+            # Process the uploaded file
+            send_upload_to_loan_repayment(file.filename)
+
+            return redirect('/index')
+    return render_template('upload.html')
 
 @app.route('/download')
 def download_file():

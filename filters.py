@@ -1,3 +1,4 @@
+from jinja2 import Environment, FileSystemLoader
 # def format_currency(value, currency_symbol='₦', decimal_separator='.', thousands_separator=','):
 #     formatted_value = f'{currency_symbol}{value:,.2f}'
 #     return formatted_value.replace('.', decimal_separator).replace(',', thousands_separator)
@@ -15,3 +16,15 @@ def format_currency(value, currency_symbol='₦', decimal_separator='.', thousan
     formatted_value = formatted_value.replace('.', decimal_separator).replace(',', thousands_separator)
 
     return formatted_value
+
+def render_template_with_currency(template_name, **context):
+    # Create the Jinja2 environment
+    env = Environment(loader=FileSystemLoader('./templates'))
+    # Register the custom filter
+    env.filters['currency'] = format_currency
+
+    # Render the template with the provided context
+    template = env.get_template(template_name)
+    output = template.render(**context)
+
+    return output

@@ -28,8 +28,8 @@
             {% for income in incomes %}
                 <tr>
                     <td>{{ income.description }}</td>
-                    <td>{{ income.amount }}</td>
-                    <td>{{ income.balance}}</td>
+                    <td>{{ income.amount | currency }}</td>
+                    <td>{{ income.balance | currency}}</td>
                 </tr>
             {% endfor %}
         </tbody>

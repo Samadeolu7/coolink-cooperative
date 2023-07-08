@@ -20,8 +20,8 @@
     <h2>Bank Details</h2>
     <p>Bank ID: {{ bank.id }}</p>
     <p>Name: {{ bank.name }}</p>
-    <p>Balance BFW: {{ bank.balance_bfd }}</p>
-    <p>Balance: {{ bank.new_balance }}</p>
+    <p>Balance BFW: {{ bank.balance_bfd | currency}}</p>
+    <p>Balance: {{ bank.new_balance | currency}}</p>
 
     <h2>Payments Received</h2>
     <table>
@@ -41,14 +41,14 @@
                 <td>{{ payment.id }}</td> 
                 <td>{{ payment.date }}</td>
                 <td>{{ payment.description}}</td>
-                <td>{{ payment.amount }}</td>
-                <td>{{ payment.bank_balance}}</td>
+                <td>{{ payment.amount | currency }}</td>
+                <td>{{ payment.bank_balance | currency}}</td>
                 <!-- Add more columns as needed -->
             </tr>
             {% endfor %}
         </tbody>
     </table>
 
-    <p>Total Amount Received: {{ total_amount }}</p>
+    <p>Total Amount Received: {{ total_amount | currency }}</p>
 </body>
 </html>

@@ -21,27 +21,6 @@
     <p>Member ID: {{ person.employee_id }}</p>
     <p>Loan: {{ person.loan_balance | currency }}</p>
     
-    <table>
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Amount</th>
-                <th>Interest</th>
-                <th>Balance</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for loan in loans %}
-                <tr>
-                    <td>{{ loan.start_date }}</td>                    
-                    <td>{{ loan.amount | currency }}</td>
-                    <td>{{ (loan.amount * (loan.interest_rate/100)) | currency }}</td>
-                    <td>{{ person.loan_balance | currency }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    
     <h2>Payments</h2>
     <table>
         <thead>
@@ -61,7 +40,7 @@
                         <td>{{ payments[0].date }}</td>
                         <td>{{ payments[0].id }}</td>
                         <td>{{ payments[0].description }}</td>
-                        <td>{{ payments[0].amount | currency }}</td>
+                        <td>{{ -payments[0].amount | currency }}</td>
                         <td>{{ person.loans[0].amount | currency }}</td>
                     </tr>
                     <!-- Add your new transaction row here -->
@@ -69,7 +48,7 @@
                         <td>{{ payments[0].date }}</td>
                         <td>0</td>
                         <td>Loan interest</td>
-                        <td>{{ -(person.loans[0].amount * (person.loans[0].interest_rate/100)) | currency }}</td>
+                        <td>{{ (person.loans[0].amount * (person.loans[0].interest_rate/100)) | currency }}</td>
                         <td>{{ (person.loans[0].amount + (person.loans[0].amount * (person.loans[0].interest_rate/100))) | currency }}</td>                      
                     </tr>
                     
@@ -80,7 +59,7 @@
                             <td>{{ payment.date }}</td>
                             <td>{{ payment.id }} </td>
                             <td>{{ payment.description }}</td>
-                            <td>{{ payment.amount | currency }}</td>
+                            <td>{{ -payment.amount | currency }}</td>
                             <td>{{ payment.balance | currency }}</td>
                         </tr>
                         

@@ -17,12 +17,11 @@
 
     <form method="POST">
         {{ form.hidden_tag() }}
-        <label for="person_id">Select Person:</label>
-        <select id="person_id" name="person_id">
-            {% for person in persons %}
-                <option value="{{ person.id }}">{{ person.name }}</option>
-            {% endfor %}
-        </select>
+        {{ form.person_id.label }} {{ form.person_id() }}
+        <br>
+        {{ form.ref_no.label }} {{ form.ref_no() }}
+        <br>
+        {{ form.bank.label }} {{ form.bank() }}
         <br>
         {{ form.amount.label }} {{ form.amount() }}
         <br>
