@@ -204,7 +204,7 @@ class Queries():
         return loans
     
     def get_bank(self,bank_id):
-        bank = Bank.query.get(bank_id=bank_id)
+        bank = Bank.query.get(bank_id)
         return bank
     
     def get_banks(self):

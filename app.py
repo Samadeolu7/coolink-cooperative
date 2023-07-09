@@ -5,7 +5,7 @@ from excel_helper import generate_repayment_schedule,export_repayment_schedule_t
 from queries import Queries
 from sqlalchemy.orm import subqueryload
 import pandas as pd
-from filters import render_template_with_currency
+from filters import render_template_with_currency,format_currency
 
 
 app = Flask(__name__)
@@ -23,7 +23,15 @@ def log_report(report):
 def index():
     return render_template('index.html')
 
+
+@app.template_filter('currency')
+def currency(value):
+    # Implement your filter logic here
+    modified_value = format_currency(value)  # Modify the value as needed
+    return modified_value
+
 #creating data
+
 
 @app.route('/company/create', methods=['GET', 'POST'])
 def create_company():
@@ -149,7 +157,7 @@ def loan_account(person_id):
 @app.route('/banks_report')
 def bank_report():
     bank = query.get_banks()
-    return render_template_with_currency('bank_report.html', bank=bank)
+    return render_template('banks.html', banks=bank)
     
 @app.route('/bank_report/<bank_id>')
 def individual_bank_report(bank_id):

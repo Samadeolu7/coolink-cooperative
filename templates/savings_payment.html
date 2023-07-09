@@ -38,7 +38,7 @@
                         {% endfor %}
                     </td>
                     <td>{{ payment.description}}</td>
-                    <td>{{ payment.amount}}</td>
+                    <td>{{ payment.amount | currency}}</td>
                     
                 </tr>
             {% endfor %}

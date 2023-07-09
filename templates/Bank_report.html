@@ -30,6 +30,7 @@
                 <th>Payment ID</th>
                 <th>Date</th>
                 <th>Description</th>
+                <th>Reference Number</th>
                 <th>Amount</th>
                 <th>Balance</th>
                 <!-- Add more columns as needed -->
@@ -41,6 +42,7 @@
                 <td>{{ payment.id }}</td> 
                 <td>{{ payment.date }}</td>
                 <td>{{ payment.description}}</td>
+                <td>{{ payment.ref_no}}</td>
                 <td>{{ payment.amount | currency }}</td>
                 <td>{{ payment.bank_balance | currency}}</td>
                 <!-- Add more columns as needed -->
