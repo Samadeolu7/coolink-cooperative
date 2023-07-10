@@ -30,6 +30,13 @@
             </tr>
         </thead>
         <tbody>
+            <tr>
+                <td> - </td>
+                <td> - </td>
+                <td>Balance B/FWD</td>
+                <td>{{ person.balance_bfd| currency }}</td>
+                <td>{{ person.balance_bfd| currency }}</td>
+            </tr>
             {% for payment in payments %}
                 
                     <tr>

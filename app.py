@@ -44,7 +44,7 @@ def create_company():
     else:
         flash(form.errors)
 
-    return render_template('company_form.html', form=form)
+    return render_template('forms/company_form.html', form=form)
 
 @app.route('/bank/create', methods=['GET', 'POST'])
 def create_bank():
@@ -57,7 +57,7 @@ def create_bank():
     else:
         flash(form.errors)
     
-    return render_template('bank_form.html', form=form)
+    return render_template('forms/bank_form.html', form=form)
 
 
 @app.route('/person/create', methods=['GET', 'POST'])
@@ -79,7 +79,7 @@ def create_person():
     else:
         
                 flash(f'Error in field {form.errors}')
-    return render_template('person_form.html', form=form, companies=Company.query.all())
+    return render_template('forms/person_form.html', form=form, companies=Company.query.all())
 
 @app.route('/payment', methods=['GET', 'POST'])
 def make_payment():
@@ -105,7 +105,7 @@ def make_payment():
             elif payment_type == 'loan':
                 
 
-                query.repay_loan(selected_person.id,amount,date,description)
+                query.repay_loan(selected_person.id,amount,date,bank_id,ref_no,description)
    
             flash('Payment submitted successfully.')
             return redirect(url_for('index'))
@@ -116,48 +116,48 @@ def make_payment():
         return redirect(url_for('get_person', person_id=selected_person_id))
     
 
-    return render_template('payment.html', form=form)
+    return render_template('forms/payment.html', form=form)
 
 #making queries
 
 @app.route('/persons', methods=['GET'])
 def get_persons():
     persons = query.get_persons()
-    return render_template_with_currency('person.html', persons=persons)
+    return render_template('query/person.html', persons=persons)
 
 @app.route('/savings_account', methods=['GET'])
 def get_payments():
     payments = query.get_savings()
     persons = query.get_persons()
-    return render_template('savings_payment.html', payments=payments, persons=persons)
+    return render_template('query/savings_payment.html', payments=payments, persons=persons)
 
 @app.route('/loans', methods=['GET', 'POST'])
 def get_loan():
     loans = query.get_loans()
-    return render_template('loans.html',loans=loans)
+    return render_template('query/loans.html',loans=loans)
 
 @app.route('/income', methods=['GET'])
 def get_income():
     incomes = query.get_income()
-    return render_template_with_currency('income.html', incomes=incomes)
+    return render_template('query/income.html', incomes=incomes)
 
 @app.route('/savings_account/<person_id>', methods=['GET', 'POST'])
 def savings_account(person_id):
-    payments = query.get_individual_savings(person_id)
     person = query.get_person(person_id)
-    return render_template_with_currency('savings_account.html', payments= payments,person=person)
+    payments = person.payments_made
+    return render_template('query/savings_account.html', payments= payments,person=person)
 
 @app.route('/loan/<person_id>', methods=['GET', 'POST'])
 def loan_account(person_id):
     loans = query.get_person_loans(person_id)
     person = query.get_person(person_id)
     payments = [payment for payment in person.loan_payments_made ]
-    return render_template_with_currency('loan_account.html',payments=payments, person=person, loans=loans)
+    return render_template('query/loan_account.html',payments=payments, person=person, loans=loans)
 
 @app.route('/banks_report')
 def bank_report():
     bank = query.get_banks()
-    return render_template('banks.html', banks=bank)
+    return render_template('query/banks.html', banks=bank)
     
 @app.route('/bank_report/<bank_id>')
 def individual_bank_report(bank_id):
@@ -168,7 +168,7 @@ def individual_bank_report(bank_id):
     # Calculate the total amount received by the bank
     total_amount = sum(payment.amount for payment in payments)
     # Render the bank report template with the data
-    return render_template_with_currency('bank_report.html', bank=bank, payments=payments, total_amount=total_amount)
+    return render_template('query/bank_report.html', bank=bank, payments=payments, total_amount=total_amount)
 
 #create loan 
 
@@ -197,7 +197,7 @@ def create_loan():
         # Return the file path for download
         return redirect(f'/download_repayment_schedule/{file_path}')
 
-    return render_template('loan_form.html', form = form)
+    return render_template('forms/loan_form.html', form = form)
 
 # Route to download the repayment schedule
 @app.route('/download_repayment_schedule/<path:file_path>', methods=['GET'])
@@ -217,7 +217,7 @@ def download_repayment_schedule(file_path):
 #         db.session.add(expense)
 #         db.session.commit()
 #         return redirect(url_for('index'))
-#     return render_template('expense_form.html', form=form)
+#     return render_template('forms/expense_form.html', form=form)
 
 # @app.route('/investment/create', methods=['GET', 'POST'])
 # def create_investment():
@@ -231,7 +231,7 @@ def download_repayment_schedule(file_path):
 #         db.session.add(investment)
 #         db.session.commit()
 #         return redirect(url_for('index'))
-#     return render_template('investment_form.html', form=form)
+#     return render_template('forms/investment_form.html', form=form)
 
 
 #uploads 
@@ -247,7 +247,7 @@ def upload_savings():
             send_upload_to_savings(file.filename)
 
             return redirect('/download')
-    return render_template('upload.html')
+    return render_template('forms/upload.html')
 
 @app.route('/upload_loan_repayment', methods=['GET', 'POST'])
 def upload_loan():
@@ -260,7 +260,7 @@ def upload_loan():
             send_upload_to_loan_repayment(file.filename)
 
             return redirect('/index')
-    return render_template('upload.html')
+    return render_template('forms/upload.html')
 
 @app.route('/download')
 def download_file():

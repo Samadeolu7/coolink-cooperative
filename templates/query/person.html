@@ -36,8 +36,8 @@
             <td>{{ person.name }}</td>
             <td>{{ person.email }}</td>
             <td>{{ person.phone_no }}</td>
-            <td>{{ person.total_balance | currency}}</td>
-            <td>{{ person.loan_balance | currency}}</td>
+            <td><a href="{{url_for('savings_account',person_id=person.id)}}">{{ person.total_balance | currency}}</a></td>
+            <td><a href="{{url_for('loan_account',person_id=person.id)}}">{{ person.loan_balance | currency}}</a></td>
             <td>{{ person.company.name }}</td>
         </tr>
         {%endfor%}

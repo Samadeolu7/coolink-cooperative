@@ -38,6 +38,7 @@ class Person(db.Model):
     balance_bfd = db.Column(db.Float, default=0.0)
     total_balance = db.Column(db.Float, default=0.0)
     loan_balance = db.Column(db.Float, default=0.0)
+    loan_balance_bfd = db.Column(db.Float, default=0.0)
     loans = db.relationship('Loan', backref='person')
     payments_made = db.relationship('SavingPayment', backref='payer', lazy=True)
     loan_payments_made = db.relationship('LoanPayment', backref='payer', lazy=True)

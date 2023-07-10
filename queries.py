@@ -13,7 +13,7 @@ class Queries():
 
     def create_new_user(self, name ,employee_id,phone_no , balance , loan_balance, email,company_id ):
         self.db.session.add(Person(name =name,employee_id=employee_id,email=email,
-                                   total_balance=balance,loan_balance=loan_balance,
+                                   total_balance=balance,loan_balance=loan_balance,loan_balance_bfd=loan_balance,
                                    phone_no=phone_no,balance_bfd =balance,company_id=company_id))
         self.db.session.commit()
 
@@ -121,6 +121,7 @@ class Queries():
     def repay_loan(self,id,amount,date,bank_id,ref_no,description=None):
         person = Person.query.filter_by(id=id).first()
         if person:
+            bank = Bank.query.filter_by(id=bank_id).first()
             
             person.loan_balance -= float(amount)
             loan_payment = LoanPayment(amount=amount, date=date, person_id=person.id,
@@ -128,7 +129,6 @@ class Queries():
                               balance =person.loan_balance, bank_id=bank.id)
             self.db.session.add(loan_payment)     
 
-            bank = Bank.query.filter_by(id=bank_id).first()
             bank.new_balance +=  float(amount)
             
             bank_payment = BankPayment(amount=amount, date=date, person_id=person.id,exact_date=datetime.utcnow(),
