@@ -2,6 +2,9 @@ import pandas as pd,os
 from flask import Flask
 from models import db
 from queries import Queries
+from openpyxl import Workbook
+from openpyxl.styles import Alignment
+from filters import format_currency
 
 
 app = Flask(__name__)
@@ -154,6 +157,102 @@ def create_full_report():
 
     # Save the Excel file
     writer.close()
+
+from openpyxl import Workbook
+from openpyxl.styles import Alignment
+
+def create_payments_excel(person):
+    # Create a new workbook and select the active sheet
+    
+    workbook = Workbook()
+    sheet = workbook.active
+
+    # Set column widths
+    column_widths = [15, 15, 30, 15, 15]
+    for i, width in enumerate(column_widths, start=1):
+        sheet.column_dimensions[chr(64+i)].width = width
+
+    # Add person information
+    sheet['A1'] = 'Coolink Cooperative Savings Account'
+    sheet['A2'] = f'Name: {person.name}'
+    sheet['A3'] = f'Company: {person.company.name}'
+    sheet['A4'] = f'Member ID: {person.employee_id}'
+
+    # Add header row
+    header = ['Date', 'Reference Number', 'Description', 'Amount', 'Balance']
+    for col_num, header_value in enumerate(header, start=1):
+        cell = sheet.cell(row=6, column=col_num)
+        cell.value = header_value
+        cell.alignment = Alignment(horizontal='center', vertical='center')
+
+    # Add balance B/FWD row
+    balance_bfd_row = [None, None, 'Balance B/FWD', format_currency(person.balance_bfd), format_currency(person.balance_bfd)]
+    sheet.append(balance_bfd_row)
+
+    # Add payments made rows
+    for payment in person.payments_made:
+        payment_row = [
+            payment.date.strftime('%Y-%m-%d'),
+            payment.ref_no,
+            payment.description,
+            format_currency(payment.amount),
+            format_currency(payment.balance)
+        ]
+        sheet.append(payment_row)
+
+    # Add total balance row
+    total_balance_row = [None, None, None, None, format_currency(person.total_balance)]
+    sheet.append(total_balance_row)
+
+    # Save the workbook
+    file_path = 'person_payments.xlsx'
+    workbook.save(file_path)
+
+    return file_path
+
+
+# def create_payments_excel(person):
+#     # Create a new workbook and select the active sheet
+#     person = person.to_json()
+#     workbook = Workbook()
+#     sheet = workbook.active
+
+#     # Set column widths
+#     column_widths = [15, 15, 30, 15, 15]
+#     for i, width in enumerate(column_widths, start=1):
+#         sheet.column_dimensions[chr(64+i)].width = width
+
+#     # Add header row
+#     header = ['Date', 'Reference Number', 'Description', 'Amount', 'Balance']
+#     for col_num, header_value in enumerate(header, start=1):
+#         cell = sheet.cell(row=1, column=col_num)
+#         cell.value = header_value
+#         cell.alignment = Alignment(horizontal='center', vertical='center')
+
+#     # Add balance B/FWD row
+#     balance_bfd_row = [None, None, 'Balance B/FWD', person['balance_bfd'], person['balance_bfd']]
+#     sheet.append(balance_bfd_row)
+
+#     # Add payments made rows
+#     for payment in person['payments_made']:
+#         payment_row = [
+#             payment['date'].strftime('%Y-%m-%d'),
+#             payment['ref_no'],
+#             payment['description'],
+#             payment['amount'],
+#             payment['balance']
+#         ]
+#         sheet.append(payment_row)
+
+#     # Add total balance row
+#     total_balance_row = [None, None, None, None, person['total_balance']]
+#     sheet.append(total_balance_row)
+
+#     # Save the workbook
+#     file_path = 'person_payments.xlsx'
+#     workbook.save(file_path)
+
+#     return file_path
 
 
 

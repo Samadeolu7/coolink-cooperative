@@ -34,22 +34,46 @@
                 <td> - </td>
                 <td> - </td>
                 <td>Balance B/FWD</td>
-                <td>{{ person.balance_bfd| currency }}</td>
-                <td>{{ person.balance_bfd| currency }}</td>
+                <td>{{ person.balance_bfd | currency }}</td>
+                <td>{{ person.balance_bfd | currency }}</td>
             </tr>
-            {% for payment in payments %}
-                
-                    <tr>
-                        <td>{{ payment.date }}</td>
-                        <td>{{ payment.ref_no }}</td>
-                        <td>{{ payment.description }}</td>
-                        <td>{{ payment.amount| currency }}</td>
-                        <td>{{ payment.balance| currency }}</td>
-                    </tr>
-                
+            {% for payment in person.payments_made %}
+                <tr>
+                    <td>{{ payment.date }}</td>
+                    <td>{{ payment.ref_no }}</td>
+                    <td>{{ payment.description }}</td>
+                    <td>{{ payment.amount | currency }}</td>
+                    <td>{{ payment.balance | currency }}</td>
+                </tr>
             {% endfor %}
         </tbody>
     </table>
     <h1>Total balance: {{ person.total_balance | currency }}</h1>
+
+    <h2>Download Excel Report</h2>
+    <button id="downloadExcelButton">Download Report</button>
+
+    <h2>Download PDF Report</h2>
+    <button id="downloadPdfButton">Download Report</button>
+
+    <script>
+        // Get the button element by its ID
+        var buttonExcel = document.getElementById("downloadExcelButton");
+        var buttonPdf = document.getElementById("downloadPdfButton");
+
+        // Define the link URL
+        var linkUrlExcel = "{{url_for('download_savings_excel',person_id=person.id)}}";
+        var linkUrlPdf = "{{url_for('download_savings_pdf',person_id=person.id)}}";
+
+        // Add a click event listener to the button
+        buttonExcel.addEventListener("click", function() {
+            // Redirect to the link URL
+            window.location.href = linkUrlExcel;
+        });
+        buttonPdf.addEventListener("click", function() {
+            // Redirect to the link URL
+            window.location.href = linkUrlPdf;
+        });
+    </script>
 </body>
 </html>

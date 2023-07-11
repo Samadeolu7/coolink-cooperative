@@ -1,11 +1,12 @@
-from flask import Flask, render_template, request, redirect,send_file, render_template, redirect, url_for, flash
-from forms import CompanyForm, PersonForm, PaymentForm, LoanForm, ExpenseForm, InvestmentForm,BankForm
+from flask import Flask, render_template, request, redirect,send_file, render_template, redirect, url_for, flash, make_response
+from forms import *
 from models import db,Company,Person
-from excel_helper import generate_repayment_schedule,export_repayment_schedule_to_excel,send_upload_to_savings,send_upload_to_loan_repayment
+from excel_helper import *
+from pdf_helper import *
 from queries import Queries
 from sqlalchemy.orm import subqueryload
-import pandas as pd
-from filters import render_template_with_currency,format_currency
+import pandas as pd ,io, openpyxl,json,pdfkit
+from filters import format_currency
 
 
 app = Flask(__name__)
@@ -23,6 +24,19 @@ def log_report(report):
 def index():
     return render_template('index.html')
 
+@app.template_filter('to_json')
+def to_json(obj):
+    if hasattr(obj, 'to_json'):
+        # Check if the object has a to_dict() method
+        return json.dumps(obj.to_json())
+    elif isinstance(obj, list) or isinstance(obj, dict):
+        # Handle lists and dictionaries by directly serializing them to JSON
+        return json.dumps(obj)
+    else:
+        # Raise an exception for unsupported object types
+        raise TypeError(f'Object of type {obj.__class__.__name__} is not JSON serializable')
+
+# Register the filter in the Jinja environment
 
 @app.template_filter('currency')
 def currency(value):
@@ -195,13 +209,13 @@ def create_loan():
         file_path = export_repayment_schedule_to_excel(repayment_schedule, person_id)
 
         # Return the file path for download
-        return redirect(f'/download_repayment_schedule/{file_path}')
+        return redirect(f'/download/{file_path}')
 
     return render_template('forms/loan_form.html', form = form)
 
 # Route to download the repayment schedule
-@app.route('/download_repayment_schedule/<path:file_path>', methods=['GET'])
-def download_repayment_schedule(file_path):
+@app.route('/download/<path:file_path>', methods=['GET'])
+def download(file_path):
     # Send the file back to the user as a response
     return send_file(file_path, as_attachment=True)
 
@@ -262,8 +276,20 @@ def upload_loan():
             return redirect('/index')
     return render_template('forms/upload.html')
 
-@app.route('/download')
-def download_file():
+@app.route('/download_savings_excel/<person_id>')
+def download_savings_excel(person_id):
     # Generate the Excel file for download
     # ...
-    return send_file('output.xlsx', as_attachment=True)
+    person = query.get_person(person_id)
+    file_path = create_payments_excel(person)
+    return redirect(f'/download/{file_path}')
+    # return send_file('output.xlsx', as_attachment=True)
+
+#downloads
+@app.route('/download_savings_pdf/<person_id>')
+def download_savings_pdf(person_id):
+    # Generate the Excel file for download
+    # ...
+    person = query.get_person(person_id)
+    file_path = create_payments_pdf(person)
+    return redirect(f'/download/{file_path}')
