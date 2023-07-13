@@ -1,12 +1,14 @@
-from flask import Flask, render_template, request, redirect,send_file, render_template, redirect, url_for, flash, make_response
+from flask import Flask, render_template, request, redirect,send_file, render_template, redirect, url_for, flash,abort
 from forms import *
 from models import db,Company,Person
-from excel_helper import *
-from pdf_helper import *
+from excel_helper import create_excel,generate_repayment_schedule,export_repayment_schedule_to_excel,send_upload_to_loan_repayment,send_upload_to_savings
+from pdf_helper import create_pdf
 from queries import Queries
 from sqlalchemy.orm import subqueryload
 import pandas as pd ,io, openpyxl,json,pdfkit
 from filters import format_currency
+from flask_login import LoginManager,login_user, login_required, logout_user, current_user
+login_manager = LoginManager()
 
 
 app = Flask(__name__)
@@ -14,11 +16,39 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cooperative.db'  # Replace wi
 app.config['SECRET_KEY'] = 'your_secret_key'  # Replace with your own secret key
 db.init_app(app)
 query= Queries(db)
+login_manager.init_app(app)
+
+@login_manager.user_loader
+def load_user(person_id):
+    return Person.get(person_id)
 
 def log_report(report):
     with open("report.txt", 'a', encoding='utf-8') as f:
             f.write(f'{report}\n')
 # Routes for creating and submitting forms
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    # Here we use a class of some kind to represent and validate our
+    # client-side form data. For example, WTForms is a library that will
+    # handle this for us, and we use a custom LoginForm to validate.
+    form = LoginForm()
+    if form.validate_on_submit():
+        # Login and validate the user.
+        # user should be an instance of your `User` class
+        # login_user(person)
+
+        flash('Logged in successfully.')
+
+        # next = request.args.get('next')
+        # # url_has_allowed_host_and_scheme should check if the url is safe
+        # # for redirects, meaning it matches the request host.
+        # # See Django's url_has_allowed_host_and_scheme for an example.
+        # if not url_has_allowed_host_and_scheme(next, request.host):
+        #     return abort(400)
+
+        return redirect( url_for('index'))
+    return render_template('login.html', form=form)
 
 @app.route('/')
 def index():
@@ -45,8 +75,6 @@ def currency(value):
     return modified_value
 
 #creating data
-
-
 @app.route('/company/create', methods=['GET', 'POST'])
 def create_company():
     form = CompanyForm()
@@ -72,7 +100,6 @@ def create_bank():
         flash(form.errors)
     
     return render_template('forms/bank_form.html', form=form)
-
 
 @app.route('/person/create', methods=['GET', 'POST'])
 def create_person():
@@ -213,11 +240,7 @@ def create_loan():
 
     return render_template('forms/loan_form.html', form = form)
 
-# Route to download the repayment schedule
-@app.route('/download/<path:file_path>', methods=['GET'])
-def download(file_path):
-    # Send the file back to the user as a response
-    return send_file(file_path, as_attachment=True)
+
 
 # @app.route('/expense/create', methods=['GET', 'POST'])
 # def create_expense():
@@ -276,20 +299,17 @@ def upload_loan():
             return redirect('/index')
     return render_template('forms/upload.html')
 
-@app.route('/download_savings_excel/<person_id>')
-def download_savings_excel(person_id):
-    # Generate the Excel file for download
-    # ...
-    person = query.get_person(person_id)
-    file_path = create_payments_excel(person)
-    return redirect(f'/download/{file_path}')
-    # return send_file('output.xlsx', as_attachment=True)
+#DOWNLOADS
+@app.route('/download_pdf/<type>/<type_id>')
+def download_pdf(type,type_id):
 
-#downloads
-@app.route('/download_savings_pdf/<person_id>')
-def download_savings_pdf(person_id):
-    # Generate the Excel file for download
-    # ...
-    person = query.get_person(person_id)
-    file_path = create_payments_pdf(person)
+    file_path = create_pdf(type,type_id)
+
+    return redirect(f'/download/{file_path}')
+
+@app.route('/download_excel/<type>/<type_id>')
+def download_excel(type,type_id):
+
+    file_path = create_excel(type,type_id)
+
     return redirect(f'/download/{file_path}')

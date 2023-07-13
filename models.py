@@ -1,6 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, date
+from flask_login import UserMixin
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cooperative.db'
@@ -25,19 +26,21 @@ class Company(db.Model):
         }
 
 
-class Person(db.Model):
+class Person(db.Model,UserMixin):
     __tablename__ = 'persons'
 
     id = db.Column(db.Integer, primary_key=True)
-    company_id = db.Column(db.Integer, db.ForeignKey('companies.id'))
-    employee_id = db.Column(db.String, nullable=False)
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String, nullable=True)
+    password = db.Column(db.String(255), nullable=False)
+    company_id = db.Column(db.Integer, db.ForeignKey('companies.id'))
+    employee_id = db.Column(db.String, nullable=False)
     phone_no = db.Column(db.String)
     balance_bfd = db.Column(db.Float, default=0.0)
     total_balance = db.Column(db.Float, default=0.0)
     loan_balance = db.Column(db.Float, default=0.0)
     loan_balance_bfd = db.Column(db.Float, default=0.0)
+    roles = db.relationship('Role', secondary='user_roles')
     loans = db.relationship('Loan', backref='person')
     payments_made = db.relationship('SavingPayment', backref='payer', lazy=True)
     loan_payments_made = db.relationship('LoanPayment', backref='payer', lazy=True)
@@ -58,6 +61,19 @@ class Person(db.Model):
             'payments_made': [payment.to_json() for payment in self.payments_made],
             'loan_payments_made': [payment.to_json() for payment in self.loan_payments_made]
         }
+
+# Define the Role data-model
+class Role(db.Model):
+    __tablename__ = 'roles'
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(50), unique=True)
+
+# Define the UserRoles association table
+class UserRoles(db.Model):
+    __tablename__ = 'user_roles'
+    id = db.Column(db.Integer(), primary_key=True)
+    user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE'))
+    role_id = db.Column(db.Integer(), db.ForeignKey('roles.id', ondelete='CASCADE'))
 
 
 class SavingPayment(db.Model):
@@ -255,6 +271,8 @@ class Bank(db.Model):
 
 class Income(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
+    ref_no = db.Column(db.String)
     amount = db.Column(db.Float, default=0.0)
     description = db.Column(db.String, nullable=False)
     balance = db.Column(db.Float, default=0.0)
@@ -266,7 +284,6 @@ class Income(db.Model):
             'description': self.description,
             'balance': self.balance
         }
-
 
 with app.app_context():
     db.create_all()

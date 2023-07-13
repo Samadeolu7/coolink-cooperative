@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, FloatField, BooleanField, IntegerField, DateField, SubmitField
+from wtforms import StringField, FloatField, PasswordField, IntegerField, DateField, SubmitField
 from wtforms.validators import DataRequired, Email
 from flask import Flask
 from flask_wtf import FlaskForm
@@ -8,6 +8,10 @@ from wtforms.validators import DataRequired
 
 app = Flask(__name__)
 
+class LoginForm(FlaskForm):
+    email = StringField('Email', validators=[ Email(),DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    submit = SubmitField('Log In')
 
 class CompanyForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired()])
@@ -63,3 +67,4 @@ class InvestmentForm(FlaskForm):
     amount = IntegerField('Amount', validators=[DataRequired()])
     date = DateField('Date', validators=[DataRequired()])
     submit = SubmitField('Submit')
+

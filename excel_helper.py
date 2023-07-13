@@ -18,6 +18,36 @@ def log_report(report):
             f.write(f'{report}\n')
 
 # processing input functions
+def create_excel(type,type_id):
+    if type == 'savings':
+        if type_id == None:
+           return create_all_savings_excel()
+        else:
+            person = query.get_person(type_id)
+            return create_payments_excel(person)
+        
+    elif type == 'loan':
+        if type_id == None:
+           return create_all_loans_excel()
+        else:
+            person = query.get_person(type_id)
+            return create_loan_excel(person)
+        
+    elif type == 'bank':
+        if type_id == None:
+           return 
+        else:
+            bank = query.get_bank(type_id)
+            return create_banks_excel(bank)
+        
+    elif type == 'income':
+        if type_id == None:
+           return create_income_excel()
+        else:
+            return 
+    elif type == 'persons':
+        if type_id == None:
+           return create_persons_excel()
 
 def process_excel(filename):
 
@@ -30,9 +60,9 @@ def start_up(rows_to_update):
         # Create a new record in the database for each row
         query.create_new_user(row['Name'],row['COY'],f'samade{row["S/N"]}@gmail.com',row['Phone'],row['BAL B/FWD'],row['Month-January'])
 
-def create_loan(rows_to_update):
-    for index, row in rows_to_update.iterrows():
-         query.make_loan(row['COY'],row['Amount'])
+# def create_loan(rows_to_update):
+#     for index, row in rows_to_update.iterrows():
+#          query.make_loan(row['COY'],row['Amount'])
 
 def send_upload_to_savings(filename):
     df = process_excel(filename)
@@ -158,8 +188,54 @@ def create_full_report():
     # Save the Excel file
     writer.close()
 
-from openpyxl import Workbook
-from openpyxl.styles import Alignment
+
+def create_persons_excel():
+    # Create a new workbook and select the active sheet
+    
+    workbook = Workbook()
+    sheet = workbook.active
+
+    # Set column widths
+    column_widths = [15, 15, 30, 15, 15]
+    for i, width in enumerate(column_widths, start=1):
+        sheet.column_dimensions[chr(64+i)].width = width
+
+    # Add person information
+    sheet['A1'] = 'Coolink Cooperative Savings Account'
+    sheet['A2'] = ''
+    sheet['A3'] = ''
+    sheet['A4'] = ''
+
+    # Add header row
+    header = ['Employee ID', 'Name', 'Email', 'Phone Number', 'Savings Balance', 'Loan  Balance','Company' ]
+    for col_num, header_value in enumerate(header, start=1):
+        cell = sheet.cell(row=6, column=col_num)
+        cell.value = header_value
+        cell.alignment = Alignment(horizontal='center', vertical='center')
+
+
+    # Add payments made rows
+    for person in person.payments_made:
+        payment_row = [
+            person.employee_id,
+            person.name ,
+            person.email ,
+            person.phone_no,
+            format_currency(person.total_balance),
+            format_currency(person.loan_balance),
+            person.company.name
+        ]
+        sheet.append(payment_row)
+
+    # Add total balance row
+    total_balance_row = [None, None, None, None, format_currency(person.total_balance)]
+    sheet.append(total_balance_row)
+
+    # Save the workbook
+    file_path = 'person_payments.xlsx'
+    workbook.save(file_path)
+
+    return file_path
 
 def create_payments_excel(person):
     # Create a new workbook and select the active sheet
@@ -210,51 +286,213 @@ def create_payments_excel(person):
 
     return file_path
 
+def create_loan_excel(person):
+    # Create a new workbook and select the active sheet
+    
+    workbook = Workbook()
+    sheet = workbook.active
 
-# def create_payments_excel(person):
-#     # Create a new workbook and select the active sheet
-#     person = person.to_json()
-#     workbook = Workbook()
-#     sheet = workbook.active
+    # Set column widths
+    column_widths = [15, 15, 30, 15, 15]
+    for i, width in enumerate(column_widths, start=1):
+        sheet.column_dimensions[chr(64+i)].width = width
 
-#     # Set column widths
-#     column_widths = [15, 15, 30, 15, 15]
-#     for i, width in enumerate(column_widths, start=1):
-#         sheet.column_dimensions[chr(64+i)].width = width
+    # Add person information
+    sheet['A1'] = 'Coolink Cooperative Loan Account'
+    sheet['A2'] = f'Name: {person.name}'
+    sheet['A3'] = f'Company: {person.company.name}'
+    sheet['A4'] = f'Member ID: {person.employee_id}'
 
-#     # Add header row
-#     header = ['Date', 'Reference Number', 'Description', 'Amount', 'Balance']
-#     for col_num, header_value in enumerate(header, start=1):
-#         cell = sheet.cell(row=1, column=col_num)
-#         cell.value = header_value
-#         cell.alignment = Alignment(horizontal='center', vertical='center')
+    # Add header row
+    header = ['Date', 'Reference Number', 'Description', 'Amount', 'Balance']
+    for col_num, header_value in enumerate(header, start=1):
+        cell = sheet.cell(row=6, column=col_num)
+        cell.value = header_value
+        cell.alignment = Alignment(horizontal='center', vertical='center')
 
-#     # Add balance B/FWD row
-#     balance_bfd_row = [None, None, 'Balance B/FWD', person['balance_bfd'], person['balance_bfd']]
-#     sheet.append(balance_bfd_row)
+    # Add balance B/FWD row
+    balance_bfd_row = [None, None, 'Balance B/FWD', format_currency(person.loan_balance_bfd), format_currency(person.loan_balance_bfd)]
+    sheet.append(balance_bfd_row)
 
-#     # Add payments made rows
-#     for payment in person['payments_made']:
-#         payment_row = [
-#             payment['date'].strftime('%Y-%m-%d'),
-#             payment['ref_no'],
-#             payment['description'],
-#             payment['amount'],
-#             payment['balance']
-#         ]
-#         sheet.append(payment_row)
+    # Add payments made rows
+    for payment in person.loan_payments_made:
+        payment_row = [
+            payment.date.strftime('%Y-%m-%d'),
+            payment.ref_no,
+            payment.description,
+            format_currency(payment.amount),
+            format_currency(payment.balance)
+        ]
+        sheet.append(payment_row)
 
-#     # Add total balance row
-#     total_balance_row = [None, None, None, None, person['total_balance']]
-#     sheet.append(total_balance_row)
+    # Add total balance row
+    total_balance_row = [None, None, None, None, format_currency(person.loan_balance)]
+    sheet.append(total_balance_row)
 
-#     # Save the workbook
-#     file_path = 'person_payments.xlsx'
-#     workbook.save(file_path)
+    # Save the workbook
+    file_path = f'{person.name}_payments.xlsx'
+    workbook.save(file_path)
 
-#     return file_path
+    return file_path
+
+def create_all_savings_excel():
+    # Create a new workbook and select the active sheet
+    
+    workbook = Workbook()
+    sheet = workbook.active
+
+    # Set column widths
+    column_widths = [15, 15, 30, 15, 15]
+    for i, width in enumerate(column_widths, start=1):
+        sheet.column_dimensions[chr(64+i)].width = width
+
+    # Add person information
+    sheet['A1'] = 'Coolink Cooperative Savings Account'
+    sheet['A2'] =  ' '
+    
+
+    # Add header row
+    header = ['Date', 'Reference Number', 'Description', 'Amount']
+    for col_num, header_value in enumerate(header, start=1):
+        cell = sheet.cell(row=6, column=col_num)
+        cell.value = header_value
+        cell.alignment = Alignment(horizontal='center', vertical='center')
+
+    # Add payments made rows
+    for payment in query.get_savings():
+        payment_row = [
+            payment.date.strftime('%Y-%m-%d'),
+            payment.ref_no,
+            payment.description,
+            format_currency(payment.amount)
+        ]
+        sheet.append(payment_row)
+
+    # Save the workbook
+    file_path = 'savings.xlsx'
+    workbook.save(file_path)
+
+    return file_path
 
 
+def create_all_loans_excel():
+    # Create a new workbook and select the active sheet
+    
+    workbook = Workbook()
+    sheet = workbook.active
+
+    # Set column widths
+    column_widths = [15, 15, 30, 15, 15]
+    for i, width in enumerate(column_widths, start=1):
+        sheet.column_dimensions[chr(64+i)].width = width
+
+    # Add person information
+    sheet['A1'] = 'Coolink Cooperative Loans Account'
+    sheet['A2'] =  ' '
+    
+
+    # Add header row
+    header = ['Date', 'Reference Number', 'Description', 'Amount']
+    for col_num, header_value in enumerate(header, start=1):
+        cell = sheet.cell(row=6, column=col_num)
+        cell.value = header_value
+        cell.alignment = Alignment(horizontal='center', vertical='center')
+
+    # Add payments made rows
+    for payment in query.get_loans():
+        payment_row = [
+            payment.date.strftime('%Y-%m-%d'),
+            payment.ref_no,
+            payment.description,
+            format_currency(payment.amount)
+        ]
+        sheet.append(payment_row)
+
+    # Save the workbook
+    file_path = 'loans.xlsx'
+    workbook.save(file_path)
+
+    return file_path
+
+def create_banks_excel(bank):
+    # Create a new workbook and select the active sheet
+    
+    workbook = Workbook()
+    sheet = workbook.active
+
+    # Set column widths
+    column_widths = [15, 15, 30, 15, 15]
+    for i, width in enumerate(column_widths, start=1):
+        sheet.column_dimensions[chr(64+i)].width = width
+
+    # Add person information
+    sheet['A1'] = 'Coolink Cooperative Savings Account'
+    sheet['A2'] =  ' '
+    
+
+    # Add header row
+    header = ['Date', 'Reference Number', 'Description', 'Amount']
+    for col_num, header_value in enumerate(header, start=1):
+        cell = sheet.cell(row=6, column=col_num)
+        cell.value = header_value
+        cell.alignment = Alignment(horizontal='center', vertical='center')
+
+    # Add payments made rows
+    for payment in query.get_bank(bank.id):
+        payment_row = [
+            payment.date.strftime('%Y-%m-%d'),
+            payment.ref_no,
+            payment.description,
+            format_currency(payment.amount),
+            format_currency(payment.bank_balance)
+        ]
+        sheet.append(payment_row)
+
+    # Save the workbook
+    file_path = 'savings.xlsx'
+    workbook.save(file_path)
+
+    return file_path
+
+def create_income_excel():
+    # Create a new workbook and select the active sheet
+    
+    workbook = Workbook()
+    sheet = workbook.active
+
+    # Set column widths
+    column_widths = [15, 15, 30, 15, 15]
+    for i, width in enumerate(column_widths, start=1):
+        sheet.column_dimensions[chr(64+i)].width = width
+
+    # Add person information
+    sheet['A1'] = 'Coolink Cooperative Income Account'
+    sheet['A2'] =  ' '
+    
+
+    # Add header row
+    header = ['Date', 'Reference Number', 'Description', 'Amount']
+    for col_num, header_value in enumerate(header, start=1):
+        cell = sheet.cell(row=6, column=col_num)
+        cell.value = header_value
+        cell.alignment = Alignment(horizontal='center', vertical='center')
+
+    # Add payments made rows
+    for payment in query.get_income():
+        payment_row = [
+            payment.date.strftime('%Y-%m-%d'),
+            payment.ref_no,
+            payment.description,
+            format_currency(payment.amount),
+            format_currency(payment.balance)
+        ]
+        sheet.append(payment_row)
+
+    # Save the workbook
+    file_path = 'income.xlsx'
+    workbook.save(file_path)
+
+    return file_path
 
 with app.app_context():
     process_excel('./Cooperative 2022 Financial.xlsx')
