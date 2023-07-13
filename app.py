@@ -300,6 +300,11 @@ def upload_loan():
     return render_template('forms/upload.html')
 
 #DOWNLOADS
+@app.route('/download/<path:file_path>', methods=['GET'])
+def download(file_path):
+    # Send the file back to the user as a response
+    return send_file(file_path, as_attachment=True)
+
 @app.route('/download_pdf/<type>/<type_id>')
 def download_pdf(type,type_id):
 

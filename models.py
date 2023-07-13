@@ -32,7 +32,7 @@ class Person(db.Model,UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String, nullable=True)
-    password = db.Column(db.String(255), nullable=False)
+    # password = db.Column(db.String(255), nullable=False)
     company_id = db.Column(db.Integer, db.ForeignKey('companies.id'))
     employee_id = db.Column(db.String, nullable=False)
     phone_no = db.Column(db.String)
@@ -40,7 +40,6 @@ class Person(db.Model,UserMixin):
     total_balance = db.Column(db.Float, default=0.0)
     loan_balance = db.Column(db.Float, default=0.0)
     loan_balance_bfd = db.Column(db.Float, default=0.0)
-    roles = db.relationship('Role', secondary='user_roles')
     loans = db.relationship('Loan', backref='person')
     payments_made = db.relationship('SavingPayment', backref='payer', lazy=True)
     loan_payments_made = db.relationship('LoanPayment', backref='payer', lazy=True)
@@ -67,13 +66,8 @@ class Role(db.Model):
     __tablename__ = 'roles'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(50), unique=True)
-
-# Define the UserRoles association table
-class UserRoles(db.Model):
-    __tablename__ = 'user_roles'
-    id = db.Column(db.Integer(), primary_key=True)
-    user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE'))
-    role_id = db.Column(db.Integer(), db.ForeignKey('roles.id', ondelete='CASCADE'))
+    user_id = db.Column(db.Integer(), db.ForeignKey('persons.id', ondelete='CASCADE'))
+    person = db.relationship('Person', backref='role')
 
 
 class SavingPayment(db.Model):

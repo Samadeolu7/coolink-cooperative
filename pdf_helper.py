@@ -10,33 +10,33 @@ from excel_helper import query
 
 def create_pdf(type,type_id):
     if type == 'savings':
-        if type_id == None:
+        if type_id == 'None':
            return create_all_savings_pdf()
         else:
             person = query.get_person(type_id)
             return create_payments_pdf(person)
         
     elif type == 'loan':
-        if type_id == None:
+        if type_id == 'None':
            return create_all_loan_pdf()
         else:
             person = query.get_person(type_id)
             return create_loan_pdf(person)
         
     elif type == 'bank':
-        if type_id == None:
+        if type_id == 'None':
            return 
         else:
             bank = query.get_bank(type_id)
             return create_bank_pdf(bank)
         
     elif type == 'income':
-        if type_id == None:
+        if type_id == 'None':
            return create_income_pdf()
         else:
             return 
     elif type == 'persons':
-        if type_id == None:
+        if type_id == 'None':
            return create_persons_pdf()
     
 def create_persons_pdf():
@@ -89,7 +89,7 @@ def create_persons_pdf():
     elements.append(table)
 
     # Create the PDF file
-    file_path = 'person_payments.pdf'
+    file_path = 'persons.pdf'
     doc = SimpleDocTemplate(file_path, pagesize=letter)
     doc.build(elements)
 
@@ -115,7 +115,7 @@ def create_payments_pdf(person):
     # Create a table for the payment details
     table_data = [
         ['Date', 'Reference Number', 'Description', 'Amount', 'Balance'],
-        [None, None, 'Balance B/FWD', format_currency(person.balance_bfd), format_currency(person.balance_bfd)]
+        ['None', 'None', 'Balance B/FWD', format_currency(person.balance_bfd), format_currency(person.balance_bfd)]
     ]
 
     for payment in person.payments_made:
@@ -172,7 +172,7 @@ def create_loan_pdf(person):
     # Create a table for the payment details
     table_data = [
         ['Date', 'Reference Number', 'Description', 'Amount', 'Balance'],
-        [None, None, 'Balance B/FWD', format_currency(person.loan_balance_bfd), format_currency(person.loan_balance_bfd)]
+        ['None', 'None', 'Balance B/FWD', format_currency(person.loan_balance_bfd), format_currency(person.loan_balance_bfd)]
     ]
 
     for payment in person.loan_payments_made:

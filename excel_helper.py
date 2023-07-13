@@ -20,33 +20,33 @@ def log_report(report):
 # processing input functions
 def create_excel(type,type_id):
     if type == 'savings':
-        if type_id == None:
+        if type_id == 'None':
            return create_all_savings_excel()
         else:
             person = query.get_person(type_id)
             return create_payments_excel(person)
         
     elif type == 'loan':
-        if type_id == None:
+        if type_id == 'None':
            return create_all_loans_excel()
         else:
             person = query.get_person(type_id)
             return create_loan_excel(person)
         
     elif type == 'bank':
-        if type_id == None:
+        if type_id == 'None':
            return 
         else:
             bank = query.get_bank(type_id)
             return create_banks_excel(bank)
         
     elif type == 'income':
-        if type_id == None:
+        if type_id == 'None':
            return create_income_excel()
         else:
             return 
     elif type == 'persons':
-        if type_id == None:
+        if type_id == 'None':
            return create_persons_excel()
 
 def process_excel(filename):
@@ -215,7 +215,7 @@ def create_persons_excel():
 
 
     # Add payments made rows
-    for person in person.payments_made:
+    for person in query.get_persons():
         payment_row = [
             person.employee_id,
             person.name ,
@@ -227,12 +227,8 @@ def create_persons_excel():
         ]
         sheet.append(payment_row)
 
-    # Add total balance row
-    total_balance_row = [None, None, None, None, format_currency(person.total_balance)]
-    sheet.append(total_balance_row)
-
     # Save the workbook
-    file_path = 'person_payments.xlsx'
+    file_path = 'persons.xlsx'
     workbook.save(file_path)
 
     return file_path
@@ -262,7 +258,7 @@ def create_payments_excel(person):
         cell.alignment = Alignment(horizontal='center', vertical='center')
 
     # Add balance B/FWD row
-    balance_bfd_row = [None, None, 'Balance B/FWD', format_currency(person.balance_bfd), format_currency(person.balance_bfd)]
+    balance_bfd_row = ['None', 'None', 'Balance B/FWD', format_currency(person.balance_bfd), format_currency(person.balance_bfd)]
     sheet.append(balance_bfd_row)
 
     # Add payments made rows
@@ -277,7 +273,7 @@ def create_payments_excel(person):
         sheet.append(payment_row)
 
     # Add total balance row
-    total_balance_row = [None, None, None, None, format_currency(person.total_balance)]
+    total_balance_row = ['None', 'None', 'None', 'None', format_currency(person.total_balance)]
     sheet.append(total_balance_row)
 
     # Save the workbook
@@ -311,7 +307,7 @@ def create_loan_excel(person):
         cell.alignment = Alignment(horizontal='center', vertical='center')
 
     # Add balance B/FWD row
-    balance_bfd_row = [None, None, 'Balance B/FWD', format_currency(person.loan_balance_bfd), format_currency(person.loan_balance_bfd)]
+    balance_bfd_row = ['None', 'None', 'Balance B/FWD', format_currency(person.loan_balance_bfd), format_currency(person.loan_balance_bfd)]
     sheet.append(balance_bfd_row)
 
     # Add payments made rows
@@ -326,7 +322,7 @@ def create_loan_excel(person):
         sheet.append(payment_row)
 
     # Add total balance row
-    total_balance_row = [None, None, None, None, format_currency(person.loan_balance)]
+    total_balance_row = ['None', 'None', 'None', 'None', format_currency(person.loan_balance)]
     sheet.append(total_balance_row)
 
     # Save the workbook
