@@ -1,7 +1,7 @@
 <!-- payments.html -->
 <html>
 <head>
-    <title>Person Payments</title>
+    <title>Income</title>
     <style>
         table {
             width: 100%;
@@ -19,6 +19,8 @@
     <table>
         <thead>
             <tr>
+                <th>Date</th>
+                <th>Reference Number</th>
                 <th>Description</th>
                 <th>Amount</th>
                 <th>Balance</th>
@@ -27,6 +29,8 @@
         <tbody>
             {% for income in incomes %}
                 <tr>
+                    <td>{{ income.date }}</td>
+                    <td>{{ income.ref_no }}</td>
                     <td>{{ income.description }}</td>
                     <td>{{ income.amount | currency }}</td>
                     <td>{{ income.balance | currency}}</td>

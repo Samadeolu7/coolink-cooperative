@@ -12,7 +12,8 @@ class Company(db.Model):
     __tablename__ = 'companies'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
+    name = db.Column(db.String(100), nullable=False,unique=True)
+    balance_bfd = db.Column(db.Float, default=0.0)
     amount_accumulated = db.Column(db.Float, default=0.0)
     payments_made = db.relationship('BankPayment', backref='company_payer', lazy=True)
     employees = db.relationship('Person', backref='company', lazy=True)
@@ -31,11 +32,11 @@ class Person(db.Model,UserMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String, nullable=True)
-    # password = db.Column(db.String(255), nullable=False)
+    email = db.Column(db.String, nullable=True,unique=True)
+    password = db.Column(db.String(255), nullable=False)
     company_id = db.Column(db.Integer, db.ForeignKey('companies.id'))
-    employee_id = db.Column(db.String, nullable=False)
-    phone_no = db.Column(db.String)
+    employee_id = db.Column(db.String, nullable=False,unique=True)
+    phone_no = db.Column(db.String,unique=True)
     balance_bfd = db.Column(db.Float, default=0.0)
     total_balance = db.Column(db.Float, default=0.0)
     loan_balance = db.Column(db.Float, default=0.0)
@@ -212,6 +213,7 @@ class Expense(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.Text)
+    ref_no = db.Column(db.String)
     amount = db.Column(db.Integer)
     balance = balance = db.Column(db.Float, nullable=True)
     date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
@@ -231,6 +233,7 @@ class Investment(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     description = db.Column(db.Text)
+    ref_no = db.Column(db.String)
     amount = db.Column(db.Integer)
     balance = balance = db.Column(db.Float, nullable=True)
     date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
@@ -248,7 +251,7 @@ class Investment(db.Model):
 class Bank(db.Model):
     __tablename__ = 'banks'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, nullable=False)
+    name = db.Column(db.String, nullable=False,unique=True)
     balance_bfd = db.Column(db.Float, default=0.0)
     new_balance = db.Column(db.Float, default=0.0)
     payments = db.relationship('BankPayment', backref='bank')

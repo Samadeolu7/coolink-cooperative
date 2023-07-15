@@ -9,18 +9,20 @@ from wtforms.validators import DataRequired
 app = Flask(__name__)
 
 class LoginForm(FlaskForm):
-    email = StringField('Email', validators=[ Email(),DataRequired()])
+    identifier = StringField('Email', validators=[ DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Log In')
+
 
 class CompanyForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired()])
     submit = SubmitField('Submit')
+    balance_bfd = FloatField('Balance B/FWD')
 
 
 class BankForm(FlaskForm):
     name = StringField('Name',validators=[DataRequired()] )
-    balance = FloatField('Bank Balance')
+    balance = FloatField('Balance B/FWD')
 
 
 class PersonForm(FlaskForm):
@@ -68,3 +70,11 @@ class InvestmentForm(FlaskForm):
     date = DateField('Date', validators=[DataRequired()])
     submit = SubmitField('Submit')
 
+
+class IncomeForm(FlaskForm):
+    amount = DecimalField('Amount', validators=[DataRequired()])
+    date = DateField('Date', validators=[DataRequired()])
+    bank = SelectField('Bank',coerce=int, validators=[DataRequired()])
+    description = StringField('Description')
+    ref_no = StringField('Ref Number', validators=[DataRequired()])
+    submit = SubmitField('Submit')

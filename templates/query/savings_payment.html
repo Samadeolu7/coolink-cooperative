@@ -31,11 +31,7 @@
                 <tr>
                     <td>{{ payment.date }}</td>
                     <td>
-                        {% for person in persons %}
-                            {% if payment.person_id == person.id %}
-                                <a href="{{url_for('savings_account',person_id=person.id)}}">{{ person.name }}</a>
-                            {% endif %}
-                        {% endfor %}
+                        <a href="{{url_for('savings_account',person_id=person.id)}}">{{ payment.payer.name}}</a>
                     </td>
                     <td>{{ payment.description}}</td>
                     <td>{{ payment.amount | currency}}</td>
