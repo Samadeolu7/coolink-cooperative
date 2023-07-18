@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, FloatField, BooleanField, IntegerField, DateField, SubmitField
+from wtforms import StringField, FloatField, PasswordField, IntegerField, DateField, SubmitField
 from wtforms.validators import DataRequired, Email
 from flask import Flask
 from flask_wtf import FlaskForm
@@ -8,15 +8,21 @@ from wtforms.validators import DataRequired
 
 app = Flask(__name__)
 
+class LoginForm(FlaskForm):
+    identifier = StringField('Email', validators=[ DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    submit = SubmitField('Log In')
+
 
 class CompanyForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired()])
     submit = SubmitField('Submit')
+    balance_bfd = FloatField('Balance B/FWD')
 
 
 class BankForm(FlaskForm):
     name = StringField('Name',validators=[DataRequired()] )
-    balance = FloatField('Bank Balance')
+    balance = FloatField('Balance B/FWD')
 
 
 class PersonForm(FlaskForm):
@@ -62,4 +68,13 @@ class InvestmentForm(FlaskForm):
     description = StringField('Description', validators=[DataRequired()])
     amount = IntegerField('Amount', validators=[DataRequired()])
     date = DateField('Date', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+
+class IncomeForm(FlaskForm):
+    amount = DecimalField('Amount', validators=[DataRequired()])
+    date = DateField('Date', validators=[DataRequired()])
+    bank = SelectField('Bank',coerce=int, validators=[DataRequired()])
+    description = StringField('Description')
+    ref_no = StringField('Ref Number', validators=[DataRequired()])
     submit = SubmitField('Submit')

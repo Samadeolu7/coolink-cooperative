@@ -1,7 +1,10 @@
-from sqlalchemy import select
+from sqlalchemy import select,or_
 from sqlalchemy.orm import selectinload
 from models import *
 from datetime import datetime
+import random
+import string
+import csv
 
 def log_report(report):
     with open("report.txt", 'a', encoding='utf-8') as f:
@@ -11,15 +14,41 @@ class Queries():
     def __init__(self,db) -> None:
         self.db = db
 
+    def generate_password(self,lenght=12):
+        characters = string.ascii_letters+string.digits+string.punctuation
+        password=''.join(random.choice(characters)for _ in range(lenght))
+        return password
+    
     def create_new_user(self, name ,employee_id,phone_no , balance , loan_balance, email,company_id ):
-        self.db.session.add(Person(name =name,employee_id=employee_id,email=email,
-                                   total_balance=balance,loan_balance=loan_balance,
+        password = self.generate_password()
+        self.db.session.add(Person(name =name,employee_id=employee_id,email=email,password=password,
+                                   total_balance=balance,loan_balance=loan_balance,loan_balance_bfd=loan_balance,
                                    phone_no=phone_no,balance_bfd =balance,company_id=company_id))
         self.db.session.commit()
 
-    def create_new_company(self,name):
-        self.db.session.add(Company(name=name))
-        db.session.commit()
+        #create .csv file
+        with open (f'{employee_id}_credentials.csv','w',newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['Username','Password'])
+            writer.writerow([f'{employee_id} or {email}',password])
+        
+
+        return file.name
+    
+    def get_user(self,identifier):
+        return Person.query.filter(or_(Person.email == identifier, Person.employee_id == identifier)).first()
+        
+    def validate_password(self,email,password):
+    
+        user_password = self.db.session.query(Person).filter(Person.email == email).first()
+        if user_password.check_password(password):
+            return True
+        else:
+            return False
+        
+    def create_new_company(self,name,balance_bfd):
+        self.db.session.add(Company(name=name,balance_bfd=balance_bfd))
+        db.session.commit()     
 
     def create_bank(self,name,balance):
         bank = Bank(name=name, balance_bfd=balance,new_balance=balance)#remember to add to form for admin or ask in meeting
@@ -48,7 +77,53 @@ class Queries():
      
             self.db.session.commit()
 
-    def save_amount_company(self,employee_id,amount,date,ref_no,bank_id,description=None):
+    def add_income(self,amount,date,ref_no,bank_id,description=None):
+        bank = Bank.query.filter_by(id=bank_id).first()
+        if bank:
+            last_entry = Income.query.order_by(Income.id.desc()).first()
+            if last_entry:
+                income_payment = Income(amount=float(amount), date=date,
+                                exact_date=datetime.utcnow(),description=description,ref_no = ref_no,
+                                balance =amount+last_entry.balance,
+                                bank_id=bank.id)
+            else:
+                income = Income(amount=float(amount),description=description,
+                                ref_no=ref_no,date = date,balance=float(amount) )
+            self.db.session.add(income_payment)
+
+            bank.new_balance +=  float(amount)
+            bank_payment = BankPayment(amount=amount, date=date,exact_date=datetime.utcnow(),
+                                        description=description, ref_no=ref_no,
+                                        bank_balance=bank.new_balance,bank_id=bank.id)
+            
+            self.db.session.add(bank_payment)
+     
+            self.db.session.commit()
+
+    def add_expense(self,amount,date,ref_no,bank_id,description=None):
+        bank = Bank.query.filter_by(id=bank_id).first()
+        if bank:
+            last_entry = Expense.query.order_by(Expense.id.desc()).first()
+            if last_entry:
+                expense_payment = Expense(amount=float(amount), date=date,
+                                exact_date=datetime.utcnow(),description=description,ref_no = ref_no,
+                                balance =float(amount)+last_entry.balance,
+                                bank_id=bank.id)
+            else:
+                expense_payment = Expense(amount=float(amount),description=description,
+                                ref_no=ref_no,date = date,balance=float(amount) )
+            self.db.session.add(expense_payment)
+
+            bank.new_balance -=  float(amount)
+            bank_payment = BankPayment(amount=-amount, date=date,exact_date=datetime.utcnow(),
+                                        description=description, ref_no=ref_no,
+                                        bank_balance=bank.new_balance,bank_id=bank.id)
+            
+            self.db.session.add(bank_payment)
+     
+            self.db.session.commit()
+
+    def save_amount_company(self,employee_id,amount,date,ref_no,description=None):
         person = Person.query.filter_by(id=employee_id).first()
         company = person.company
         
@@ -98,13 +173,14 @@ class Queries():
             last_entry = Income.query.order_by(Income.id.desc()).first()
             if last_entry:
                 balance = last_entry.balance + interest_amount
-                income = Income(amount=interest_amount,description=f'loan interest on {person.name}',balance=balance )
+                income = Income(amount=interest_amount,description=f'loan interest on {person.name}',
+                                ref_no=ref_no,date = date,balance=balance)
                 self.db.session.add(income)
                 
             else:
-                income = Income(amount=interest_amount,description=f'loan interest on {person.name}',balance=interest_amount )
+                income = Income(amount=interest_amount,description=f'loan interest on {person.name}',
+                                ref_no=ref_no,date = date,balance=interest_amount )
                 self.db.session.add(income)
-            
 
             bank = Bank.query.filter_by(id=1).first()
 
@@ -121,6 +197,7 @@ class Queries():
     def repay_loan(self,id,amount,date,bank_id,ref_no,description=None):
         person = Person.query.filter_by(id=id).first()
         if person:
+            bank = Bank.query.filter_by(id=bank_id).first()
             
             person.loan_balance -= float(amount)
             loan_payment = LoanPayment(amount=amount, date=date, person_id=person.id,
@@ -128,7 +205,6 @@ class Queries():
                               balance =person.loan_balance, bank_id=bank.id)
             self.db.session.add(loan_payment)     
 
-            bank = Bank.query.filter_by(id=bank_id).first()
             bank.new_balance +=  float(amount)
             
             bank_payment = BankPayment(amount=amount, date=date, person_id=person.id,exact_date=datetime.utcnow(),
@@ -204,7 +280,7 @@ class Queries():
         return loans
     
     def get_bank(self,bank_id):
-        bank = Bank.query.get(bank_id=bank_id)
+        bank = Bank.query.get(bank_id)
         return bank
     
     def get_banks(self):

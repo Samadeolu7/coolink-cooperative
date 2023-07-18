@@ -17,14 +17,14 @@ def format_currency(value, currency_symbol='₦', decimal_separator='.', thousan
 
     return formatted_value
 
-def render_template_with_currency(template_name, **context):
-    # Create the Jinja2 environment
-    env = Environment(loader=FileSystemLoader('./templates'))
-    # Register the custom filter
-    env.filters['currency'] = format_currency
+# def render_template_with_currency(template_name, **context):
+#     # Create the Jinja2 environment
+#     env = Environment(loader=FileSystemLoader('./templates'))
+#     # Register the custom filter
+#     env.filters['currency'] = format_currency
 
-    # Render the template with the provided context
-    template = env.get_template(template_name)
-    output = template.render(**context)
+#     # Render the template with the provided context
+#     template = env.get_template(template_name)
+#     output = template.render(**context)
 
-    return output
+#     return output

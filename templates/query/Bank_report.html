@@ -30,6 +30,7 @@
                 <th>Payment ID</th>
                 <th>Date</th>
                 <th>Description</th>
+                <th>Reference Number</th>
                 <th>Amount</th>
                 <th>Balance</th>
                 <!-- Add more columns as needed -->
@@ -41,6 +42,7 @@
                 <td>{{ payment.id }}</td> 
                 <td>{{ payment.date }}</td>
                 <td>{{ payment.description}}</td>
+                <td>{{ payment.ref_no}}</td>
                 <td>{{ payment.amount | currency }}</td>
                 <td>{{ payment.bank_balance | currency}}</td>
                 <!-- Add more columns as needed -->
@@ -50,5 +52,30 @@
     </table>
 
     <p>Total Amount Received: {{ total_amount | currency }}</p>
+    <h2>Download Excel Report</h2>
+    <button id="downloadExcelButton">Download Report</button>
+
+    <h2>Download PDF Report</h2>
+    <button id="downloadPdfButton">Download Report</button>
+
+    <script>
+        // Get the button element by its ID
+        var buttonExcel = document.getElementById("downloadExcelButton");
+        var buttonPdf = document.getElementById("downloadPdfButton");
+
+        // Define the link URL
+        var linkUrlExcel = "{{url_for('download_excel',type='bank',type_id=bank.id)}}";
+        var linkUrlPdf = "{{url_for('download_pdf',type='bank',type_id=bank.id)}}";
+
+        // Add a click event listener to the button
+        buttonExcel.addEventListener("click", function() {
+            // Redirect to the link URL
+            window.location.href = linkUrlExcel;
+        });
+        buttonPdf.addEventListener("click", function() {
+            // Redirect to the link URL
+            window.location.href = linkUrlPdf;
+        });
+    </script>
 </body>
 </html>
