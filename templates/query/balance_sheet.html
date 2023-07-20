@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Coollink Employees Multi-Purpose Co-operative Society - Balance Sheet</title>
+    <!-- Include any CSS styles or frameworks you want to use -->
+
+    <!-- Include Chart.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Balance Sheet</h1>
+
+    <!-- Display your balance sheet data here -->
+    <table>
+        <tr>
+            <td>Total Cash and Equivalents:</td>
+            <td>{{ total_cash_and_equivalents }}</td>
+        </tr>
+        <tr>
+            <td>Total Accounts Receivable:</td>
+            <td>{{ total_accounts_receivable }}</td>
+        </tr>
+        <!-- Add other asset items here -->
+        <tr>
+            <td>Total Assets:</td>
+            <td>{{ total_assets }}</td>
+        </tr>
+        <tr>
+            <td>Total Accounts Payable:</td>
+            <td>{{ total_accounts_payable }}</td>
+        </tr>
+        <!-- Add other liability items here -->
+        <tr>
+            <td>Total Liabilities:</td>
+            <td>{{ total_liabilities }}</td>
+        </tr>
+        <tr>
+            <td>Total Equity:</td>
+            <td>{{ total_equity }}</td>
+        </tr>
+        <tr>
+            <td>Total Liabilities & Equity:</td>
+            <td>{{ total_liabilities_and_equity }}</td>
+        </tr>
+    </table>
+    <div style="width: 80%; margin: auto;">
+        <!-- Add a canvas element where the chart will be rendered -->
+        <canvas id="myChart"></canvas>
+      </div>
+
+    <!-- JavaScript for Data Visualization (if needed) -->
+    <script>
+         
+        const balanceSheetData = JSON.parse('{{ balance_sheet_data|tojson|safe }}');
+
+        // Function to create the chart using Chart.js
+        function createChart() {
+            const ctx = document.getElementById('myChart').getContext('2d');
+            const myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Assets', 'Liabilities & Equity'],
+                    datasets: [{
+                        label: 'Amount (N)',
+                        data: [balanceSheetData.total_assets, balanceSheetData.total_liabilities],
+                        backgroundColor: [
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(255, 99, 132, 0.2)',
+                        ],
+                        borderColor: [
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(255, 99, 132, 1)',
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Fetch data and create the chart when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            createChart();
+        });
+    </script>
+
+
+</body>
+</html>
+
+

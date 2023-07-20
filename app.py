@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect,send_file, render_template, redirect, url_for, flash,abort
 from forms import *
-from models import db,Company,Person
+from models import db,Company,Person,Bank
 from excel_helper import create_excel,generate_repayment_schedule,export_repayment_schedule_to_excel,send_upload_to_loan_repayment,send_upload_to_savings
 from pdf_helper import create_pdf
 from queries import Queries
@@ -8,6 +8,8 @@ from sqlalchemy.orm import subqueryload
 import pandas as pd ,io, openpyxl,json,pdfkit
 from filters import format_currency
 from flask_login import LoginManager,login_user, login_required, logout_user, current_user
+from datetime import datetime
+
 login_manager = LoginManager()
 
 
@@ -245,7 +247,51 @@ def individual_bank_report(bank_id):
     # Render the bank report template with the data
     return render_template('query/bank_report.html', bank=bank, payments=payments, total_amount=total_amount)
 
-#create loan 
+
+@app.route('/balance_sheet')
+@login_required
+def balance_sheet():
+    # Retrieve data from the database
+    companies = Company.query.all()
+    banks = Bank.query.all()
+    total_cash_and_equivalents = sum(company.amount_accumulated for company in companies) +sum(bank.new_balance for bank in banks)
+
+    persons = Person.query.all()
+    total_accounts_receivable = sum(person.loan_balance for person in persons)
+
+    # You should perform additional calculations and queries for other assets based on your data models
+
+
+    # Calculate the total assets
+    total_assets = total_cash_and_equivalents + total_accounts_receivable
+
+    total_accounts_payable = sum(person.total_balance for person in persons)
+
+    # You should perform additional calculations and queries for other liabilities based on your data models
+
+    # Calculate the total liabilities
+    total_liabilities = total_accounts_payable 
+
+    # Calculate the total equity and liabilities & equity
+    total_equity = total_assets - total_liabilities
+    total_liabilities_and_equity = total_liabilities + total_equity
+    balance_sheet_data = { 'total_cash_and_equivalents': total_cash_and_equivalents,
+                           'total_accounts_receivable':total_accounts_receivable,
+                           'total_assets':total_assets,
+                           'total_accounts_payable':total_accounts_payable,
+                           'total_liabilities':total_liabilities,
+                           'total_equity':total_equity,
+                           'total_liabilities_and_equity':total_liabilities_and_equity
+    }
+
+    return render_template('query/balance_sheet.html',balance_sheet_data=balance_sheet_data,
+                           total_cash_and_equivalents=total_cash_and_equivalents,
+                           total_accounts_receivable=total_accounts_receivable,
+                           total_assets=total_assets,
+                           total_accounts_payable=total_accounts_payable,
+                           total_liabilities=total_liabilities,
+                           total_equity=total_equity,
+                           total_liabilities_and_equity=total_liabilities_and_equity)
 
 @app.route('/loan/create', methods=['GET', 'POST'])
 @login_required
@@ -355,3 +401,11 @@ def download_excel(type,type_id):
     file_path = create_excel(type,type_id)
 
     return redirect(f'/download/{file_path}')
+
+@app.route("/logout", methods=['GET', 'POST'])
+@login_required
+def logout():
+  logout_user()
+  current_user = None
+  return redirect(url_for('index'))
+
