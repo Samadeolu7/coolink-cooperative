@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accounting Website</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <link rel="stylesheet" href="\static\css\style.css">
+</head>
+<body class="index">
+    <section id="nav">
+        <a href="#" class="head">Accounting</a>
+        <a href="#" class="tail"><i class="fa-sharp fa-solid fa-right-from-bracket" style="color: #000000;"></i></a>
+    </section>
+
+    <section id="topic">
+    <!-- <h1>Report</h1> -->
+    
+    <div class="all-cards">
+    <div class="card">
+        <!-- <img src="img_avatar.png" alt="Avatar" style="width:100%"> -->
+        <h2>01</h2>
+        <div class="container">
+            <a href="{{ url_for('get_persons') }}">View Members</a>
+        </div>
+    </div>
+
+    
+    <div class="card">
+        <!-- <img src="img_avatar.png" alt="Avatar" style="width:100%"> -->
+        <h2>02</h2>
+        <div class="container">
+            <a href="{{ url_for('get_payments') }}">Members Savings Account</a> 
+        </div>
+    </div>
+
+    <div class="card">
+        <!-- <img src="img_avatar.png" alt="Avatar" style="width:100%"> -->
+        <h2>03</h2>
+        <div class="container">
+            <a href="{{ url_for('get_loan') }}">Members Loan</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <!-- <img src="img_avatar.png" alt="Avatar" style="width:100%"> -->
+        <h2>04</h2>
+        <div class="container">
+            <a href="{{ url_for('bank_report') }}">Bank Report</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>05</h2>
+        <div class="container">
+            <a href="{{ url_for('get_income') }}">Income Statement</a> 
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>06</h2>
+        <div class="container">
+            <a href="{{ url_for('create_bank') }}">Create Bank</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>07</h2>
+        <div class="container">
+            <a href="{{ url_for('create_company') }}">Create Company</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>08</h2>
+        <div class="container">
+            <a href="{{ url_for('create_person') }}">Create Member</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>09</h2>
+        <div class="container">
+            <a href="{{ url_for('create_loan') }}">Create Loan</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>10</h2>
+        <div class="container">
+            <a href="{{ url_for('make_payment') }}">Make Payment</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>11</h2>
+        <div class="container">
+            <a href="{{ url_for('make_income') }}">Input Income</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>12</h2>
+        <div class="container">
+            <a href="{{ url_for('create_expense') }}">Add Expense</a>
+        </div>
+    </div>
+
+
+    </div>
+    </section> 
+
+    
+<!-- 
+    <footer>
+        <p>&copy; 2023 Your Accounting Website</p>
+    </footer> -->
+
+
+    <!-- <section class="header">
+        <nav>
+            <a href="#">Accounting</a>
+            <div class="nav-links" id="navLinks">
+                <ul>
+                    <li><a href="{{url_for('index')}}">HOME</a></li>
+                </ul>
+            </div>
+        </nav>
+    </section> -->
+
+</body>
+</html>
