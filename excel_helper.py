@@ -52,26 +52,23 @@ def create_excel(type,type_id):
 def process_excel(filename):
 
     dataframe = pd.read_excel(filename)
-    rows_to_update = dataframe.iloc[0:]
+    rows_to_update = dataframe.iloc[10:]
     return rows_to_update
 
-def start_up(rows_to_update):
-    for index, row in rows_to_update.iterrows():
-        # Create a new record in the database for each row
-        query.create_new_user(row['Name'],row['COY'],f'samade{row["S/N"]}@gmail.com',row['Phone'],row['BAL B/FWD'],row['Month-January'])
-
-# def create_loan(rows_to_update):
-#     for index, row in rows_to_update.iterrows():
-#          query.make_loan(row['COY'],row['Amount'])
-
-def send_upload_to_savings(filename):
+def start_up(filename):
     df = process_excel(filename)
-    for index, row in df:
-        query.save_amount_company(row['COY'],row['Amount'],row['Date'],row['description'])
+    for index, row in df.iterrows():   
+        # Create a new record in the database for each row
+            query.create_new_user(row['Name'],row['COY'],row['Phone'],row['BAL B/FWD'],0,f'test{row["S/N"]}@gmail.com',1)
+
+def send_upload_to_savings(filename,description,date):
+    df = process_excel(filename)
+    for index, row in df.iterrows():
+            query.save_amount_company(row['COY'],row['Amount'],date,row['Ref No'],description)
 
 def send_upload_to_loan_repayment(filename):
     df = process_excel(filename)
-    for index, row in df:
+    for index, row in df.iterrows():
         query.repay_loan_company(row['COY'],row['Amount'],row['Date'],row['description'])
 
 # Function to generate the repayment schedule
@@ -136,7 +133,11 @@ def create_individual_report(employee_id):
                               columns=['ID', 'Is Admin', 'Employee ID', 'Name', 'Email', 'Phone No', 'Savings',
                                        'Total Balance', 'Loan Balance', 'Monthly Payment Amount', 'Company ID'])
     
-    writer = pd.ExcelWriter('cooperative_data.xlsx', engine='xlsxwriter')
+    file_name = "cooperative_data.xlsx"
+    file_path = os.path.join("./excel", file_name)
+
+    # Create an Excel writer object
+    writer = pd.ExcelWriter(file_path, engine='xlsxwriter')
 
     df_person.to_excel(writer, sheet_name='Persons', index=False)
     writer.close()
@@ -175,7 +176,11 @@ def create_full_report():
                                   columns=['ID', 'Description', 'Amount', 'Date'])
 
     # Create an Excel writer object
-    writer = pd.ExcelWriter('cooperative_data.xlsx', engine='xlsxwriter')
+    file_name = "cooperative_data.xlsx"
+    file_path = os.path.join("./excel", file_name)
+
+    # Create an Excel writer object
+    writer = pd.ExcelWriter(file_path, engine='xlsxwriter')
 
     # Write dataframes to separate sheets in the Excel file
     df_companies.to_excel(writer, sheet_name='Companies', index=False)
@@ -228,7 +233,7 @@ def create_persons_excel():
         sheet.append(payment_row)
 
     # Save the workbook
-    file_path = 'persons.xlsx'
+    file_path = 'excel/persons.xlsx'
     workbook.save(file_path)
 
     return file_path
@@ -277,7 +282,7 @@ def create_payments_excel(person):
     sheet.append(total_balance_row)
 
     # Save the workbook
-    file_path = 'person_payments.xlsx'
+    file_path = 'excel/person_payments.xlsx'
     workbook.save(file_path)
 
     return file_path
@@ -326,7 +331,7 @@ def create_loan_excel(person):
     sheet.append(total_balance_row)
 
     # Save the workbook
-    file_path = f'{person.name}_payments.xlsx'
+    file_path = f'excel/{person.name}_payments.xlsx'
     workbook.save(file_path)
 
     return file_path
@@ -365,7 +370,7 @@ def create_all_savings_excel():
         sheet.append(payment_row)
 
     # Save the workbook
-    file_path = 'savings.xlsx'
+    file_path = 'excel/savings.xlsx'
     workbook.save(file_path)
 
     return file_path
@@ -405,7 +410,7 @@ def create_all_loans_excel():
         sheet.append(payment_row)
 
     # Save the workbook
-    file_path = 'loans.xlsx'
+    file_path = 'excel/loans.xlsx'
     workbook.save(file_path)
 
     return file_path
@@ -445,7 +450,7 @@ def create_banks_excel(bank):
         sheet.append(payment_row)
 
     # Save the workbook
-    file_path = 'savings.xlsx'
+    file_path = 'excel/savings.xlsx'
     workbook.save(file_path)
 
     return file_path
@@ -485,7 +490,7 @@ def create_income_excel():
         sheet.append(payment_row)
 
     # Save the workbook
-    file_path = 'income.xlsx'
+    file_path = 'excel/income.xlsx'
     workbook.save(file_path)
 
     return file_path

@@ -27,7 +27,7 @@ class Queries():
         self.db.session.commit()
 
         #create .csv file
-        with open (f'{employee_id}_credentials.csv','w',newline='') as file:
+        with open (f'credentials/{employee_id}_credentials.csv','w',newline='') as file:
             writer = csv.writer(file)
             writer.writerow(['Username','Password'])
             writer.writerow([f'{employee_id} or {email}',password])
@@ -124,10 +124,10 @@ class Queries():
             self.db.session.commit()
 
     def save_amount_company(self,employee_id,amount,date,ref_no,description=None):
-        person = Person.query.filter_by(id=employee_id).first()
-        company = person.company
+        person = Person.query.filter_by(employee_id=employee_id).first()
         
         if person:
+            company = person.company
             person.total_balance += float(amount)
             
             saving_payment = SavingPayment(amount=amount, date=date, person_id=person.id,
@@ -268,7 +268,7 @@ class Queries():
         return person
 
     def get_savings(self):
-        payments = SavingPayment.query.all()
+        payments = SavingPayment.query.order_by(SavingPayment.id.desc()).all()
         return payments
 
     def get_individual_savings(self,person_id):

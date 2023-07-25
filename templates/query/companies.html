@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank Information</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1>Bank Information</h1>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Bank Name</th>
+                    <th>Balance B/FWD</th>
+                    <th>Balance</th>
+
+                </tr>
+            </thead>
+            <tbody>
+                {% for company in companies %}
+                <tr>
+                    <td>{{ company.id }}</td>
+                    <td><a href="{{url_for('individual_company_report',company_id=company.id)}}">{{ company.name }}</a></td>  <!-- Fetching the person's name -->
+                    <td>{{ company.balance_bfd | currency }}</td>
+                    <td>{{ company.amount_accumulated | currency }}</td>
+                    
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

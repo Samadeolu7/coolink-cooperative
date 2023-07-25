@@ -3,3 +3,5 @@
 /pycache
 *.pyc
 report.txt
+*.csv
+*.xlsx

@@ -1,19 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Upload Excel File</title>
+    <title>Start Up File</title>
 </head>
 <body>
     <h1>Upload Excel File</h1>
     <form method="POST" enctype="multipart/form-data">
         <input type="file" name="file" accept=".xlsx, .xls">
         <input type="submit" value="Upload">
-        {{ form.hidden_tag() }}
-        <br>
-        {{ form.date.label }} {{ form.date() }}
-        <br>
-        {{ form.description.label }} {{ form.description() }}
-        <br>
     </form>
 </body>
 </html>

@@ -71,6 +71,12 @@ class InvestmentForm(FlaskForm):
     submit = SubmitField('Submit')
 
 
+class UploadForm(FlaskForm):
+    description = StringField('Description', validators=[DataRequired()])
+    date = DateField('Date', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+
 class IncomeForm(FlaskForm):
     amount = DecimalField('Amount', validators=[DataRequired()])
     date = DateField('Date', validators=[DataRequired()])

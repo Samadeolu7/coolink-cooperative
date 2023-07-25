@@ -31,7 +31,7 @@
                 <tr>
                     <td>{{ payment.date }}</td>
                     <td>
-                        <a href="{{url_for('savings_account',person_id=person.id)}}">{{ payment.payer.name}}</a>
+                        <a href="{{url_for('savings_account',person_id=payment.payer.id)}}">{{ payment.payer.name}}</a>
                     </td>
                     <td>{{ payment.description}}</td>
                     <td>{{ payment.amount | currency}}</td>

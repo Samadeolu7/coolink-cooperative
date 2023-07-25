@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect,send_file, render_template, redirect, url_for, flash,abort
 from forms import *
 from models import db,Company,Person,Bank
-from excel_helper import create_excel,generate_repayment_schedule,export_repayment_schedule_to_excel,send_upload_to_loan_repayment,send_upload_to_savings
+from excel_helper import create_excel,generate_repayment_schedule,export_repayment_schedule_to_excel,send_upload_to_loan_repayment,send_upload_to_savings,start_up
 from pdf_helper import create_pdf
 from queries import Queries
 from sqlalchemy.orm import subqueryload
@@ -55,7 +55,7 @@ def login():
     return render_template('login.html', form=form,error=form.errors)
 
 @app.route('/index')
-@login_required
+# @login_required
 def index():
     return render_template('index.html')
 
@@ -83,7 +83,7 @@ def currency(value):
 
 #creating data
 @app.route('/company/create', methods=['GET', 'POST'])
-@login_required
+# @login_required
 def create_company():
     form = CompanyForm()
 
@@ -97,7 +97,7 @@ def create_company():
     return render_template('forms/company_form.html', form=form)
 
 @app.route('/bank/create', methods=['GET', 'POST'])
-@login_required
+# @login_required
 def create_bank():
     form = BankForm()
     if form.validate_on_submit():
@@ -235,6 +235,12 @@ def bank_report():
     bank = query.get_banks()
     return render_template('query/banks.html', banks=bank)
     
+@app.route('/companies_report')
+@login_required
+def companies_report():
+    companies = query.get_companies()
+    return render_template('query/banks.html', companies=companies)
+
 @app.route('/bank_report/<bank_id>')
 @login_required
 def individual_bank_report(bank_id):
@@ -327,7 +333,7 @@ def create_loan():
 def create_expense():
     form = ExpenseForm()
     if form.validate_on_submit():
-        expense = query.add_expense(amount=form.amount.data,date=form.date.data,
+        query.add_expense(amount=form.amount.data,date=form.date.data,
                                     ref_no=form.ref_no.data,bank_id=form.bank_id.data,
                                     description=form.description.data)
 
@@ -354,20 +360,26 @@ def create_expense():
 @app.route('/upload_savings', methods=['GET', 'POST'])
 @login_required
 def upload_savings():
-    if request.method == 'POST':
+    form = UploadForm()
+    if request.method == 'POST' and form.validate_on_submit():
         file = request.files['file']
+        log_report('validated_file')
         if file :
+            log_report('found_file')
             # Save the uploaded file
             file.save(file.filename)
             # Process the uploaded file
-            send_upload_to_savings(file.filename)
+            send_upload_to_savings(file,form.description.data,form.date.data)
 
-            return redirect('/download')
-    return render_template('forms/upload.html')
+            return redirect(url_for('get_payments'))
+    else:
+        log_report(form.errors)
+    return render_template('forms/upload.html', form = form)
 
 @app.route('/upload_loan_repayment', methods=['GET', 'POST'])
 @login_required
 def upload_loan():
+    form = UploadForm()
     if request.method == 'POST':
         file = request.files['file']
         if file :
@@ -377,7 +389,24 @@ def upload_loan():
             send_upload_to_loan_repayment(file.filename)
 
             return redirect('/index')
-    return render_template('forms/upload.html')
+    return render_template('forms/upload.html',form=form)
+
+@app.route('/startup', methods=['GET', 'POST'])
+# @login_required
+def startup():
+    
+    if request.method == 'POST' :
+        file = request.files['file']
+        log_report('validated_file')
+        if file :
+            log_report('found_file')
+            # Save the uploaded file
+            file.save(file.filename)
+            # Process the uploaded file
+            start_up(file)
+            return redirect(url_for('get_payments'))
+
+    return render_template('forms/startup.html')
 
 #DOWNLOADS
 @app.route('/download/<path:file_path>', methods=['GET'])

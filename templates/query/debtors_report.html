@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div style="width: 80%; margin: auto;">
+        <!-- Add a canvas element where the chart will be rendered -->
+        <canvas id="myChart"></canvas>
+      </div>
+
+    <!-- JavaScript for Data Visualization (if needed) -->
+    <script>
+         
+        const balanceSheetData = JSON.parse('{{ balance_sheet_data|tojson|safe }}');
+
+        // Function to create the chart using Chart.js
+        function createChart() {
+            const ctx = document.getElementById('myChart').getContext('2d');
+            const myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Assets', 'Liabilities & Equity'],
+                    datasets: [{
+                        label: 'Amount (N)',
+                        data: [balanceSheetData.total_assets, balanceSheetData.total_liabilities],
+                        backgroundColor: [
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(255, 99, 132, 0.2)',
+                        ],
+                        borderColor: [
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(255, 99, 132, 1)',
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Fetch data and create the chart when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            createChart();
+        });
+    </script>
+</body>
+</html>
