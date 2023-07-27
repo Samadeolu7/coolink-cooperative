@@ -239,7 +239,29 @@ def bank_report():
 @login_required
 def companies_report():
     companies = query.get_companies()
-    return render_template('query/banks.html', companies=companies)
+    return render_template('query/companies.html', companies=companies)
+
+@app.route('/company_report/<company_id>')
+@login_required
+def individual_company_report(company_id):
+    # Query the bank and its associated payments
+    company = query.get_company(company_id)
+    payments = company.payments_made
+
+    # Calculate the total amount received by the bank
+    total_amount = sum(payment.amount for payment in payments)
+    # Render the bank report template with the data
+    return render_template('query/company_report.html', company=company, payments=payments, total_amount=total_amount)
+
+@app.route('/debtors_report')
+@login_required
+def debtors_report():
+    # Query the bank and its associated payments
+    company = query.get_companies()
+    loans = query.get_loans()
+
+    # Render the bank report template with the data
+    return render_template('query/bank_report.html', company=company, loans = loans)
 
 @app.route('/bank_report/<bank_id>')
 @login_required

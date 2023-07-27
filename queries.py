@@ -47,7 +47,7 @@ class Queries():
             return False
         
     def create_new_company(self,name,balance_bfd):
-        self.db.session.add(Company(name=name,balance_bfd=balance_bfd))
+        self.db.session.add(Company(name=name,balance_bfd=balance_bfd,amount_accumulated=balance_bfd))
         db.session.commit()     
 
     def create_bank(self,name,balance):
@@ -256,6 +256,11 @@ class Queries():
 
     def get_companies(self):
         company = Company.query.all()
+
+        return company
+    
+    def get_company(self,company_id):
+        company = Company.query.filter_by(id = company_id).first()
 
         return company
     
