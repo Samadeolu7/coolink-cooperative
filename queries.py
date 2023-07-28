@@ -214,6 +214,40 @@ class Queries():
             self.db.session.add(bank_payment)
             self.db.session.commit()
 
+    def repay_loan_with_savings(self,id,amount,date,bank_id,ref_no,description=None):
+        person = Person.query.filter_by(id=id).first()
+        if person:
+            bank = Bank.query.filter_by(id=bank_id).first()
+
+            person.total_balance -= float(amount)
+            savings_payment = SavingPayment(amount=-amount, date=date, person_id=person.id,
+                              exact_date=datetime.utcnow(),description=description ,ref_no=ref_no,
+                              balance =person.total_balance, bank_id=bank.id)
+            self.db.session.add(savings_payment)
+
+            bank.new_balance -=  float(amount)
+            
+            bank_payment = BankPayment(amount=-amount, date=date, person_id=person.id,exact_date=datetime.utcnow(),
+                                       description=description,ref_no=ref_no, bank_balance=bank.new_balance,
+                                        bank_id=bank.id)
+
+            self.db.session.add(bank_payment)
+            
+            person.loan_balance -= float(amount)
+            loan_payment = LoanPayment(amount=amount, date=date, person_id=person.id,
+                              exact_date=datetime.utcnow(),description=description ,ref_no=ref_no,
+                              balance =person.loan_balance, bank_id=bank.id)
+            self.db.session.add(loan_payment)     
+
+            bank.new_balance +=  float(amount)
+            
+            bank_payment = BankPayment(amount=amount, date=date, person_id=person.id,exact_date=datetime.utcnow(),
+                                       description=description,ref_no=ref_no, bank_balance=bank.new_balance,
+                                        bank_id=bank.id)
+
+            self.db.session.add(bank_payment)
+            self.db.session.commit()
+
     def repay_loan_company(self,id,amount,date,ref_no,description=None):
 
         person = Person.query.filter_by(id=id).first()

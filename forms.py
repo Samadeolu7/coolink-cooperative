@@ -4,7 +4,7 @@ from wtforms.validators import DataRequired, Email
 from flask import Flask
 from flask_wtf import FlaskForm
 from wtforms import DecimalField, SelectField, SubmitField
-from wtforms.validators import DataRequired
+from wtforms.validators import DataRequired, NumberRange
 
 app = Flask(__name__)
 
@@ -84,3 +84,9 @@ class IncomeForm(FlaskForm):
     description = StringField('Description')
     ref_no = StringField('Ref Number', validators=[DataRequired()])
     submit = SubmitField('Submit')
+
+class WithdrawalForm(FlaskForm):
+    person = SelectField('Select Person', coerce=int, validators=[DataRequired()])
+    balance = FloatField('Available Balance', render_kw={'readonly': True})
+    amount = FloatField('Withdraw Amount', validators=[DataRequired(), NumberRange(min=0.01)])
+    submit = SubmitField('Withdraw')
