@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect,send_file, render_template, redirect, url_for, flash,abort
+from flask import Flask, render_template, request, redirect,send_file, render_template, redirect, url_for, flash,jsonify
 from forms import *
 from models import db,Company,Person,Bank
 from excel_helper import create_excel,generate_repayment_schedule,export_repayment_schedule_to_excel,send_upload_to_loan_repayment,send_upload_to_savings,start_up
@@ -362,19 +362,40 @@ def create_expense():
         return redirect(url_for('index'))
     return render_template('forms/expense_form.html', form=form)
 
-# @app.route('/investment/create', methods=['GET', 'POST'])
-# def create_investment():
-#     form = InvestmentForm()
-#     if form.validate_on_submit():
-#         investment = Investment(
-#             description=form.description.data,
-#             amount=form.amount.data,
-#             date=form.date.data
-#         )
-#         db.session.add(investment)
-#         db.session.commit()
-#         return redirect(url_for('index'))
-#     return render_template('forms/investment_form.html', form=form)
+@app.route('/withdraw', methods=['GET', 'POST'])
+def withdraw():
+    # Add logic to retrieve the list of persons from the database
+    # Replace `get_all_persons()` with an appropriate function that retrieves the list of persons.
+    persons = query.get_persons()
+
+    form = WithdrawalForm()
+    form.person.choices = [(person.id, person.name) for person in query.get_persons()]
+    if form.validate_on_submit():
+        person_id = form.person.data
+        amount = form.amount.data
+        
+        # Retrieve the selected person from the database
+        selected_person = query.get_person(person_id)
+
+        if selected_person:
+            # Perform validation to ensure the withdrawal amount does not exceed the available balance
+            if amount <= selected_person.total_balance:
+                # Update the balance in the database (subtract the withdrawal amount)
+                selected_person.total_balance -= amount
+
+                # Save the changes to the database
+                # (You'll need to commit the session if using SQLAlchemy)
+                # db.session.commit()
+
+                # You may want to add additional logic for transaction history, etc.
+
+                return f"Withdrawal of {amount} successful for {selected_person.name}. Updated balance: {selected_person.balance_bfd}"
+            else:
+                return f"Insufficient balance for {selected_person.name} to withdraw {amount}."
+        else:
+            return "Invalid person selected."
+
+    return render_template('forms/withdraw.html', form=form, persons=persons)
 
 
 #uploads 
@@ -460,3 +481,11 @@ def logout():
   current_user = None
   return redirect(url_for('index'))
 
+#dynamic lookup
+@app.route('/get_balance/<int:person_id>')
+def get_balance(person_id):
+    selected_person = Person.query.get(person_id)
+    if selected_person:
+        return str(selected_person.total_balance)
+    else:
+        return jsonify(error='Person not found'), 404
