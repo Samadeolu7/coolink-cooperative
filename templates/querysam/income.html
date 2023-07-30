@@ -1,17 +1,22 @@
-{%extends 'base.html' %}
-
-{%block title%}
-loan account
-{% endblock %}
-
-{% block header%}
-COOLINK CO-OPERATIVE INCOME ACCOUNT
-{% endblock  %}
-
-
-{%block content%}
-<body id="person">
-    <table class='tab-content'>
+<!-- payments.html -->
+<html>
+<head>
+    <title>Income</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>Coolink Cooperative Income Account</h1>
+    <table>
         <thead>
             <tr>
                 <th>Date</th>
@@ -33,10 +38,11 @@ COOLINK CO-OPERATIVE INCOME ACCOUNT
             {% endfor %}
         </tbody>
     </table>
+    <h2>Download Excel Report</h2>
+    <button id="downloadExcelButton">Download Report</button>
 
-    <button id="downloadExcelButton">Download Excel Report</button>
-
-    <button id="downloadPdfButton">Download PDF Report</button>
+    <h2>Download PDF Report</h2>
+    <button id="downloadPdfButton">Download Report</button>
 
     <script>
         // Get the button element by its ID
@@ -58,4 +64,4 @@ COOLINK CO-OPERATIVE INCOME ACCOUNT
         });
     </script>
 </body>
-{%endblock%}
+</html>

@@ -1,36 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bank Information</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
-</head>
-<body>
-    <div class="container mt-4">
-        <h1>Bank Information</h1>
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Bank Name</th>
-                    <th>Balance B/FWD</th>
-                    <th>Balance</th>
+{%extends 'base.html' %}
 
-                </tr>
-            </thead>
-            <tbody>
-                {% for bank in banks %}
-                <tr>
-                    <td>{{ bank.id }}</td>
-                    <td><a href="{{url_for('individual_bank_report',bank_id=bank.id)}}">{{ bank.name }}</a></td>  <!-- Fetching the person's name -->
-                    <td>{{ bank.balance_bfd | currency }}</td>
-                    <td>{{ bank.new_balance | currency }}</td>
-                    
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+{%block title%}
+Bank Information
+{% endblock %}
+
+{% block header%}
+BANK INFORMATION
+{% endblock  %}
+
+{%block content%}
+<body id="person">
+    <table class="tab-content">
+
+        <tbody>
+            <tr>
+                <th>ID</th>
+                <th>Bank Name</th>
+                <th>Balance B/FWD</th>
+                <th>Balance</th>
+
+            </tr>
+            {% for bank in banks %}
+            <tr>
+                <td>{{ bank.id }}</td>
+                <td><a href="{{url_for('individual_bank_report',bank_id=bank.id)}}">{{ bank.name }}</a></td>  <!-- Fetching the person's name -->
+                <td>{{ bank.balance_bfd | currency }}</td>
+                <td>{{ bank.new_balance | currency }}</td>
+                
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 </body>
-</html>
+{%endblock%}
+
