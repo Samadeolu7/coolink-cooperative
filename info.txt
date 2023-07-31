@@ -1,6 +1,6 @@
 needs fixing
 
-index.html
+dashboard.html
 balance_sheet.html(financial position)
 companies.html
 companies_report.html

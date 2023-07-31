@@ -9,9 +9,9 @@
     <link rel="stylesheet" href="\static\css\style.css">
 </head>
 <body>
-    <header class="index">
+    <header class="dashboard">
         <section id="nav">
-            {%block anchor%}<a href="{{url_for('index')}}" id='arrow'><i class="fa-solid fa-arrow-left"></i></a>{%endblock%}
+            {%block anchor%}<a href="{{url_for('dashboard')}}" id='arrow'><i class="fa-solid fa-arrow-left"></i></a>{%endblock%}
             <a id="head">{% block header%}{% endblock  %}</a>
             <a href="#" class="tail"><i class="fa-sharp fa-solid fa-right-from-bracket"></i></a>
         </section>

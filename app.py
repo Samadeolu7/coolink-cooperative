@@ -40,7 +40,7 @@ def login():
         
         if user and user.password == password:
             login_user(user)
-            return redirect(url_for('index'))
+            return redirect(url_for('dashboard'))
 
         form.errors.append('Invalid User Credentials')
 
@@ -60,10 +60,15 @@ def dashboard():
     person = current_user 
     return render_template('dashboard.html',person=person)
 
-@app.route('/index')
-# @login_required
-def index():
-    return render_template('index.html')
+@app.route('/forms')
+@login_required
+def forms():
+    return render_template('forms.html')
+
+@app.route('/queries')
+@login_required
+def queries():
+    return render_template('queries.html')
 
 @app.template_filter('to_json')
 @login_required
@@ -96,7 +101,7 @@ def create_company():
     if form.validate_on_submit():
         company =query.create_new_company(name=form.name.data,balance_bfd=form.balance_bfd.data)#remember to add to form for admin or ask in meeting
         flash('Company created successfully.', 'success')
-        return redirect(url_for('index'))
+        return redirect(url_for('dashboard'))
     else:
         flash(form.errors)
 
@@ -110,7 +115,7 @@ def create_bank():
         query.create_bank(form.name.data,form.balance.data)#remember to add to form for admin or ask in meeting
         
         flash('Company created successfully.', 'success')
-        return redirect(url_for('index'))
+        return redirect(url_for('dashboard'))
     else:
         flash(form.errors)
     
@@ -187,7 +192,7 @@ def make_payment():
                 query.repay_loan(selected_person.id,amount,date,bank_id,ref_no,description)
    
             flash('Payment submitted successfully.')
-            return redirect(url_for('index'))
+            return redirect(url_for('dashboard'))
         else:
         
            flash('Invalid person selection.')
@@ -346,16 +351,10 @@ def balance_sheet():
 
     persons = Person.query.all()
     total_accounts_receivable = sum(person.loan_balance for person in persons)
-
-    # You should perform additional calculations and queries for other assets based on your data models
-
-
     # Calculate the total assets
     total_assets = total_cash_and_equivalents + total_accounts_receivable
 
     total_accounts_payable = sum(person.total_balance for person in persons)
-
-    # You should perform additional calculations and queries for other liabilities based on your data models
 
     # Calculate the total liabilities
     total_liabilities = total_accounts_payable 
@@ -419,7 +418,7 @@ def create_expense():
                                     ref_no=form.ref_no.data,bank_id=form.bank_id.data,
                                     description=form.description.data)
 
-        return redirect(url_for('index'))
+        return redirect(url_for('dashboard'))
     return render_template('forms/expense_form.html', form=form)
 
 @app.route('/withdraw', methods=['GET', 'POST'])
@@ -491,7 +490,7 @@ def upload_loan():
             # Process the uploaded file
             send_upload_to_loan_repayment(file.filename)
 
-            return redirect('/index')
+            return redirect('/dashboard')
     return render_template('forms/upload.html',form=form)
 
 @app.route('/startup', methods=['GET', 'POST'])
@@ -539,7 +538,7 @@ def download_excel(type,type_id):
 def logout():
   logout_user()
   current_user = None
-  return redirect(url_for('index'))
+  return redirect(url_for('dashboard'))
 
 #dynamic lookup
 @app.route('/get_balance/<int:person_id>')
