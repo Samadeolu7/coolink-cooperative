@@ -32,6 +32,7 @@ class Person(db.Model,UserMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
+    # role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
     email = db.Column(db.String, nullable=True,unique=True)
     password = db.Column(db.String(255), nullable=False)
     company_id = db.Column(db.Integer, db.ForeignKey('companies.id'))
@@ -67,8 +68,7 @@ class Role(db.Model):
     __tablename__ = 'roles'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(50), unique=True)
-    user_id = db.Column(db.Integer(), db.ForeignKey('persons.id', ondelete='CASCADE'))
-    person = db.relationship('Person', backref='role')
+    # person = db.relationship('Person', backref='role')
 
 
 class SavingPayment(db.Model):
@@ -281,6 +281,12 @@ class Income(db.Model):
             'description': self.description,
             'balance': self.balance
         }
+    
 
-with app.app_context():
-    db.create_all()
+
+# with app.app_context():
+#     db.create_all()
+
+#     if Role.query.count() == 0:
+#         db.session.add_all([Role(name='Admin'), Role(name='Sub-Admin'),Role(name='Secretary'),Role(name='User')])
+#         db.session.commit()

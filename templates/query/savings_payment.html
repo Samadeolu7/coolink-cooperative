@@ -10,6 +10,17 @@ Coolink Cooperative Savings Account
 
 {%block content%}
 <body id="person">
+    <form method="get" class="form-inline my-2">
+        <div class="form-group mx-2">
+            {{ form.start_date.label }}
+            {{ form.start_date(class="form-control") }}
+        </div>
+        <div class="form-group mx-2">
+            {{ form.end_date.label }}
+            {{ form.end_date(class="form-control") }}
+        </div>
+        <button type="submit" class="btn btn-primary">Apply Filter</button>
+    </form>
     <table class="tab-content">
     
     <tbody>

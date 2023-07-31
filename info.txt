@@ -1,2 +1,8 @@
-Assumptions
-No one can have more than one loan on his Account
+needs fixing
+
+index.html
+balance_sheet.html(financial position)
+companies.html
+companies_report.html
+bank_report.html
+savings_payment.html

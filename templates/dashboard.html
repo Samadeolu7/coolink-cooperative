@@ -1,0 +1,82 @@
+<!-- templates/dashboard.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* Custom CSS styles go here */
+        /* For example, you can add additional styling for the dashboard */
+        /* Ensure the navigation bar extends to full height */
+        body,
+        html {
+            height: 100%;
+        }
+
+        .container-full-height {
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #content {
+            flex: 1;
+        }
+
+        #sidebar {
+            /* Optional: Adjust the width of the sidebar as needed */
+            flex: 0 0 250px;
+            transition: all 0.3s;
+        }
+
+        .hide-sidebar #sidebar {
+            display: none;
+        }
+
+        .hide-sidebar #content {
+            margin-left: 0;
+        }
+    </style>
+</head>
+
+<body class="container-full-height">
+    <div class="row h-100">
+        <!-- Sidebar -->
+        <nav id="sidebar" class="col-md-3 d-md-block bg-light">
+            <div class="position-sticky">
+                <h4 class="my-4">Dashboard Navigation</h4>
+                <!-- Add your navigation links here -->
+                <ul class="nav flex-column h-100">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Link 1</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Link 2</a>
+                    </li>
+                    <!-- Add more navigation links as needed -->
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main id="content" class="col-md-9 ms-sm-auto col-lg-9 px-md-4">
+            <!-- Button to toggle the sidebar -->
+           
+
+            <div class="my-4">
+                <h1>Welcome, {{ person.name }}!</h1>
+                <!-- Add more content specific to the logged-in user here -->
+            </div>
+            <div>
+                <p><strong>Current Balance:</strong> {{ person.balance_bfd }}</p>
+                <p><strong>Total Balance:</strong> {{ person.total_balance }}</p>
+                <!-- Add more balance information here -->
+            </div>
+
+        </main>
+</body>
+
+</html>

@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect,send_file, render_template, redirect, url_for, flash,jsonify
 from forms import *
-from models import db,Company,Person,Bank
+from models import db,Company,Person,Bank,Role
 from excel_helper import create_excel,generate_repayment_schedule,export_repayment_schedule_to_excel,send_upload_to_loan_repayment,send_upload_to_savings,start_up
 from pdf_helper import create_pdf
 from queries import Queries
@@ -53,6 +53,12 @@ def login():
 
         return redirect( url_for('login',form=form,error=form.errors))
     return render_template('login.html', form=form,error=form.errors)
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    person = current_user 
+    return render_template('dashboard.html',person=person)
 
 @app.route('/index')
 # @login_required
@@ -131,6 +137,28 @@ def create_person():
                 flash(f'Error in field {form.errors}')
     return render_template('forms/person_form.html', form=form, companies=Company.query.all())
 
+@app.route('/', methods=['GET', 'POST'])
+def role_assignment():
+    form = RoleAssignmentForm()
+
+    # Populate the choices for the person and role select fields
+    form.person.choices = [(person.id, person.name) for person in Person.query.all()]
+    form.role.choices = [(role.id, role.name) for role in Role.query.all()]
+
+    if form.validate_on_submit():
+        person_id = form.person.data
+        role_id = form.role.data
+
+        person = Person.query.get(person_id)
+        role = Role.query.get(role_id)
+
+        if person and role:
+            person.role = role
+            db.session.commit()
+            return redirect(url_for('role_assignment'))
+
+    return render_template('role_assignment.html', form=form)
+
 @app.route('/payment', methods=['GET', 'POST'])
 @login_required
 def make_payment():
@@ -195,30 +223,62 @@ def get_persons():
     persons = query.get_persons()
     return render_template('query/person.html', persons=persons)
 
+
+def filter_payments(start_date,end_date,payments):
+
+    filtered_payments = payments
+    if start_date and end_date:
+        filtered_payments = [payment for payment in payments if start_date <= payment.date <= end_date]
+    elif start_date:
+        filtered_payments = [payment for payment in payments if payment.date >= start_date]
+    elif end_date:
+        filtered_payments = [payment for payment in payments if payment.date <= end_date]
+
+    return filtered_payments
+
 @app.route('/savings_account', methods=['GET'])
 @login_required
 def get_payments():
+    
     payments = query.get_savings()
     persons = query.get_persons()
-    return render_template('query/savings_payment.html', payments=payments, persons=persons)
+    form = DateFilterForm(request.args)
+    # Filter payments based on date range
+    start_date = form.start_date.data
+    end_date = form.end_date.data
+    filtered_payments =filter_payments(start_date,end_date,payments)
+
+    return render_template('query/savings_payment.html', form=form, payments=filtered_payments, persons=persons)
+
 
 @app.route('/loans', methods=['GET', 'POST'])
 @login_required
 def get_loan():
     loans = query.get_loans()
-    return render_template('query/loans.html',loans=loans)
+    form = DateFilterForm(request.args)
+    # Filter payments based on date range
+    start_date = form.start_date.data
+    end_date = form.end_date.data
+    filtered_payments =filter_payments(start_date,end_date,loans)
+    return render_template('query/loans.html',loans=filtered_payments)
 
 @app.route('/income', methods=['GET'])
 @login_required
 def get_income():
     incomes = query.get_income()
-    return render_template('query/income.html', incomes=incomes)
+    form = DateFilterForm(request.args)
+    # Filter payments based on date range
+    start_date = form.start_date.data
+    end_date = form.end_date.data
+    filtered_payments =filter_payments(start_date,end_date,incomes)
+    return render_template('query/income.html', incomes=filtered_payments)
 
 @app.route('/savings_account/<person_id>', methods=['GET', 'POST'])
 @login_required
 def savings_account(person_id):
     person = query.get_person(person_id)
     payments = person.payments_made
+    
     return render_template('query/savings_account.html', payments= payments,person=person)
 
 @app.route('/loan/<person_id>', methods=['GET', 'POST'])
@@ -261,7 +321,7 @@ def debtors_report():
     loans = query.get_loans()
 
     # Render the bank report template with the data
-    return render_template('query/bank_report.html', company=company, loans = loans)
+    return render_template('query/debtors_report.html', company=company, loans = loans)
 
 @app.route('/bank_report/<bank_id>')
 @login_required

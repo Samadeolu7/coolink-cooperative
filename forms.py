@@ -4,7 +4,7 @@ from wtforms.validators import DataRequired, Email
 from flask import Flask
 from flask_wtf import FlaskForm
 from wtforms import DecimalField, SelectField, SubmitField
-from wtforms.validators import DataRequired, NumberRange
+from wtforms.validators import DataRequired, NumberRange, Optional
 
 app = Flask(__name__)
 
@@ -90,3 +90,13 @@ class WithdrawalForm(FlaskForm):
     balance = FloatField('Available Balance', render_kw={'readonly': True})
     amount = FloatField('Withdraw Amount', validators=[DataRequired(), NumberRange(min=0.01)])
     submit = SubmitField('Withdraw')
+
+class RoleAssignmentForm(FlaskForm):
+    person = SelectField('Select Person', choices=[], validators=[DataRequired()])
+    role = SelectField('Role', choices=[], validators=[DataRequired()])
+    submit = SubmitField('Assign Role')
+
+class DateFilterForm(FlaskForm):
+    start_date = DateField('Start Date', format='%Y-%m-%d', validators=[Optional()])
+    end_date = DateField('End Date', format='%Y-%m-%d', validators=[Optional()])
+    submit = SubmitField('Apply Filter')

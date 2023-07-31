@@ -61,6 +61,32 @@ def start_up(filename):
         # Create a new record in the database for each row
             query.create_new_user(row['Name'],row['COY'],row['Phone'],row['BAL B/FWD'],0,f'test{row["S/N"]}@gmail.com',1)
 
+from sqlalchemy.orm import Session
+from models import Person  # Import the appropriate Person model
+
+def start_up(filename):
+    df = process_excel(filename)
+
+    # Convert DataFrame rows to dictionaries with correct column names
+    records = [
+        {
+            'name': row['Name'],
+            'employee_id': row['COY'],
+            'phone_no': row['Phone'],
+            'balance_bfd': row['BAL B/FWD'],
+            'email': f'test{row["S/N"]}@gmail.com',
+            'role_id': 4,  # Assuming a default role_id of 1 for new users
+            'company_id': query.get_company_id(row['COY'])
+        }
+        for _, row in df.iterrows()
+    ]
+
+    # Bulk insert the records into the database
+    with Session() as session:
+        session.bulk_insert_mappings(Person, records)
+        session.commit()
+
+
 def send_upload_to_savings(filename,description,date):
     df = process_excel(filename)
     for index, row in df.iterrows():
