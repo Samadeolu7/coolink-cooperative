@@ -44,8 +44,10 @@
 </head>
 
 <body class="container-full-height">
+    
     <div class="row h-100">
         <!-- Sidebar -->
+        {% if person.role.id != 4 %}
         <nav id="sidebar" class="col-md-3 d-md-block bg-light">
             <div class="position-sticky">
                 <h4 class="my-4">Dashboard Navigation</h4>
@@ -57,7 +59,9 @@
                 </form>
 
                 <ul id="searchDropdown"></ul>
+                {% endif %}
 
+                {% if person.role.id == 1 or person.role.id == 3 %}
                 <!-- Add your navigation links here -->
                 <ul class="nav flex-column h-100">
                     <li class="nav-item">
@@ -68,14 +72,13 @@
                     </li>
                     <!-- Add more navigation links as needed -->
                 </ul>
+                
             </div>
         </nav>
-
+        {% endif %}
         <!-- Main Content -->
         <main id="content" class="col-md-9 ms-sm-auto col-lg-9 px-md-4">
             <!-- Button to toggle the sidebar -->
-
-
             <div class="my-4">
                 <h1>Welcome, {{ person.name }}!</h1>
                 <!-- Add more content specific to the logged-in user here -->
@@ -85,7 +88,6 @@
                 <p><strong>Total Balance:</strong> {{ person.total_balance }}</p>
                 <!-- Add more balance information here -->
             </div>
-
         </main>
     </div>
 

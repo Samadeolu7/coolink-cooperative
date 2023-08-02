@@ -1,14 +1,14 @@
 from flask import Flask, render_template, request, redirect,send_file, render_template, redirect, url_for, flash,jsonify
 from forms import *
+from functools import wraps
 from models import db,Company,Person,Bank,Role,Expense
 from excel_helper import create_excel,generate_repayment_schedule,export_repayment_schedule_to_excel,send_upload_to_loan_repayment,send_upload_to_savings,start_up
 from pdf_helper import create_pdf
 from queries import Queries
-from sqlalchemy.orm import subqueryload
-import pandas as pd ,io, openpyxl,json,pdfkit
-from filters import format_currency
+import pandas as pd,json
+from filters import format_currency 
 from flask_login import LoginManager,login_user, login_required, logout_user, current_user
-from datetime import datetime
+
 
 login_manager = LoginManager()
 
@@ -23,6 +23,25 @@ login_manager.init_app(app)
 @login_manager.user_loader
 def load_user(person_id):
     return Person.query.get(person_id)
+
+def role_required(roles_required):
+    def decorator(view_func):
+        @wraps(view_func)
+        def wrapper(*args, **kwargs):
+            if not current_user.is_authenticated:
+                flash("You must be logged in to access this page.", "danger")
+                return redirect(url_for("login"))
+
+            user_role = current_user.role
+            if user_role.name not in roles_required:
+                flash("You don't have the required role to access this page.", "danger")
+                return redirect(url_for("dashboard"))  # Change this to your desired redirect
+
+            return view_func(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
 
 def log_report(report):
     with open("report.txt", 'a', encoding='utf-8') as f:
@@ -63,11 +82,14 @@ def dashboard():
 
 @app.route('/forms')
 @login_required
+@role_required(['Admin','Secretary'])
 def forms():
     return render_template('forms.html')
 
 @app.route('/queries')
+
 @login_required
+@role_required(['Admin','Secretary','Sub-Admin'])
 def queries():
     return render_template('queries.html')
 
@@ -110,7 +132,8 @@ def search_suggestions():
 
 #creating data
 @app.route('/company/create', methods=['GET', 'POST'])
-# @login_required
+@login_required
+@role_required(['Admin','Secretary'])
 def create_company():
     form = CompanyForm()
 
@@ -124,7 +147,8 @@ def create_company():
     return render_template('forms/company_form.html', form=form)
 
 @app.route('/bank/create', methods=['GET', 'POST'])
-# @login_required
+@login_required
+@role_required(['Admin','Secretary'])
 def create_bank():
     form = BankForm()
     if form.validate_on_submit():
@@ -139,6 +163,7 @@ def create_bank():
 
 @app.route('/person/create', methods=['GET', 'POST'])
 @login_required
+@role_required(['Admin','Secretary'])
 def create_person():
     form = PersonForm()
     form.company_id.choices = [(company.id, company.name) for company in Company.query.all()]
@@ -182,6 +207,7 @@ def role_assignment():
 
 @app.route('/payment', methods=['GET', 'POST'])
 @login_required
+@role_required(['Admin','Secretary'])
 def make_payment():
     form = PaymentForm()
     form.person_id.choices = [(person.id, (f'{person.name} ({person.employee_id})')) for person in query.get_persons()]
@@ -220,6 +246,7 @@ def make_payment():
 
 @app.route('/make_income', methods=['GET', 'POST'])
 @login_required
+@role_required(['Admin','Secretary'])
 def make_income():
     form = IncomeForm()
     form.bank.choices=[(bank.id,bank.name) for bank in query.get_banks()]
@@ -240,6 +267,7 @@ def make_income():
 
 @app.route('/persons', methods=['GET'])
 @login_required
+@role_required(['Admin','Secretary','Sub-Admin'])
 def get_persons():
     persons = query.get_persons()
     return render_template('query/person.html', persons=persons)
@@ -259,6 +287,7 @@ def filter_payments(start_date,end_date,payments):
 
 @app.route('/savings_account', methods=['GET'])
 @login_required
+@role_required(['Admin','Secretary','Sub-Admin'])
 def get_payments():
     
     payments = query.get_savings()
@@ -274,6 +303,7 @@ def get_payments():
 
 @app.route('/loans', methods=['GET', 'POST'])
 @login_required
+@role_required(['Admin','Secretary','Sub-Admin'])
 def get_loan():
     loans = query.get_loans()
     form = DateFilterForm(request.args)
@@ -285,6 +315,7 @@ def get_loan():
 
 @app.route('/income', methods=['GET'])
 @login_required
+@role_required(['Admin','Secretary','Sub-Admin'])
 def get_income():
     incomes = query.get_income()
     form = DateFilterForm(request.args)
@@ -296,6 +327,7 @@ def get_income():
 
 @app.route('/savings_account/<person_id>', methods=['GET', 'POST'])
 @login_required
+@role_required(['Admin','Secretary','Sub-Admin'])
 def savings_account(person_id):
     person = query.get_person(person_id)
     payments = person.payments_made
@@ -304,6 +336,7 @@ def savings_account(person_id):
 
 @app.route('/loan/<person_id>', methods=['GET', 'POST'])
 @login_required
+@role_required(['Admin','Secretary','Sub-Admin'])
 def loan_account(person_id):
     loans = query.get_person_loans(person_id)
     person = query.get_person(person_id)
@@ -312,18 +345,21 @@ def loan_account(person_id):
 
 @app.route('/banks_report')
 @login_required
+@role_required(['Admin','Secretary','Sub-Admin'])
 def bank_report():
     bank = query.get_banks()
     return render_template('query/banks.html', banks=bank)
     
 @app.route('/companies_report')
 @login_required
+@role_required(['Admin','Secretary','Sub-Admin'])
 def companies_report():
     companies = query.get_companies()
     return render_template('query/companies.html', companies=companies)
 
 @app.route('/company/<company_id>')
 @login_required
+@role_required(['Admin','Secretary','Sub-Admin'])
 def individual_company_report(company_id):
     # Query the bank and its associated payments
     company = query.get_company(company_id)
@@ -336,6 +372,7 @@ def individual_company_report(company_id):
 
 @app.route('/debtors_report')
 @login_required
+@role_required(['Admin','Secretary','Sub-Admin'])
 def debtors_report():
     # Query the bank and its associated payments
     company = query.get_companies()
@@ -346,6 +383,7 @@ def debtors_report():
 
 @app.route('/bank_report/<bank_id>')
 @login_required
+@role_required(['Admin','Secretary','Sub-Admin'])
 def individual_bank_report(bank_id):
     # Query the bank and its associated payments
     bank = query.get_bank(bank_id)
@@ -359,6 +397,7 @@ def individual_bank_report(bank_id):
 
 @app.route('/balance_sheet')
 @login_required
+@role_required(['Admin','Secretary','Sub-Admin'])
 def balance_sheet():
     # Retrieve data from the database
     companies = Company.query.all()
@@ -398,6 +437,7 @@ def balance_sheet():
 
 @app.route('/loan/create', methods=['GET', 'POST'])
 @login_required
+@role_required(['Admin','Secretary'])
 def create_loan():
     form = LoanForm()
     if form.validate_on_submit():
@@ -483,6 +523,7 @@ def withdraw():
 
 @app.route('/upload_savings', methods=['GET', 'POST'])
 @login_required
+@role_required(['Admin','Secretary'])
 def upload_savings():
     form = UploadForm()
     if request.method == 'POST' and form.validate_on_submit():
@@ -502,6 +543,7 @@ def upload_savings():
 
 @app.route('/upload_loan_repayment', methods=['GET', 'POST'])
 @login_required
+@role_required(['Admin','Secretary'])
 def upload_loan():
     form = UploadForm()
     if request.method == 'POST':
@@ -516,7 +558,8 @@ def upload_loan():
     return render_template('forms/upload.html',form=form)
 
 @app.route('/startup', methods=['GET', 'POST'])
-# @login_required
+@login_required
+@role_required(['Admin','Secretary'])
 def startup():
     
     if request.method == 'POST' :

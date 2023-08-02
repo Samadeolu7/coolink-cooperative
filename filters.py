@@ -1,7 +1,4 @@
-from jinja2 import Environment, FileSystemLoader
-# def format_currency(value, currency_symbol='₦', decimal_separator='.', thousands_separator=','):
-#     formatted_value = f'{currency_symbol}{value:,.2f}'
-#     return formatted_value.replace('.', decimal_separator).replace(',', thousands_separator)
+
 
 def format_currency(value, currency_symbol='₦', decimal_separator='.', thousands_separator=','):
     # Check if the value is negative
