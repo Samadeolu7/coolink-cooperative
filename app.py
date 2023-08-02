@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect,send_file, render_template, redirect, url_for, flash,jsonify
 from forms import *
-from models import db,Company,Person,Bank,Role
+from models import db,Company,Person,Bank,Role,Expense
 from excel_helper import create_excel,generate_repayment_schedule,export_repayment_schedule_to_excel,send_upload_to_loan_repayment,send_upload_to_savings,start_up
 from pdf_helper import create_pdf
 from queries import Queries
@@ -58,7 +58,8 @@ def login():
 @login_required
 def dashboard():
     person = current_user 
-    return render_template('dashboard.html',person=person)
+    form = SearchForm()
+    return render_template('dashboard.html',person=person,form=form)
 
 @app.route('/forms')
 @login_required
@@ -91,6 +92,21 @@ def currency(value):
     # Implement your filter logic here
     modified_value = format_currency(value)  # Modify the value as needed
     return modified_value
+
+@app.route('/search_suggestions', methods=['GET'])
+def search_suggestions():
+    query = request.args.get('query', '')
+    # Perform the search query using Flask-SQLAlchemy
+    # For example, search the Company and Person models for the given query
+    companies_results = Company.query.filter(Company.name.ilike(f'%{query}%')).all()
+    persons_results = Person.query.filter(Person.name.ilike(f'%{query}%')).all()
+
+    suggestions = {
+        'companies': [[company.id,company.name] for company in companies_results],
+        'persons': [[person.id,person.name] for person in persons_results]
+    }
+
+    return jsonify(suggestions)
 
 #creating data
 @app.route('/company/create', methods=['GET', 'POST'])
@@ -306,7 +322,7 @@ def companies_report():
     companies = query.get_companies()
     return render_template('query/companies.html', companies=companies)
 
-@app.route('/company_report/<company_id>')
+@app.route('/company/<company_id>')
 @login_required
 def individual_company_report(company_id):
     # Query the bank and its associated payments
@@ -413,11 +429,17 @@ def create_loan():
 @app.route('/expense/create', methods=['GET', 'POST'])
 def create_expense():
     form = ExpenseForm()
+    form.existing_expense.choices = [(expense.id, expense.name) for expense in Expense.query.all()]
     if form.validate_on_submit():
-        query.add_expense(amount=form.amount.data,date=form.date.data,
+        if form.existing_expense.data:
+            # Handle existing expense selection
+            query.update_expense(id=form.existing_expense.data,amount=form.amount.data,date=form.date.data,
                                     ref_no=form.ref_no.data,bank_id=form.bank_id.data,
                                     description=form.description.data)
-
+        else:
+            query.add_expense(name=form.name.data,amount=form.amount.data,date=form.date.data,
+                                    ref_no=form.ref_no.data,bank_id=form.bank_id.data,
+                                    description=form.description.data)
         return redirect(url_for('dashboard'))
     return render_template('forms/expense_form.html', form=form)
 
@@ -505,8 +527,8 @@ def startup():
             # Save the uploaded file
             file.save(file.filename)
             # Process the uploaded file
-            start_up(file)
-            return redirect(url_for('get_payments'))
+            file=start_up(file)
+            return redirect(url_for('download',file_path=file))
 
     return render_template('forms/startup.html')
 

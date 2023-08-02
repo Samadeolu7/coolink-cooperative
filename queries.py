@@ -19,11 +19,11 @@ class Queries():
         password=''.join(random.choice(characters)for _ in range(lenght))
         return password
     
-    def create_new_user(self, name ,employee_id,phone_no , balance , loan_balance, email,company_id ):
+    def create_new_user(self, name ,employee_id,phone_no , balance , loan_balance, email,company_id,role_id =4 ):
         password = self.generate_password()
         self.db.session.add(Person(name =name,employee_id=employee_id,email=email,password=password,
                                    total_balance=balance,loan_balance=loan_balance,loan_balance_bfd=loan_balance,
-                                   phone_no=phone_no,balance_bfd =balance,company_id=company_id))
+                                   phone_no=phone_no,balance_bfd =balance,company_id=company_id,role_id=role_id))
         self.db.session.commit()
 
         #create .csv file
@@ -100,18 +100,37 @@ class Queries():
      
             self.db.session.commit()
 
-    def add_expense(self,amount,date,ref_no,bank_id,description=None):
+    def add_expense(self,name,amount,date,ref_no,bank_id,description=None):
         bank = Bank.query.filter_by(id=bank_id).first()
-        if bank:
-            last_entry = Expense.query.order_by(Expense.id.desc()).first()
-            if last_entry:
-                expense_payment = Expense(amount=float(amount), date=date,
+        if bank:            
+            expense = Expense(name=name,balance=float(amount))
+            self.db.session.add(expense)
+            expense_payment = ExpensePayment(amount=float(amount), date=date,
                                 exact_date=datetime.utcnow(),description=description,ref_no = ref_no,
-                                balance =float(amount)+last_entry.balance,
+                                balance =float(amount),
                                 bank_id=bank.id)
-            else:
-                expense_payment = Expense(amount=float(amount),description=description,
-                                ref_no=ref_no,date = date,balance=float(amount) )
+            
+            self.db.session.add(expense_payment)
+
+            bank.new_balance -=  float(amount)
+            bank_payment = BankPayment(amount=-amount, date=date,exact_date=datetime.utcnow(),
+                                        description=description, ref_no=ref_no,
+                                        bank_balance=bank.new_balance,bank_id=bank.id)
+            
+            self.db.session.add(bank_payment)
+     
+            self.db.session.commit()
+
+    def update_expense(self,id,amount,date,ref_no,bank_id,description=None):
+        bank = Bank.query.filter_by(id=bank_id).first()
+        if bank:            
+            expense = Expense.query.filter_by(id=bank_id).first()
+            expense.balance += float(amount)
+            expense_payment = ExpensePayment(amount=float(amount), date=date,
+                                exact_date=datetime.utcnow(),description=description,ref_no = ref_no,
+                                balance =float(amount),
+                                bank_id=bank.id)
+        
             self.db.session.add(expense_payment)
 
             bank.new_balance -=  float(amount)

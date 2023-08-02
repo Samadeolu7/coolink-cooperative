@@ -1,0 +1,36 @@
+<!-- templates/index.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Expense Input Form</title>
+</head>
+<body>
+    <h1>Expense Input Form</h1>
+    <form method="POST" action="/" id="expenseForm">
+        {{ form.csrf_token }}
+        {{ form.existing_expense.label }} {{ form.existing_expense }}
+        <br><br>
+        {{ form.name.label }} {{ form.name }}<br>
+        {{ form.amount.label }} {{ form.amount }}<br>
+        {{ form.date.label }} {{ form.date }}<br>
+        {{ form.bank.label }} {{ form.bank }}<br>
+        {{ form.ref_no.label }} {{ form.ref_no }}<br>
+        <input type="submit" value="Submit">
+    </form>
+
+    <script>
+        const existingExpenseDropdown = document.getElementById('existing_expense');
+        const nameInput = document.getElementById('name');
+
+        existingExpenseDropdown.addEventListener('change', (event) => {
+            const selectedOption = event.target.options[event.target.selectedIndex];
+            if (selectedOption.value) {
+                nameInput.value = selectedOption.text;
+            } else {
+                nameInput.value = '';
+            }
+        });
+    </script>
+</body>
+</html>

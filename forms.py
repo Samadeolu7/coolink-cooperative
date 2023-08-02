@@ -58,17 +58,23 @@ class LoanForm(FlaskForm):
 
 
 class ExpenseForm(FlaskForm):
-    description = StringField('Description', validators=[DataRequired()])
-    amount = IntegerField('Amount', validators=[DataRequired()])
+    name = StringField('Name', validators=[DataRequired()])
+    amount = FloatField('Amount', validators=[DataRequired()])
     date = DateField('Date', validators=[DataRequired()])
-    submit = SubmitField('Submit')
+    description = StringField('Description')
+    existing_expense = SelectField('Existing Expense', choices=[], coerce=int)
+    bank = StringField('Bank')
+    ref_no = StringField('Reference Number')
 
 
 class InvestmentForm(FlaskForm):
-    description = StringField('Description', validators=[DataRequired()])
-    amount = IntegerField('Amount', validators=[DataRequired()])
+    name = StringField('Name', validators=[DataRequired()])
+    amount = FloatField('Amount', validators=[DataRequired()])
     date = DateField('Date', validators=[DataRequired()])
-    submit = SubmitField('Submit')
+    description = StringField('Description')
+    existing_investment = SelectField('Existing Expense', choices=[], coerce=int)
+    bank = StringField('Bank')
+    ref_no = StringField('Reference Number')
 
 
 class UploadForm(FlaskForm):
@@ -78,9 +84,11 @@ class UploadForm(FlaskForm):
 
 
 class IncomeForm(FlaskForm):
+    name = StringField('Name', validators=[DataRequired()])
     amount = DecimalField('Amount', validators=[DataRequired()])
     date = DateField('Date', validators=[DataRequired()])
     bank = SelectField('Bank',coerce=int, validators=[DataRequired()])
+    existing_investment = SelectField('Existing Expense', choices=[], coerce=int)
     description = StringField('Description')
     ref_no = StringField('Ref Number', validators=[DataRequired()])
     submit = SubmitField('Submit')
@@ -100,3 +108,7 @@ class DateFilterForm(FlaskForm):
     start_date = DateField('Start Date', format='%Y-%m-%d', validators=[Optional()])
     end_date = DateField('End Date', format='%Y-%m-%d', validators=[Optional()])
     submit = SubmitField('Apply Filter')
+
+class SearchForm(FlaskForm):
+    search_query = StringField('Search')
+    submit = SubmitField('Search')

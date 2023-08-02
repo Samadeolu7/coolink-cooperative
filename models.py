@@ -32,7 +32,7 @@ class Person(db.Model,UserMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    # role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
+    role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
     email = db.Column(db.String, nullable=True,unique=True)
     password = db.Column(db.String(255), nullable=False)
     company_id = db.Column(db.Integer, db.ForeignKey('companies.id'))
@@ -68,7 +68,7 @@ class Role(db.Model):
     __tablename__ = 'roles'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(50), unique=True)
-    # person = db.relationship('Person', backref='role')
+    person = db.relationship('Person', backref='role')
 
 
 class SavingPayment(db.Model):
@@ -212,21 +212,43 @@ class Expense(db.Model):
     __tablename__ = 'expenses'
 
     id = db.Column(db.Integer, primary_key=True)
-    description = db.Column(db.Text)
-    ref_no = db.Column(db.String)
-    amount = db.Column(db.Integer)
+    name = db.Column(db.String)
     balance = balance = db.Column(db.Float, nullable=True)
-    date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
+    
 
     def to_json(self):
         return {
             'id': self.id,
-            'description': self.description,
-            'amount': self.amount,
+            'name': self.name,
             'balance': self.balance,
-            'date': self.date
-        }
 
+        }
+    
+class ExpensePayment(db.Model):
+    __tablename__ = 'expense_payments'
+
+    id = db.Column(db.Integer, primary_key=True)
+    amount = db.Column(db.Float, nullable=False)
+    exact_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    date = db.Column(db.Date, nullable=False)
+    expense_id = db.Column(db.Integer, db.ForeignKey('expenses.id'), nullable=True, index=True)
+    description = db.Column(db.String, nullable=True)
+    ref_no = db.Column(db.String)
+    balance = db.Column(db.Float, nullable=True)
+    bank_id = db.Column(db.Integer, db.ForeignKey('banks.id'), nullable=True, index=True)
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'amount': self.amount,
+            'exact_date': self.exact_date,
+            'date': self.date,
+            'expense_id': self.expense_id,
+            'description': self.description,
+            'ref_no': self.ref_no,
+            'balance': self.balance,
+            'bank_id': self.bank_id
+        }
 
 class Investment(db.Model):
     __tablename__ = 'investments'
@@ -282,11 +304,25 @@ class Income(db.Model):
             'balance': self.balance
         }
     
+with app.app_context():
+    db.create_all()
+
+    if Role.query.count() == 0:
+        db.session.add_all([Role(name='Admin'), Role(name='Sub-Admin'),Role(name='Secretary'),Role(name='User')])
+        db.session.commit()
+
+    if Bank.query.count() == 0:
+        db.session.add(Bank(name='Zenith',balance_bfd=2000000))
+        db.session.commit()
+
+    if Company.query.count() == 0:
+        db.session.add(Company(name='Nigerian Info',balance_bfd=200000,amount_accumulated=200000))
+        db.session.commit()
+
+    if Person.query.count() == 0:
+        db.session.add(Person(name ='Samuel',employee_id='ASA123',email='samore@gmail.com',password='password',
+                                   total_balance=220000,loan_balance=20000,loan_balance_bfd=20000,
+                                   phone_no=9020920855,balance_bfd =220000,company_id=1,role_id=1))
+        db.session.commit()
 
 
-# with app.app_context():
-#     db.create_all()
-
-#     if Role.query.count() == 0:
-#         db.session.add_all([Role(name='Admin'), Role(name='Sub-Admin'),Role(name='Secretary'),Role(name='User')])
-#         db.session.commit()

@@ -1,11 +1,11 @@
-import pandas as pd,os
+import pandas as pd,os,csv,zipfile
 from flask import Flask
-from models import db
+from models import db,Person  
 from queries import Queries
 from openpyxl import Workbook
 from openpyxl.styles import Alignment
 from filters import format_currency
-
+from sqlalchemy.orm import Session
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cooperative.db'
@@ -57,35 +57,43 @@ def process_excel(filename):
 
 def start_up(filename):
     df = process_excel(filename)
-    for index, row in df.iterrows():   
-        # Create a new record in the database for each row
-            query.create_new_user(row['Name'],row['COY'],row['Phone'],row['BAL B/FWD'],0,f'test{row["S/N"]}@gmail.com',1)
+    records = []
 
-from sqlalchemy.orm import Session
-from models import Person  # Import the appropriate Person model
-
-def start_up(filename):
-    df = process_excel(filename)
-
-    # Convert DataFrame rows to dictionaries with correct column names
-    records = [
-        {
+    for _, row in df.iterrows():
+        password = query.generate_password()
+        email = f'test{row["S/N"]}@gmail.com'
+        employee_id = row['COY']
+        record = {
             'name': row['Name'],
-            'employee_id': row['COY'],
+            'employee_id': employee_id,
+            'email': email,
+            'password': password,
+            'total_balance': row['BAL B/FWD'],
+            # 'loan_balance': row['Loan Balance'],  # Adjust the column name as needed
+            # 'loan_balance_bfd': row['Loan Balance'],  # Adjust the column name as needed
             'phone_no': row['Phone'],
             'balance_bfd': row['BAL B/FWD'],
-            'email': f'test{row["S/N"]}@gmail.com',
-            'role_id': 4,  # Assuming a default role_id of 1 for new users
-            'company_id': query.get_company_id(row['COY'])
+            'company_id': 1,  # Adjust the company ID as needed
+            'role_id': 4,  # Assuming a default role_id of 4 for new users
         }
-        for _, row in df.iterrows()
-    ]
+        records.append(record)
 
-    # Bulk insert the records into the database
-    with Session() as session:
-        session.bulk_insert_mappings(Person, records)
-        session.commit()
+        with open(f'credentials/{employee_id}_credentials.csv', 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['Username', 'Password'])
+            writer.writerow([f'{employee_id} or {email}', password])
+        
 
+    
+    db.session.bulk_insert_mappings(Person, records)
+    db.session.commit()
+    zip_filename = 'credentials.zip'
+    with zipfile.ZipFile(zip_filename, 'w') as zipf:
+        for employee_id in df['COY']:
+            csv_filename = f'credentials/{employee_id}_credentials.csv'
+            zipf.write(csv_filename, f'{employee_id}_credentials.csv')
+
+    return zip_filename
 
 def send_upload_to_savings(filename,description,date):
     df = process_excel(filename)
