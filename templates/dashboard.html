@@ -2,12 +2,12 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
     <!-- Add selectize.js CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.13.3/css/selectize.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.13.3/css/selectize.min.css" />
     <style>
         /* Custom CSS styles go here */
         /* For example, you can add additional styling for the dashboard */
@@ -44,7 +44,6 @@
 </head>
 
 <body class="container-full-height">
-    
     <div class="row h-100">
         <!-- Sidebar -->
         {% if person.role.id != 4 %}
@@ -54,14 +53,13 @@
                 <!-- search_page.html -->
                 <h1>Search</h1>
                 <form method="POST" action="#" id="searchForm">
-                    {{ form.hidden_tag() }}
-                    {{ form.search_query.label }} {{ form.search_query() }}
+                    {{ form.hidden_tag() }} {{ form.search_query.label }} {{
+                    form.search_query() }}
                 </form>
 
                 <ul id="searchDropdown"></ul>
                 {% endif %}
 
-                
                 <!-- Add your navigation links here -->
                 <ul class="nav flex-column h-100">
                     {% if person.role.id == 1 or person.role.id == 3 %}
@@ -72,25 +70,30 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('queries') }}">Report</a>
                     </li>
-                    {% if person.role.id == 1 %}
+                    {% if person.role.id == 1 or person.role.id == 3 %}
+
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('ledger_admin') }}">Ledger Admin</a>
                     </li>
-                    
+                    {% endif %}
+
+                    {% if person.role.id == 1 %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('role_assignment') }}">Role Assignment</a>
                     </li>
+                    {% endif %}
+                    {% if person.role.id == 1 or person.role.id == 3 %}
 
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('reset_password') }}">Reset Password</a>
                     </li>
                     {% endif %}
+
                     <!-- Add more navigation links as needed -->
                 </ul>
-                
             </div>
         </nav>
-       
+
         <!-- Main Content -->
         <main id="content" class="col-md-9 ms-sm-auto col-lg-9 px-md-4">
             <!-- Button to toggle the sidebar -->
@@ -113,39 +116,47 @@
     <!-- Add the JavaScript for handling search suggestions -->
     <script>
         $(document).ready(function () {
-            var selectizeInput = $('#searchForm input[name="search_query"]').selectize({
-                valueField: 'value',
-                labelField: 'label',
-                searchField: 'label',
+            var selectizeInput = $(
+                '#searchForm input[name="search_query"]'
+            ).selectize({
+                valueField: "value",
+                labelField: "label",
+                searchField: "label",
                 create: false,
                 maxItems: 5,
                 render: {
                     option: function (item, escape) {
-                        return '<div>' + escape(item.label) + '</div>';
-                    }
+                        return "<div>" + escape(item.label) + "</div>";
+                    },
                 },
                 load: function (query, callback) {
                     if (!query.length) return callback();
-                    $.getJSON('/search_suggestions', { query: query }, function (data) {
+                    $.getJSON("/search_suggestions", { query: query }, function (data) {
                         var suggestions = [];
                         data.companies.forEach(function (company) {
-                            suggestions.push({ value: '/company/' + company[0], label: company[1] + ' (Company)' });
+                            suggestions.push({
+                                value: "/company/" + company[0],
+                                label: company[1] + " (Company)",
+                            });
                         });
                         data.persons.forEach(function (person) {
-                            suggestions.push({ value: '/person/' + person[0], label: person[1] + ' (Person)' });
+                            suggestions.push({
+                                value: "/person/" + person[0],
+                                label: person[1] + " (Person)",
+                            });
                         });
                         callback(suggestions);
                     });
                 },
-                onChange: function(value) {
+                onChange: function (value) {
                     if (value) {
                         window.location.href = value;
                     }
-                }
+                },
             });
 
             // Prevent form submission when selecting an item
-            $('#searchForm').on('submit', function(event) {
+            $("#searchForm").on("submit", function (event) {
                 event.preventDefault();
                 var selectedOption = selectizeInput[0].selectize.getValue();
                 if (selectedOption) {

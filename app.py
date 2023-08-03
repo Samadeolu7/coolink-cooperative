@@ -664,10 +664,14 @@ def forgot_password():
 
 @app.route('/reset_password',methods=['GET', 'POST'])
 @login_required
-@role_required(['Admin'])
+@role_required(['Admin','Secretary'])
 def reset_password():
     form = ResetPasswordForm()
-    form.person.choices = [(person.id,f'{person.name}({person.employee_id})') for person in query.get_persons()]
+    if current_user.role.name == 'Admin':
+        form.person.choices = [(person.id,f'{person.name}({person.employee_id})') for person in query.get_persons()]
+    else:
+        form.person.choices = [(person.id,f'{person.name}({person.employee_id})') for person in query.get_persons() if person.role.name =='User' ]
+
 
     if form.validate_on_submit():
         person_id = form.person.data

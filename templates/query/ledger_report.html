@@ -25,7 +25,7 @@ Ledgers
             {% for bank in banks %}
             <tr>
                 <td>Cr</td>
-                <td>{{ bank.id }}</td>
+                <td>{{ 400100+bank.id }}</td>
                 <td><a href="{{url_for('individual_bank_report',bank_id=bank.id)}}">{{ bank.name }}</a></td>  <!-- Fetching the person's name -->
                 <td>{{ bank.description}}</td>
                 <td>{{ bank.balance_bfd | currency }}</td>
@@ -37,7 +37,7 @@ Ledgers
             {% for asset in assets %}
                 <tr>
                     <td>Cr</td>
-                    <td>{{ asset.id }}</td>
+                    <td>{{ 400150+asset.id }}</td>
                     <td>
                         <a href="{{url_for('savings_account',person_id=payment.payer.id)}}">{{ asset.name}}</a>
                     </td>
@@ -50,7 +50,7 @@ Ledgers
             {% for bank in banks %}
             <tr>
                 <td>Cr</td>
-                <td>{{ bank.id }}</td>
+                <td>{{ 400500+bank.id }}</td>
                 <td><a href="{{url_for('individual_bank_report',bank_id=bank.id)}}">{{ bank.name }}</a></td>  <!-- Fetching the person's name -->
                 <td>{{ bank.balance_bfd | currency }}</td>
                 <td>{{ bank.new_balance | currency }}</td>
@@ -60,7 +60,48 @@ Ledgers
             {% for investment in investments %}
             <tr>
                 <td>Cr</td>
-                <td>{{ investment.id }}</td>
+                <td>{{ 400200+investment.id }}</td>
+                <td><a href="{{url_for('individual_bank_report',bank_id=bank.id)}}">{{ investment.name }}</a></td>  <!-- Fetching the person's name -->
+                <td>{{ investment.balance_bfd | currency }}</td>
+                <td>{{ investment.new_balance | currency }}</td>
+                
+            </tr>
+            {% endfor %}
+            {% for equity in equities %}
+            <tr>
+                <td>Cr</td>
+                <td>{{ 500100+equity.id }}</td>
+                <td><a href="{{url_for('individual_bank_report',bank_id=bank.id)}}">{{ equity.name }}</a></td>  <!-- Fetching the person's name -->
+                <td>{{ equity.balance_bfd | currency }}</td>
+                <td>{{ equity.new_balance | currency }}</td>
+                
+            </tr>
+            {% endfor %}
+
+            {% for expense in expenses %}
+            <tr>
+                <td>Cr</td>
+                <td>{{ 800100+expense.id }}</td>
+                <td><a href="{{url_for('individual_bank_report',bank_id=bank.id)}}">{{ expense.name }}</a></td>  <!-- Fetching the person's name -->
+                <td>{{ expense.balance_bfd | currency }}</td>
+                <td>{{ expense.new_balance | currency }}</td>
+                
+            </tr>
+            {% endfor %}
+            {% for income in incomes %}
+            <tr>
+                <td>Cr</td>
+                <td>{{ 600100+income.id }}</td>
+                <td><a href="{{url_for('individual_bank_report',bank_id=bank.id)}}">{{ income.name }}</a></td>  <!-- Fetching the person's name -->
+                <td>{{ income.balance_bfd | currency }}</td>
+                <td>{{ income.new_balance | currency }}</td>
+                
+            </tr>
+            {% endfor %}
+            {% for liability in liabilities %}
+            <tr>
+                <td>Cr</td>
+                <td>{{ 500200 + liabilities.id }}</td>
                 <td><a href="{{url_for('individual_bank_report',bank_id=bank.id)}}">{{ investment.name }}</a></td>  <!-- Fetching the person's name -->
                 <td>{{ investment.balance_bfd | currency }}</td>
                 <td>{{ investment.new_balance | currency }}</td>
