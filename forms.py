@@ -26,7 +26,7 @@ class BankForm(FlaskForm):
 
 
 class PersonForm(FlaskForm):
-    # user_group = SelectField('User Group',choices=[(5, '5%'), (10, '10%'), (15, '15%')])
+    
     employee_id = StringField('Employee ID', validators=[DataRequired()])
     name = StringField('Name', validators=[DataRequired()])
     email = StringField('Email', validators=[ Email()])

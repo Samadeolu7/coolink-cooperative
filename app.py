@@ -167,7 +167,7 @@ def create_bank():
 def create_person():
     form = PersonForm()
     form.company_id.choices = [(company.id, company.name) for company in Company.query.all()]
-    form.person.choices = [(person.id, person.name) for person in query.get_persons()]
+    
     if form.validate_on_submit():
         file = query.create_new_user(employee_id=form.employee_id.data,
             name=form.name.data,
