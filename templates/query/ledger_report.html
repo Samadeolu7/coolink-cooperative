@@ -1,0 +1,73 @@
+{%extends 'base.html' %}
+
+{%block title%}
+Ledger Report
+{% endblock %}
+
+{% block header%}
+Ledgers
+{% endblock  %}
+
+{%block content%}
+
+<body id="person">
+    <table class="tab-content">
+        <tbody>
+            <tr>
+
+                <th>Cr/Dr</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Balance_bfd</th>
+                <th>Amount</th>
+               
+            </tr>
+            {% for bank in banks %}
+            <tr>
+                <td>Cr</td>
+                <td>{{ bank.id }}</td>
+                <td><a href="{{url_for('individual_bank_report',bank_id=bank.id)}}">{{ bank.name }}</a></td>  <!-- Fetching the person's name -->
+                <td>{{ bank.description}}</td>
+                <td>{{ bank.balance_bfd | currency }}</td>
+                <td>{{ bank.new_balance | currency }}</td>
+                
+            </tr>
+            {% endfor %}
+            
+            {% for asset in assets %}
+                <tr>
+                    <td>Cr</td>
+                    <td>{{ asset.id }}</td>
+                    <td>
+                        <a href="{{url_for('savings_account',person_id=payment.payer.id)}}">{{ asset.name}}</a>
+                    </td>
+                    <td>{{ asset.description}}</td>
+                    <td>{{ asset.balance_bfd | currency }}</td>
+                    <td>{{ asset.amount | currency}}</td>
+                    
+                </tr>
+            {% endfor %}
+            {% for bank in banks %}
+            <tr>
+                <td>Cr</td>
+                <td>{{ bank.id }}</td>
+                <td><a href="{{url_for('individual_bank_report',bank_id=bank.id)}}">{{ bank.name }}</a></td>  <!-- Fetching the person's name -->
+                <td>{{ bank.balance_bfd | currency }}</td>
+                <td>{{ bank.new_balance | currency }}</td>
+                
+            </tr>
+            {% endfor %}
+            {% for investment in investments %}
+            <tr>
+                <td>Cr</td>
+                <td>{{ investment.id }}</td>
+                <td><a href="{{url_for('individual_bank_report',bank_id=bank.id)}}">{{ investment.name }}</a></td>  <!-- Fetching the person's name -->
+                <td>{{ investment.balance_bfd | currency }}</td>
+                <td>{{ investment.new_balance | currency }}</td>
+                
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+{%endblock%}

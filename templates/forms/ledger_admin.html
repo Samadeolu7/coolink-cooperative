@@ -3,18 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Role Assignment</title>
+    <title>Ledger Admin</title>
 </head>
 <body>
-    <h1>Role Assignment</h1>
-
-    <form  method="post">
+    <form method="POST">
         {{ form.hidden_tag() }}
-        {{ form.person.label }} {{ form.person }}
         <br>
-        {{ form.role.label }} {{ form.role }}
+        {{ form.ledger.label }} {{ form.ledger() }}
         <br>
-        {{ form.submit }}
+        {{ form.submit.label }} {{ form.submit() }}
+        
     </form>
 </body>
 </html>

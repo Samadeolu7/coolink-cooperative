@@ -1,5 +1,3 @@
-
-
 def format_currency(value, currency_symbol='₦', decimal_separator='.', thousands_separator=','):
     # Check if the value is negative
     if value < 0:

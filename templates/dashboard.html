@@ -61,21 +61,32 @@
                 <ul id="searchDropdown"></ul>
                 {% endif %}
 
-                {% if person.role.id == 1 or person.role.id == 3 %}
+                
                 <!-- Add your navigation links here -->
                 <ul class="nav flex-column h-100">
+                    {% if person.role.id == 1 or person.role.id == 3 %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('forms') }}">Forms</a>
                     </li>
+                    {% endif %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('queries') }}">Queries</a>
+                        <a class="nav-link" href="{{ url_for('queries') }}">Report</a>
                     </li>
+                    {% if person.role.id == 1 %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('ledger_admin') }}">Ledger Admin</a>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('role_assignment') }}">Role Assignment</a>
+                    </li>
+                    {% endif %}
                     <!-- Add more navigation links as needed -->
                 </ul>
                 
             </div>
         </nav>
-        {% endif %}
+       
         <!-- Main Content -->
         <main id="content" class="col-md-9 ms-sm-auto col-lg-9 px-md-4">
             <!-- Button to toggle the sidebar -->

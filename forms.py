@@ -26,7 +26,7 @@ class BankForm(FlaskForm):
 
 
 class PersonForm(FlaskForm):
-    # user_group = SelectField('User Group',choices=[(, '5%'), (10, '10%'), (15, '15%')])
+    # user_group = SelectField('User Group',choices=[(5, '5%'), (10, '10%'), (15, '15%')])
     employee_id = StringField('Employee ID', validators=[DataRequired()])
     name = StringField('Name', validators=[DataRequired()])
     email = StringField('Email', validators=[ Email()])
@@ -37,7 +37,7 @@ class PersonForm(FlaskForm):
     submit = SubmitField('Submit')
 
 
-class PaymentForm(FlaskForm):
+class MakePaymentForm(FlaskForm):
     amount = DecimalField('Amount', validators=[DataRequired()])
     date = DateField('Date', validators=[DataRequired()])
     payment_type = SelectField('Payment Type', choices=[('savings', 'Savings'), ('loan', 'Loan')], validators=[DataRequired()])
@@ -47,6 +47,14 @@ class PaymentForm(FlaskForm):
     ref_no = StringField('Ref Number', validators=[DataRequired()])
     submit = SubmitField('Submit')
 
+class PaymentForm(FlaskForm):
+    amount = DecimalField('Amount', validators=[DataRequired()])
+    date = DateField('Date', validators=[DataRequired()])
+    payment_type = SelectField('Payment Type', choices=[('expense', 'Expense'), ('asset', 'Asset'), ('liability', 'liabilities'), ('equity', 'Equity'), ('income', 'Income')], validators=[DataRequired()])
+    bank = SelectField('Bank',coerce=int, validators=[DataRequired()])
+    description = StringField('Description')
+    ref_no = StringField('Ref Number', validators=[DataRequired()])
+    submit = SubmitField('Submit')
 
 class LoanForm(FlaskForm):
     employee_id = StringField('Employee ID', validators=[DataRequired()])
@@ -112,3 +120,12 @@ class DateFilterForm(FlaskForm):
 class SearchForm(FlaskForm):
     search_query = StringField('Search')
     submit = SubmitField('Search')
+
+class LedgerAdminForm(FlaskForm):
+    ledger = SelectField('Select Ledger',choices=[(1,'Asset'),(2,'Equity'),(3,'Expenses'),(4,'Income'),(5,'Liabilities'),(6,'Investments')],validators=[DataRequired()])
+    submit = SubmitField('Create New Ledger')
+
+class LedgerForm(FlaskForm):
+    name = StringField('Name', validators=[DataRequired()])
+    description = StringField('Description', validators=[DataRequired()])
+    submit = SubmitField('Create')

@@ -183,7 +183,25 @@ def create_person():
                 flash(f'Error in field {form.errors}')
     return render_template('forms/person_form.html', form=form, companies=Company.query.all())
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/ledger_admin', methods=['GET', 'POST'])
+@role_required(['Admin'])
+def ledger_admin():
+    form = LedgerAdminForm()
+    if form.validate_on_submit():
+        return redirect(url_for('new_ledger',ledger=form.ledger.data))
+    return render_template('forms/ledger_admin.html',form=form)
+
+@app.route('/ledger/<ledger>', methods=['GET', 'POST'])
+@role_required(['Admin'])
+def new_ledger(ledger):
+    form = LedgerForm()
+    if form.validate_on_submit():
+        query.create_new_ledger(ledger,form.name.data,form.description.data)
+        return redirect(url_for('dashboard'))
+    return render_template('forms/ledger.html',form=form)
+
+@app.route('/role_assignment', methods=['GET', 'POST'])
+@role_required(['Admin'])
 def role_assignment():
     form = RoleAssignmentForm()
 
@@ -201,15 +219,15 @@ def role_assignment():
         if person and role:
             person.role = role
             db.session.commit()
-            return redirect(url_for('role_assignment'))
+            return redirect(url_for('dashboard'))
 
-    return render_template('role_assignment.html', form=form)
+    return render_template('forms/role_assignment.html', form=form)
 
-@app.route('/payment', methods=['GET', 'POST'])
+@app.route('/make_payment', methods=['GET', 'POST'])
 @login_required
 @role_required(['Admin','Secretary'])
 def make_payment():
-    form = PaymentForm()
+    form = MakePaymentForm()
     form.person_id.choices = [(person.id, (f'{person.name} ({person.employee_id})')) for person in query.get_persons()]
     form.bank.choices=[(bank.id,bank.name) for bank in query.get_banks()]
     
@@ -244,6 +262,29 @@ def make_payment():
 
     return render_template('forms/payment.html', form=form)
 
+@app.route('/payment', methods=['GET', 'POST'])
+@login_required
+@role_required(['Admin','Secretary'])
+def payment():
+    form = PaymentForm()
+    form.person_id.choices = [(person.id, (f'{person.name} ({person.employee_id})')) for person in query.get_persons()]
+    form.bank.choices=[(bank.id,bank.name) for bank in query.get_banks()]
+    
+    if form.validate_on_submit():
+       
+        amount = form.amount.data
+        payment_type = form.payment_type.data
+        description = form.description.data
+        date = form.date.data
+        bank_id = form.bank.data
+        ref_no=form.ref_no.data
+        
+        query.make_payment(amount,payment_type,description,date=date,bank_id= bank_id,ref_no=ref_no)
+    
+        return redirect(url_for('get_person'))
+
+    return render_template('forms/payment.html', form=form)
+
 @app.route('/make_income', methods=['GET', 'POST'])
 @login_required
 @role_required(['Admin','Secretary'])
@@ -270,7 +311,9 @@ def make_income():
 @role_required(['Admin','Secretary','Sub-Admin'])
 def get_persons():
     persons = query.get_persons()
-    return render_template('query/person.html', persons=persons)
+    total_loan = sum(person.loan_balance for person in persons)
+    total_savings = sum(person.total_balance for person in persons)
+    return render_template('query/person.html', persons=persons,total_loan=total_loan,total_savings=total_savings)
 
 
 def filter_payments(start_date,end_date,payments):
@@ -613,3 +656,8 @@ def get_balance(person_id):
         return str(selected_person.total_balance)
     else:
         return jsonify(error='Person not found'), 404
+    
+
+
+
+

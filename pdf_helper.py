@@ -56,12 +56,13 @@ def create_persons_pdf():
 
     # Create a table for the payment details
     table_data = [
-        ['Employee ID', 'Name', 'Email', 'Phone Number', 'Savings Balance', 'Loan  Balance','Company' ]   
+        ['Employee ID', 'Name','Email', 'Phone Number', 'Savings Balance', 'Loan  Balance','Company' ]   
     ]
 
     for person in query.get_persons():
         table_data.append([
             person.employee_id,
+            '-',
             person.name ,
             person.email ,
             person.phone_no,
@@ -69,6 +70,16 @@ def create_persons_pdf():
             format_currency(person.loan_balance),
             person.company.name
         ])
+    total_row = [
+        'Total',
+        'Total',
+        '-',
+        '-',
+        '-',
+        format_currency(sum(person.total_balance for person in query.get_persons())),
+        format_currency(sum(person.loan_balance for person in query.get_persons()))
+    ]
+    table_data.append(total_row)
 
     # Set table style
     table_style = TableStyle([
@@ -76,7 +87,7 @@ def create_persons_pdf():
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
         ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
         ('FONTNAME', (0, 0), (-1, 0), 'ArialUnicode'),
-        ('FONTSIZE', (0, 0), (-1, 0), 12),
+        ('FONTSIZE', (0, 0), (-1, 0), 10),
         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
         ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
         ('GRID', (0, 0), (-1, -1), 1, colors.black)

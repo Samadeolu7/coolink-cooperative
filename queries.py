@@ -307,6 +307,20 @@ class Queries():
 
             self.db.session.commit()
 
+    # def make_payment(amount,payment_type,description,date,bank_id,ref_no):
+        
+
+    #     if payment_type == 'expense':
+    #         expense.balance += float(amount)
+    #         bank_payment = BankPayment(amount=amount, date=date,exact_date=datetime.utcnow(),
+    #                                    description=description,ref_no=ref_no, bank_balance=bank.new_balance,
+    #                                     bank_id=bank.id)
+    #     elif payment_type == 'asset':
+    #     elif payment_type =='liability':
+    #     elif payment_type == 'equity':
+    #     elif payment_type =='income':
+    #     elif payment_type =='investment':
+
     def get_companies(self):
         company = Company.query.all()
 
@@ -360,3 +374,36 @@ class Queries():
     def get_expenses(self):
         expence = Expense.query.all
         return expence
+    
+    
+
+    def create_new_ledger(self,ledger,name,description):
+        if ledger == 1:
+            asset = Asset(name = name, description = description)
+            db.session.add(asset)
+            db.session.commit
+
+        elif ledger == 2:
+            equity = Equity(name = name, description = description) 
+            db.session.add(equity)
+            db.session.commit
+
+        elif ledger == 3:
+            expense = Expense(name = name, description = description) 
+            db.session.add(expense)
+            db.session.commit
+
+        elif ledger == 4:
+            income = Income(name = name, description = description)  
+            db.session.add(income)
+            db.session.commit
+
+        elif ledger == 5:
+            liability = Liability(name = name, description = description)  
+            db.session.add(liability)
+            db.session.commit  
+
+        elif ledger == 6:
+            investment = Investment(name = name, description = description)  
+            db.session.add(investment)
+            db.session.commit  
