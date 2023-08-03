@@ -129,3 +129,7 @@ class LedgerForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired()])
     description = StringField('Description', validators=[DataRequired()])
     submit = SubmitField('Create')
+
+class ResetPasswordForm(FlaskForm):
+    person = SelectField('Select Person', choices=[], validators=[DataRequired()])
+    submit = SubmitField('Reset Password')

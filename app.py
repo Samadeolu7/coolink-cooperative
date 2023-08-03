@@ -5,7 +5,7 @@ from models import db,Company,Person,Bank,Role,Expense
 from excel_helper import create_excel,generate_repayment_schedule,export_repayment_schedule_to_excel,send_upload_to_loan_repayment,send_upload_to_savings,start_up
 from pdf_helper import create_pdf
 from queries import Queries
-import pandas as pd,json
+import pandas as pd,json,csv
 from filters import format_currency 
 from flask_login import LoginManager,login_user, login_required, logout_user, current_user
 
@@ -167,6 +167,7 @@ def create_bank():
 def create_person():
     form = PersonForm()
     form.company_id.choices = [(company.id, company.name) for company in Company.query.all()]
+    form.person.choices = [(person.id, person.name) for person in query.get_persons()]
     if form.validate_on_submit():
         file = query.create_new_user(employee_id=form.employee_id.data,
             name=form.name.data,
@@ -189,7 +190,7 @@ def ledger_admin():
     form = LedgerAdminForm()
     if form.validate_on_submit():
         return redirect(url_for('new_ledger',ledger=form.ledger.data))
-    return render_template('forms/ledger_admin.html',form=form)
+    return render_template('admin/ledger_admin.html',form=form)
 
 @app.route('/ledger/<ledger>', methods=['GET', 'POST'])
 @role_required(['Admin'])
@@ -198,7 +199,7 @@ def new_ledger(ledger):
     if form.validate_on_submit():
         query.create_new_ledger(ledger,form.name.data,form.description.data)
         return redirect(url_for('dashboard'))
-    return render_template('forms/ledger.html',form=form)
+    return render_template('admin/ledger.html',form=form)
 
 @app.route('/role_assignment', methods=['GET', 'POST'])
 @role_required(['Admin'])
@@ -221,7 +222,7 @@ def role_assignment():
             db.session.commit()
             return redirect(url_for('dashboard'))
 
-    return render_template('forms/role_assignment.html', form=form)
+    return render_template('admin/role_assignment.html', form=form)
 
 @app.route('/make_payment', methods=['GET', 'POST'])
 @login_required
@@ -657,7 +658,29 @@ def get_balance(person_id):
     else:
         return jsonify(error='Person not found'), 404
     
+@app.route('/forgot_password')
+def forgot_password():
+    pass
 
+@app.route('/reset_password',methods=['GET', 'POST'])
+@login_required
+@role_required(['Admin'])
+def reset_password():
+    form = ResetPasswordForm()
+    form.person.choices = [(person.id,f'{person.name}({person.employee_id})') for person in query.get_persons()]
 
+    if form.validate_on_submit():
+        person_id = form.person.data
+        password = query.generate_password()
+        person = query.get_person(person_id)
+        person.password = password 
+        db.session.commit()
+        with open (f'credentials/{person.employee_id}_credentials.csv','w',newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['Username','Password'])
+            writer.writerow([f'{person.employee_id} or {person.email}',password])
 
-
+        return redirect(url_for('download',file_path=file.name))
+    return render_template('admin/reset_password.html',form = form)
+        
+   
