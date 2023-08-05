@@ -14,10 +14,14 @@
         <br>
         {{ form.balance.label }} {{ form.balance }}
         <br>
-        {{ form.amount.label }} {{ form.amount }}
+        {{ form.date.label }} {{ form.date }}<br>
+
+        {{ form.amount.label }} {{ form.amount }}<br>
         {% for error in form.amount.errors %}
             <p style="color: red;">{{ error }}</p>
         {% endfor %}
+        {{ form.description.label }} {{ form.description }}<br>
+        {{ form.ref_no.label }} {{ form.ref_no }}<br>
         <br>
         {{ form.submit }}
     </form>
@@ -36,7 +40,7 @@
                 if (xhr.readyState === XMLHttpRequest.DONE) {
                     if (xhr.status === 200) {
                         // Update the balance field with the retrieved balance
-                        balanceField.value = parseFloat(xhr.responseText).toFixed(2);
+                        balanceField.value = xhr.responseText;
                     } else {
                         // Handle errors here (e.g., server error, person not found)
                         balanceField.value = '';

@@ -48,7 +48,8 @@
 
             <div class="card">
                 <div class="container">
-                    <a href="{{ url_for('make_payment') }}">Make Payment</a>
+                    <a href="{{ url_for('make_payment') }}"> Bank Payment Receipt </a>
+                    <!-- make payment into the system -->
                 </div>
             </div>
 
@@ -60,14 +61,22 @@
 
             <div class="card">
                 <div class="container">
-                    <a href="{{ url_for('create_expense') }}">Add Expense</a>
+                    <a href="{{ url_for('create_expense') }}">Bank Payment Voucher</a> 
+                    <!-- add expense to the system -->
                 </div>
             </div>
 
             <div class="card">
 
                 <div class="container">
-                    <a href="{{ url_for('upload_savings') }}">Make Withdrawal</a>
+                    <a href="{{ url_for('upload_savings') }}">Upload Savings</a>
+                </div>
+            </div>
+
+            <div class="card">
+
+                <div class="container">
+                    <a href="{{ url_for('withdraw') }}">Make Withdrawal</a>
                 </div>
             </div>
 

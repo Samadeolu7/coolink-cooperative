@@ -381,29 +381,41 @@ class Queries():
         if ledger == 1:
             asset = Asset(name = name, description = description)
             db.session.add(asset)
-            db.session.commit
+            db.session.commit()
 
         elif ledger == 2:
-            equity = Equity(name = name, description = description) 
-            db.session.add(equity)
-            db.session.commit
-
-        elif ledger == 3:
             expense = Expense(name = name, description = description) 
             db.session.add(expense)
-            db.session.commit
+            db.session.commit()
 
-        elif ledger == 4:
+        elif ledger == 3:
             income = Income(name = name, description = description)  
             db.session.add(income)
-            db.session.commit
+            db.session.commit()
 
-        elif ledger == 5:
+        elif ledger == 4:
             liability = Liability(name = name, description = description)  
             db.session.add(liability)
-            db.session.commit  
+            db.session.commit()
 
-        elif ledger == 6:
+        elif ledger == 5:
             investment = Investment(name = name, description = description)  
             db.session.add(investment)
-            db.session.commit  
+            db.session.commit()
+
+    def sub_accounts(self,ledger):
+        if ledger == 2:
+            sub_accounts = Asset.query.all()
+            return sub_accounts
+
+        elif ledger == 1:
+            sub_accounts = Expense.query.all()
+            return sub_accounts
+
+        elif ledger == 4:
+            sub_accounts = Liability.query.all()
+            return sub_accounts
+
+        elif ledger == 3:
+            sub_accounts = Investment.query.all()
+            return sub_accounts

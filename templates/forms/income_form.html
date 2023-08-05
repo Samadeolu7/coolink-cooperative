@@ -17,6 +17,8 @@
 
     <form method="POST">
         {{ form.hidden_tag() }}
+        {{ form.name.label }} {{ form.name() }}
+        <br>
         {{ form.ref_no.label }} {{ form.ref_no() }}
         <br>
         {{ form.bank.label }} {{ form.bank() }}

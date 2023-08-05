@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Accounting Trial Balance</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .text-center {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Accounting Trial Balance</h1>
+    <table>
+        <tr>
+            <th colspan="2">Assets</th>
+        </tr>
+        <tr>
+            <td>Cash and Equivalents</td>
+            <td class="text-center">{{ total_cash_and_equivalents }}</td>
+        </tr>
+        <tr>
+            <td>Accounts Receivable</td>
+            <td class="text-center">{{ total_accounts_receivable }}</td>
+        </tr>
+        <tr>
+            <td>Bank</td>
+            <td class="text-center">
+                <ul>
+                    {% for bank in banks %}
+                        <li>{{ bank.name }}: {{ bank.new_balance }}</li>
+                    {% endfor %}
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td>Income</td>
+            <td class="text-center">
+                <ul>
+                    {% for income in incomes %}
+                        <li>{{ income.name }}: {{ income.balance }}</li>
+                    {% endfor %}
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <th>Total Assets</th>
+            <th class="text-center">{{ total_assets }}</th>
+        </tr>
+        <tr>
+            <th colspan="2">Expenses</th>
+        </tr>
+        {% for exp in expense %}
+            <tr>
+                <td>{{ exp.name }}</td>
+                <td class="text-center">{{ exp.balance }}</td>
+            </tr>
+        {% endfor %}
+        <tr>
+            <th>Total Expenses</th>
+            <th class="text-center">{{ total_expenses }}</th>
+        </tr>
+        <tr>
+            <th>Total Liabilities &amp; Equity</th>
+            <th class="text-center">{{ total_liabilities_and_equity }}</th>
+        </tr>
+    </table>
+</body>
+</html>
+

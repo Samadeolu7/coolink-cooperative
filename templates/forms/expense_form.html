@@ -2,35 +2,48 @@
 
 <!DOCTYPE html>
 <html>
+
 <head>
-    <title>Expense Input Form</title>
+    <title>Bank Payment Voucher</title>
 </head>
+
 <body>
-    <h1>Expense Input Form</h1>
+
+    <h1>Bank Payment Voucher</h1>
     <form method="POST" action="/" id="expenseForm">
-        {{ form.csrf_token }}
-        {{ form.existing_expense.label }} {{ form.existing_expense }}
-        <br><br>
-        {{ form.name.label }} {{ form.name }}<br>
+        {{ form.hidden_tag() }}
+        {{ form.main_account.label }} {{ form.main_account(id="main_account") }}
+        <br>
+        {{ form.sub_account.label }} {{ form.sub_account(id="sub_account") }}<br>
         {{ form.amount.label }} {{ form.amount }}<br>
-        {{ form.date.label }} {{ form.date }}<br>
         {{ form.bank.label }} {{ form.bank }}<br>
+        {{ form.date.label }} {{ form.date }}<br>
+        {{ form.description.label }} {{ form.description }}<br>
         {{ form.ref_no.label }} {{ form.ref_no }}<br>
         <input type="submit" value="Submit">
     </form>
 
     <script>
-        const existingExpenseDropdown = document.getElementById('existing_expense');
-        const nameInput = document.getElementById('name');
+        const mainAccountDropdown = document.getElementById('main_account');
+        const subAccountDropdown = document.getElementById('sub_account');
+    
 
-        existingExpenseDropdown.addEventListener('change', (event) => {
-            const selectedOption = event.target.options[event.target.selectedIndex];
-            if (selectedOption.value) {
-                nameInput.value = selectedOption.text;
-            } else {
-                nameInput.value = '';
-            }
+        mainAccountDropdown.addEventListener('change', async (event) => {
+            const selectedMainAccount = event.target.value;
+
+            // Make an asynchronous request to fetch sub-account choices
+            const response = await fetch(`/get_sub_accounts/${selectedMainAccount}`);
+            const subAccountChoices = await response.json();
+
+            // Clear and update sub-account dropdown
+            subAccountDropdown.innerHTML = '';
+            subAccountChoices.forEach(choice => {
+                const option = new Option(choice.name, choice.id);
+                subAccountDropdown.appendChild(option);
+            });
         });
+
     </script>
 </body>
+
 </html>

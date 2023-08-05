@@ -50,7 +50,7 @@ class MakePaymentForm(FlaskForm):
 class PaymentForm(FlaskForm):
     amount = DecimalField('Amount', validators=[DataRequired()])
     date = DateField('Date', validators=[DataRequired()])
-    payment_type = SelectField('Payment Type', choices=[('expense', 'Expense'), ('asset', 'Asset'), ('liability', 'liabilities'), ('equity', 'Equity'), ('income', 'Income')], validators=[DataRequired()])
+    payment_type = SelectField('Payment Type', choices=[], validators=[DataRequired()])
     bank = SelectField('Bank',coerce=int, validators=[DataRequired()])
     description = StringField('Description')
     ref_no = StringField('Ref Number', validators=[DataRequired()])
@@ -62,27 +62,28 @@ class LoanForm(FlaskForm):
     interest_rate = SelectField('Interest Rate', choices=[(5, '5%'), (10, '10%'), (15, '15%')], validators=[DataRequired()])
     start_date = DateField('Start Date', validators=[DataRequired()])
     end_date = DateField('End Date', validators=[DataRequired()])
+    description = StringField('Description')
     submit = SubmitField('Submit')
 
 
 class ExpenseForm(FlaskForm):
-    name = StringField('Name', validators=[DataRequired()])
+    sub_account = SelectField('Sub-Select Account', choices=[], coerce=int) #change name to main account
     amount = FloatField('Amount', validators=[DataRequired()])
     date = DateField('Date', validators=[DataRequired()])
     description = StringField('Description')
-    existing_expense = SelectField('Existing Expense', choices=[], coerce=int)
-    bank = StringField('Bank')
+    main_account = SelectField('Select Account', choices=[(1,'Expense'),(2,'Asset'),(3,'Investment'),(4,'Liability')], coerce=int) #change name to sub-account
+    bank = SelectField('Bank', choices=[], coerce=int)
     ref_no = StringField('Reference Number')
 
 
-class InvestmentForm(FlaskForm):
-    name = StringField('Name', validators=[DataRequired()])
-    amount = FloatField('Amount', validators=[DataRequired()])
-    date = DateField('Date', validators=[DataRequired()])
-    description = StringField('Description')
-    existing_investment = SelectField('Existing Expense', choices=[], coerce=int)
-    bank = StringField('Bank')
-    ref_no = StringField('Reference Number')
+# class InvestmentForm(FlaskForm):
+#     name = StringField('Name', validators=[DataRequired()])
+#     amount = FloatField('Amount', validators=[DataRequired()])
+#     date = DateField('Date', validators=[DataRequired()])
+#     description = StringField('Description')
+#     existing_investment = SelectField('Existing Expense', choices=[], coerce=int)
+#     bank = StringField('Bank')
+#     ref_no = StringField('Reference Number')
 
 
 class UploadForm(FlaskForm):
@@ -92,11 +93,10 @@ class UploadForm(FlaskForm):
 
 
 class IncomeForm(FlaskForm):
-    name = StringField('Name', validators=[DataRequired()])
+    name = SelectField('Sub-Account', choices=[('loan','Loan Application Form'),('form','Registration Form')], validators=[DataRequired()])
     amount = DecimalField('Amount', validators=[DataRequired()])
     date = DateField('Date', validators=[DataRequired()])
     bank = SelectField('Bank',coerce=int, validators=[DataRequired()])
-    existing_investment = SelectField('Existing Expense', choices=[], coerce=int)
     description = StringField('Description')
     ref_no = StringField('Ref Number', validators=[DataRequired()])
     submit = SubmitField('Submit')
@@ -104,6 +104,9 @@ class IncomeForm(FlaskForm):
 class WithdrawalForm(FlaskForm):
     person = SelectField('Select Person', coerce=int, validators=[DataRequired()])
     balance = FloatField('Available Balance', render_kw={'readonly': True})
+    description = StringField('Description')
+    ref_no = StringField('Ref Number', validators=[DataRequired()])
+    date = DateField('Date', validators=[DataRequired()])
     amount = FloatField('Withdraw Amount', validators=[DataRequired(), NumberRange(min=0.01)])
     submit = SubmitField('Withdraw')
 
@@ -122,7 +125,7 @@ class SearchForm(FlaskForm):
     submit = SubmitField('Search')
 
 class LedgerAdminForm(FlaskForm):
-    ledger = SelectField('Select Ledger',choices=[(1,'Asset'),(2,'Equity'),(3,'Expenses'),(4,'Income'),(5,'Liabilities'),(6,'Investments')],validators=[DataRequired()])
+    ledger = SelectField('Select Ledger',choices=[(1,'Asset'),(2,'Expenses'),(3,'Income'),(4,'Liabilities'),(5,'Investments')],validators=[DataRequired()])
     submit = SubmitField('Create New Ledger')
 
 class LedgerForm(FlaskForm):

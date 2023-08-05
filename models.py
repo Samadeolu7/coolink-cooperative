@@ -500,7 +500,7 @@ with app.app_context():
         db.session.commit()
 
     if Bank.query.count() == 0:
-        db.session.add(Bank(name='Zenith',balance_bfd=2000000))
+        db.session.add(Bank(name='Zenith',balance_bfd=2000000,new_balance=2000000))
         db.session.commit()
 
     if Company.query.count() == 0:

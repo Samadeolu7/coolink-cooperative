@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect,send_file, render_template, redirect, url_for, flash,jsonify
 from forms import *
 from functools import wraps
-from models import db,Company,Person,Bank,Role,Expense
+from models import *
 from excel_helper import create_excel,generate_repayment_schedule,export_repayment_schedule_to_excel,send_upload_to_loan_repayment,send_upload_to_savings,start_up
 from pdf_helper import create_pdf
 from queries import Queries
@@ -197,7 +197,7 @@ def ledger_admin():
 def new_ledger(ledger):
     form = LedgerForm()
     if form.validate_on_submit():
-        query.create_new_ledger(ledger,form.name.data,form.description.data)
+        query.create_new_ledger(int(ledger),form.name.data,form.description.data)
         return redirect(url_for('dashboard'))
     return render_template('admin/ledger.html',form=form)
 
@@ -438,6 +438,52 @@ def individual_bank_report(bank_id):
     # Render the bank report template with the data
     return render_template('query/bank_report.html', bank=bank, payments=payments, total_amount=total_amount)
 
+@app.route('/ledger_report')
+@login_required
+@role_required(['Admin','Secretary','Sub-Admin'])
+def ledger_report():
+    # Retrieve data from the database
+    companies = Company.query.all()
+    banks = Bank.query.all()
+    persons = Person.query.all()
+    assets = Asset.query.all()
+    liabilities = Liability.query.all()
+    incomes = Income.query.all()
+    expenses = Expense.query.all()
+    investments = Investment.query.all()
+    # Calculate total cash and equivalents
+    total_company_receivable =sum(company.amount_accumulated for company in companies)
+    total_cash_and_equivalents = total_company_receivable + sum(bank.new_balance for bank in banks)
+
+    # Calculate total accounts receivable
+    total_accounts_receivable = sum(person.loan_balance for person in persons)
+
+    total_investments= sum(investment.balance for investment in investments if investment.balance)
+    # Calculate total income
+    total_incomes = sum(income.balance for income in incomes if income.balance)
+
+    # Calculate total expenses
+    total_expenses = sum(expense.balance for expense in expenses if expense.balance )
+
+    # Calculate total assets
+    total_assets = total_cash_and_equivalents + total_accounts_receivable + sum(asset.balance for asset in assets if asset.balance) + total_incomes + total_investments
+
+    # Calculate total accounts payable
+    total_accounts_payable = sum(person.total_balance for person in persons)
+
+    # Calculate total liabilities
+    total_liabilities = total_accounts_payable + sum(liability.balance for liability in liabilities if liability.balance) + total_expenses
+
+    # Calculate total equity and liabilities & equity
+    total_equity = total_assets - total_liabilities
+    total_liabilities_and_equity = total_liabilities + total_equity
+
+    return render_template('query/ledger_report.html', assets=assets, total_expenses=total_expenses, expenses = expenses,incomes=incomes,
+                           banks=banks, total_cash_and_equivalents=total_cash_and_equivalents,company =total_company_receivable,
+                           total_accounts_receivable=total_accounts_receivable, total_incomes=total_incomes,
+                           total_assets=total_assets, investments=investments,liabilities=liabilities,
+                           total_accounts_payable=total_accounts_payable, total_liabilities=total_liabilities,
+                           total_equity=total_equity, total_liabilities_and_equity=total_liabilities_and_equity)
 
 @app.route('/balance_sheet')
 @login_required
@@ -513,7 +559,6 @@ def create_loan():
 @app.route('/expense/create', methods=['GET', 'POST'])
 def create_expense():
     form = ExpenseForm()
-    form.existing_expense.choices = [(expense.id, expense.name) for expense in Expense.query.all()]
     if form.validate_on_submit():
         if form.existing_expense.data:
             # Handle existing expense selection
@@ -654,7 +699,7 @@ def logout():
 def get_balance(person_id):
     selected_person = Person.query.get(person_id)
     if selected_person:
-        return str(selected_person.total_balance)
+        return format_currency(selected_person.total_balance)
     else:
         return jsonify(error='Person not found'), 404
     
@@ -687,4 +732,13 @@ def reset_password():
         return redirect(url_for('download',file_path=file.name))
     return render_template('admin/reset_password.html',form = form)
         
-   
+@app.route('/get_sub_accounts/<int:main_account_id>')
+def get_sub_accounts(main_account_id):
+    # Fetch sub-account options based on the selected main_account
+    # You need to implement this logic based on your database structure
+    sub_accounts = query.sub_accounts(main_account_id)
+
+    # Create a list of dictionaries with 'id' and 'name' keys
+    sub_account_options = [{'id': sub_account.id, 'name': sub_account.name} for sub_account in sub_accounts]
+
+    return jsonify(sub_account_options)
