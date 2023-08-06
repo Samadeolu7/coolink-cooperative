@@ -331,7 +331,6 @@ def filter_payments(start_date,end_date,payments):
 
 @app.route('/savings_account', methods=['GET'])
 @login_required
-@role_required(['Admin','Secretary','Sub-Admin'])
 def get_payments():
     
     payments = query.get_savings()
@@ -380,7 +379,6 @@ def savings_account(person_id):
 
 @app.route('/loan/<person_id>', methods=['GET', 'POST'])
 @login_required
-@role_required(['Admin','Secretary','Sub-Admin'])
 def loan_account(person_id):
     loans = query.get_person_loans(person_id)
     person = query.get_person(person_id)
@@ -391,8 +389,8 @@ def loan_account(person_id):
 @login_required
 @role_required(['Admin','Secretary','Sub-Admin'])
 def bank_report():
-    bank = query.get_banks()
-    return render_template('query/banks.html', banks=bank)
+    banks = query.get_banks()
+    return render_template('query/banks.html', banks=banks)
     
 @app.route('/companies_report')
 @login_required

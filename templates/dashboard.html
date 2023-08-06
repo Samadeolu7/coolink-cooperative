@@ -102,13 +102,16 @@
                 <!-- Add more content specific to the logged-in user here -->
             </div>
             <div>
-                <p><strong>Current Balance:</strong> {{ person.balance_bfd }}</p>
-                <p><strong>Total Balance:</strong> {{ person.total_balance }}</p>
+                <a href="{{url_for('savings_account',person_id=person.id)}}"><p><strong>Current Balance:</strong> {{ person.balance_bfd | currency}}</p></a>
+                <a href="{{url_for('loan_account',person_id=person.id)}}"><p><strong>Loan Balance:</strong> {{ person.loan_balance | currency}}</p></a>
                 <!-- Add more balance information here -->
             </div>
+
         </main>
+        
     </div>
 
+    
     <!-- Add jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- Add selectize.js JavaScript -->
