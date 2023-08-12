@@ -9,19 +9,7 @@ Ledgers
 {% endblock  %}
 
 {%block content%}
-<style>
-    .bold {
-      border: 2px solid black; /* Bold bottom border */
-    }
-    
-    .thin-all {
-      border: 1px solid #ccc; /* Thin borders on all sides */
-    }
-    
-    .ultra-thin-all {
-      border: 0.5px solid #ccc; /* Even thinner borders on all sides */
-    }
-  </style>
+
 <body id="person">
     <table class="tab-content">
         <tbody>
@@ -35,7 +23,7 @@ Ledgers
                
             </tr>
             <tr>
-                <th colspan="5">Assets</th>
+                <th colspan="5" class="total">Assets</th>
             </tr>
             <tr>
                 <td>Cr</td>
@@ -100,13 +88,13 @@ Ledgers
             </tr>
             {% endfor %}
             <tr>
-                <th colspan="4">Total Assets</th>
+                <th colspan="4" class="total">Total Assets</th>
                 
-                <th colspan="1">{{total_assets | currency}}</th>
+                <th colspan="1" class="total">{{total_assets | currency}}</th>
                 
             </tr>
             <tr>
-                <th colspan="5">Liabilities</th>
+                <th colspan="5" class="total">Liabilities</th>
             </tr>
             {% for expense in expenses %}
             <tr>
@@ -139,26 +127,42 @@ Ledgers
             </tr>
             {% endfor %}
             <tr>
-                <th colspan="4">Total Liability</th>
+                <th colspan="4" class="total">Total Liability</th>
                 
-                <th colspan="1">{{total_liabilities | currency}}</th>
-                
-            </tr>
-            <tr></tr>
-            <tr>
-                <th colspan="4">Total Equity</th>
-                
-                <th colspan="1">{{total_equity | currency}}</th>
+                <th colspan="1" class="total">{{total_liabilities | currency}}</th>
                 
             </tr>
             <tr></tr>
             <tr>
-                <th colspan="4">Total Liability and Equity</th>
+                <th colspan="4" class="total">Total Equity</th>
                 
-                <th colspan="1">{{total_liabilities_and_equity | currency}}</th>
+                <th colspan="1" class="total">{{total_equity | currency}}</th>
+                
+            </tr>
+            <tr></tr>
+            <tr>
+                <th colspan="4" class="total">Total Liability and Equity</th>
+                
+                <th colspan="1" class="total">{{total_liabilities_and_equity | currency}}</th>
                 
             </tr>
         </tbody>
     </table>
+
+
+
+
+<!-- <style>
+    .bold {
+        border: 2px solid black; /* Bold bottom border */
+    }
     
+    .thin-all {
+        border: 1px solid #ccc; /* Thin borders on all sides */
+    }
+    
+    .ultra-thin-all {
+        border: 0.5px solid #ccc; /* Even thinner borders on all sides */
+    }
+    </style> -->
 {%endblock%}

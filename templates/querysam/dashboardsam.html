@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+    <!-- Add selectize.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.13.3/css/selectize.min.css" />
+    <style>
+        /* Custom CSS styles go here */
+        /* For example, you can add additional styling for the dashboard */
+        /* Ensure the navigation bar extends to full height */
+        body,
+        html {
+            height: 100%;
+        }
+
+        .container-full-height {
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #content {
+            flex: 1;
+        }
+
+        #sidebar {
+            /* Optional: Adjust the width of the sidebar as needed */
+            flex: 0 0 250px;
+            transition: all 0.3s;
+        }
+
+        .hide-sidebar #sidebar {
+            display: none;
+        }
+
+        .hide-sidebar #content {
+            margin-left: 0;
+        }
+    </style>
+</head>
+
+<body class="container-full-height">
+    <div class="row h-100">
+        <!-- Sidebar -->
+        {% if person.role.id != 4 %}
+        <nav id="sidebar" class="col-md-3 d-md-block bg-light">
+            <div class="position-sticky">
+                <h4 class="my-4">Dashboard Navigation</h4>
+                <!-- search_page.html -->
+                <h1>Search</h1>
+                <form method="POST" action="#" id="searchForm">
+                    {{ form.hidden_tag() }} {{ form.search_query.label }} {{
+                    form.search_query() }}
+                </form>
+
+                <ul id="searchDropdown"></ul>
+                {% endif %}
+
+                <!-- Add your navigation links here -->
+                <ul class="nav flex-column h-100">
+                    {% if person.role.id == 1 or person.role.id == 3 %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('forms') }}">Forms</a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('queries') }}">Report</a>
+                    </li>
+                    {% if person.role.id == 1 or person.role.id == 3 %}
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('ledger_admin') }}">Ledger Admin</a>
+                    </li>
+                    {% endif %}
+
+                    {% if person.role.id == 1 %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('role_assignment') }}">Role Assignment</a>
+                    </li>
+                    {% endif %}
+                    {% if person.role.id == 1 or person.role.id == 3 %}
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('reset_password') }}">Reset Password</a>
+                    </li>
+                    {% endif %}
+
+                    <!-- Add more navigation links as needed -->
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main id="content" class="col-md-9 ms-sm-auto col-lg-9 px-md-4">
+            <!-- Button to toggle the sidebar -->
+            <div class="my-4">
+                <h1>Welcome, {{ person.name }}!</h1>
+                <!-- Add more content specific to the logged-in user here -->
+            </div>
+            <div>
+                <a href="{{url_for('savings_account',person_id=person.id)}}"><p><strong>Current Balance:</strong> {{ person.balance_bfd | currency}}</p></a>
+                <a href="{{url_for('loan_account',person_id=person.id)}}"><p><strong>Loan Balance:</strong> {{ person.loan_balance | currency}}</p></a>
+                <!-- Add more balance information here -->
+            </div>
+
+        </main>
+        
+    </div>
+
+    
+    <!-- Add jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Add selectize.js JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.13.3/js/standalone/selectize.min.js"></script>
+    <!-- Add the JavaScript for handling search suggestions -->
+    <script>
+        $(document).ready(function () {
+            var selectizeInput = $(
+                '#searchForm input[name="search_query"]'
+            ).selectize({
+                valueField: "value",
+                labelField: "label",
+                searchField: "label",
+                create: false,
+                maxItems: 5,
+                render: {
+                    option: function (item, escape) {
+                        return "<div>" + escape(item.label) + "</div>";
+                    },
+                },
+                load: function (query, callback) {
+                    if (!query.length) return callback();
+                    $.getJSON("/search_suggestions", { query: query }, function (data) {
+                        var suggestions = [];
+                        data.companies.forEach(function (company) {
+                            suggestions.push({
+                                value: "/company/" + company[0],
+                                label: company[1] + " (Company)",
+                            });
+                        });
+                        data.persons.forEach(function (person) {
+                            suggestions.push({
+                                value: "/person/" + person[0],
+                                label: person[1] + " (Person)",
+                            });
+                        });
+                        callback(suggestions);
+                    });
+                },
+                onChange: function (value) {
+                    if (value) {
+                        window.location.href = value;
+                    }
+                },
+            });
+
+            // Prevent form submission when selecting an item
+            $("#searchForm").on("submit", function (event) {
+                event.preventDefault();
+                var selectedOption = selectizeInput[0].selectize.getValue();
+                if (selectedOption) {
+                    window.location.href = selectedOption;
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

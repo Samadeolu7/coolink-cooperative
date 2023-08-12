@@ -1,77 +1,132 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Withdrawal Page</title>
-</head>
-<body>
-    <h1>Withdrawal Page</h1>
+{%extends 'base.html' %}
 
-    <form action="{{ url_for('withdraw') }}" method="post">
-        {{ form.csrf_token }}
-        {{ form.person.label }} {{ form.person }}
-        <br>
-        {{ form.balance.label }} {{ form.balance }}
-        <br>
-        {{ form.date.label }} {{ form.date }}<br>
+{%block title%}
+Make Payment
+{% endblock %}
 
-        {{ form.amount.label }} {{ form.amount }}<br>
-        {% for error in form.amount.errors %}
-            <p style="color: red;">{{ error }}</p>
-        {% endfor %}
-        {{ form.description.label }} {{ form.description }}<br>
-        {{ form.ref_no.label }} {{ form.ref_no }}<br>
-        <br>
-        {{ form.submit }}
-    </form>
+{% block header%}
+Make Payment
+{% endblock  %}
 
-    <script>
-        const selectPerson = document.getElementById("person");
-        const balanceField = document.getElementById("balance");
+{% block anchor%}
+<a href="{{ url_for('get_persons') }}" id='arrow'><i class="fa-solid fa-arrow-left"></i></a>
+{% endblock  %}
 
-        function updateBalance() {
-            const selectedPersonId = selectPerson.value;
+{%block content%}
+<body id="form">
+    <div class="full-form-content">
 
-            // Make an AJAX request to the server to get the balance of the selected person
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', `/get_balance/${selectedPersonId}`, true);
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState === XMLHttpRequest.DONE) {
-                    if (xhr.status === 200) {
-                        // Update the balance field with the retrieved balance
-                        balanceField.value = xhr.responseText;
-                    } else {
-                        // Handle errors here (e.g., server error, person not found)
-                        balanceField.value = '';
+        <div class="form-wrapper" id="long-form">
+            <form action="{{ url_for('withdraw') }}" method="post">
+                {{ form.csrf_token }}
+
+                <h1>Withdrawal Page</h1>
+
+                <div class="form-label">
+                {{ form.person.label (class_='input-label') }} <br>
+                </div>
+
+                <div class="form-box">
+                {{ form.person (class_="input")}}
+                <br></div>
+
+                <div class="form-label">
+                {{ form.balance.label(class_='input-label')  }} <br>
+                </div>
+
+                <div class="form-box">
+                {{ form.balance (class_="input") }}
+                <br></div>
+
+                <div class="form-label">
+                {{ form.date.label (class_='input-label')}} <br>
+                {% for error in form.amount.errors %}
+                <p style="color: red;">{{ error }}</p>
+                {% endfor %}
+                </div>
+        
+                <div class="form-box">
+                {{ form.date(class_="input") }}
+                <br></div>
+
+                <div class="form-label">
+                {{ form.amount.label(class_='input-label') }} <br>
+                </div>
+        
+                <div class="form-box">
+                {{ form.amount(class_="input") }}
+                <br></div>
+
+
+                <div class="form-label">
+                {{ form.description.label(class_='input-label') }} <br>
+                </div>
+        
+                <div class="form-box">
+                {{ form.description(class_="input") }}
+                <br></div>
+
+                <div class="form-label">
+                {{ form.ref_no.label(class_='input-label') }} <br>
+                </div>
+        
+                <div class="form-box">
+                {{ form.ref_no(class_="input") }} <br></div>
+                
+                <div class="button-wrapper">
+                {{ form.submit(class_="button") }} 
+                </div>
+            </form>
+        </div>
+    </div>
+
+        <script>
+            const selectPerson = document.getElementById("person");
+            const balanceField = document.getElementById("balance");
+
+            function updateBalance() {
+                const selectedPersonId = selectPerson.value;
+
+                // Make an AJAX request to the server to get the balance of the selected person
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', `/get_balance/${selectedPersonId}`, true);
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === XMLHttpRequest.DONE) {
+                        if (xhr.status === 200) {
+                            // Update the balance field with the retrieved balance
+                            balanceField.value = xhr.responseText;
+                        } else {
+                            // Handle errors here (e.g., server error, person not found)
+                            balanceField.value = '';
+                        }
                     }
+                };
+                xhr.send();
+            }
+
+            // Add event listener to update balance field when person selection changes
+            selectPerson.addEventListener("change", updateBalance);
+
+            // Call the function initially to set the initial balance value
+            updateBalance();
+            // Frontend validation to prevent withdrawal more than available balance
+            function validateForm() {
+                const availableBalance = parseFloat(balanceField.value);
+                const withdrawalAmount = parseFloat(amountField.value);
+
+                if (isNaN(withdrawalAmount) || withdrawalAmount <= 0) {
+                    alert("Please enter a valid withdrawal amount.");
+                    return false;
                 }
-            };
-            xhr.send();
-        }
 
-        // Add event listener to update balance field when person selection changes
-        selectPerson.addEventListener("change", updateBalance);
+                if (withdrawalAmount > availableBalance) {
+                    alert("Withdrawal amount cannot exceed the available balance.");
+                    return false;
+                }
 
-        // Call the function initially to set the initial balance value
-        updateBalance();
-         // Frontend validation to prevent withdrawal more than available balance
-         function validateForm() {
-            const availableBalance = parseFloat(balanceField.value);
-            const withdrawalAmount = parseFloat(amountField.value);
-
-            if (isNaN(withdrawalAmount) || withdrawalAmount <= 0) {
-                alert("Please enter a valid withdrawal amount.");
-                return false;
+                return true;
             }
-
-            if (withdrawalAmount > availableBalance) {
-                alert("Withdrawal amount cannot exceed the available balance.");
-                return false;
-            }
-
-            return true;
-        }
-    </script>
+        </script>
 </body>
-</html>
+
+{%endblock%}
