@@ -76,6 +76,16 @@ class Queries():
             self.db.session.add(bank_payment)
      
             self.db.session.commit()
+            
+    def add_transaction(self,id,sub_id,amount,date,ref_no,bank_id,description):
+        if id == 1:
+            self.add_asset(sub_id,amount,date,ref_no,bank_id,description)
+        elif id == 2:
+            self.add_expense(sub_id,amount,date,ref_no,bank_id,description)
+        elif id == 3:
+            self.add_investment(sub_id,amount,date,ref_no,bank_id,description)
+        elif id == 4:
+            self.add_liability(sub_id,amount,date,ref_no,bank_id,description)
 
     def add_income(self,amount,date,ref_no,bank_id,description=None):
         bank = Bank.query.filter_by(id=bank_id).first()
@@ -100,16 +110,15 @@ class Queries():
      
             self.db.session.commit()
 
-    def add_expense(self,name,amount,date,ref_no,bank_id,description=None):
+    def add_expense(self,id,amount,date,ref_no,bank_id,description=None):
         bank = Bank.query.filter_by(id=bank_id).first()
         if bank:            
-            expense = Expense(name=name,balance=float(amount))
-            self.db.session.add(expense)
+            expense = Expense.query.filter_by(id=id).first()
+            expense.balance += float(amount)
             expense_payment = ExpensePayment(amount=float(amount), date=date,
                                 exact_date=datetime.utcnow(),description=description,ref_no = ref_no,
-                                balance =float(amount),
-                                bank_id=bank.id)
-            
+                                balance =float(amount),bank_id=bank.id)
+        
             self.db.session.add(expense_payment)
 
             bank.new_balance -=  float(amount)
@@ -121,17 +130,56 @@ class Queries():
      
             self.db.session.commit()
 
-    def update_expense(self,id,amount,date,ref_no,bank_id,description=None):
+    def add_asset(self,id,amount,date,ref_no,bank_id,description=None):
         bank = Bank.query.filter_by(id=bank_id).first()
         if bank:            
-            expense = Expense.query.filter_by(id=bank_id).first()
-            expense.balance += float(amount)
-            expense_payment = ExpensePayment(amount=float(amount), date=date,
+            asset = Asset.query.filter_by(id=id).first()
+            asset.balance += float(amount)
+            asset_payment = AssetPayment(amount=float(amount), date=date,
                                 exact_date=datetime.utcnow(),description=description,ref_no = ref_no,
-                                balance =float(amount),
-                                bank_id=bank.id)
+                                balance =float(amount),bank_id=bank.id)
         
-            self.db.session.add(expense_payment)
+            self.db.session.add(asset_payment)
+
+            bank.new_balance -=  float(amount)
+            bank_payment = BankPayment(amount=-amount, date=date,exact_date=datetime.utcnow(),
+                                        description=description, ref_no=ref_no,
+                                        bank_balance=bank.new_balance,bank_id=bank.id)
+            
+            self.db.session.add(bank_payment)
+     
+            self.db.session.commit()
+
+    def add_liability(self,id,amount,date,ref_no,bank_id,description=None):
+        bank = Bank.query.filter_by(id=bank_id).first()
+        if bank:            
+            liability = Liability.query.filter_by(id=id).first()
+            liability.balance += float(amount)
+            liability_payment = LiabilityPayment(amount=float(amount), date=date,
+                                exact_date=datetime.utcnow(),description=description,ref_no = ref_no,
+                                balance =float(amount),bank_id=bank.id)
+        
+            self.db.session.add(liability_payment)
+
+            bank.new_balance -=  float(amount)
+            bank_payment = BankPayment(amount=-amount, date=date,exact_date=datetime.utcnow(),
+                                        description=description, ref_no=ref_no,
+                                        bank_balance=bank.new_balance,bank_id=bank.id)
+            
+            self.db.session.add(bank_payment)
+     
+            self.db.session.commit()
+
+    def add_investment(self,id,amount,date,ref_no,bank_id,description=None):
+        bank = Bank.query.filter_by(id=bank_id).first()
+        if bank:            
+            investment = Expense.query.filter_by(id=id).first()
+            investment.balance += float(amount)
+            investment_payment = InvestmentPayment(amount=float(amount), date=date,
+                                exact_date=datetime.utcnow(),description=description,ref_no = ref_no,
+                                balance =float(amount),bank_id=bank.id)
+        
+            self.db.session.add(investment_payment)
 
             bank.new_balance -=  float(amount)
             bank_payment = BankPayment(amount=-amount, date=date,exact_date=datetime.utcnow(),
@@ -307,20 +355,6 @@ class Queries():
 
             self.db.session.commit()
 
-    # def make_payment(amount,payment_type,description,date,bank_id,ref_no):
-        
-
-    #     if payment_type == 'expense':
-    #         expense.balance += float(amount)
-    #         bank_payment = BankPayment(amount=amount, date=date,exact_date=datetime.utcnow(),
-    #                                    description=description,ref_no=ref_no, bank_balance=bank.new_balance,
-    #                                     bank_id=bank.id)
-    #     elif payment_type == 'asset':
-    #     elif payment_type =='liability':
-    #     elif payment_type == 'equity':
-    #     elif payment_type =='income':
-    #     elif payment_type =='investment':
-
     def get_companies(self):
         company = Company.query.all()
 
@@ -374,8 +408,6 @@ class Queries():
     def get_expenses(self):
         expence = Expense.query.all
         return expence
-    
-    
 
     def create_new_ledger(self,ledger,name,description):
         if ledger == 1:
@@ -404,11 +436,11 @@ class Queries():
             db.session.commit()
 
     def sub_accounts(self,ledger):
-        if ledger == 2:
+        if ledger == 1:
             sub_accounts = Asset.query.all()
             return sub_accounts
 
-        elif ledger == 1:
+        elif ledger == 2:
             sub_accounts = Expense.query.all()
             return sub_accounts
 

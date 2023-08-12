@@ -305,6 +305,66 @@ def make_income():
 
     return render_template('forms/income_form.html', form=form)
 
+@app.route('/expense/create', methods=['GET', 'POST'])
+@login_required
+@role_required(['Admin','Secretary'])
+def create_expense():
+    form = ExpenseForm()
+    form.bank.choices=[(bank.id,bank.name) for bank in query.get_banks()]
+    assets =[(asset.id,asset.name)for asset in Asset.query.all()]
+    expenses = [(expense.id,expense.name)for expense in Expense.query.all()]
+    liabilities = [(liability.id,liability.name)for liability in Liability.query.all()]
+    investments = [(investment.id,investment.name)for investment in Investment.query.all()]
+    form.sub_account.choices= assets + expenses + investments + liabilities 
+    
+    if form.validate_on_submit():
+        
+            # Handle existing expense selection
+        query.add_transaction(form.main_account.data,form.sub_account.data,form.amount.data,form.date.data,
+                                     form.ref_no.data,form.bank.data,form.description.data)
+        
+        return redirect(url_for('dashboard'))
+    else:
+        log_report(form.errors)
+    return render_template('forms/expense_form.html', form=form)
+
+@app.route('/withdraw', methods=['GET', 'POST'])
+@login_required
+@role_required(['Admin','Secretary'])
+def withdraw():
+    # Add logic to retrieve the list of persons from the database
+    # Replace `get_all_persons()` with an appropriate function that retrieves the list of persons.
+    persons = query.get_persons()
+
+    form = WithdrawalForm()
+    form.person.choices = [(person.id, person.name) for person in query.get_persons()]
+    if form.validate_on_submit():
+        person_id = form.person.data
+        amount = form.amount.data
+        
+        # Retrieve the selected person from the database
+        selected_person = query.get_person(person_id)
+
+        if selected_person:
+            # Perform validation to ensure the withdrawal amount does not exceed the available balance
+            if amount <= selected_person.total_balance:
+                # Update the balance in the database (subtract the withdrawal amount)
+                selected_person.total_balance -= amount
+
+                # Save the changes to the database
+                # (You'll need to commit the session if using SQLAlchemy)
+                # db.session.commit()
+
+                # You may want to add additional logic for transaction history, etc.
+
+                return f"Withdrawal of {amount} successful for {selected_person.name}. Updated balance: {selected_person.balance_bfd}"
+            else:
+                return f"Insufficient balance for {selected_person.name} to withdraw {amount}."
+        else:
+            return "Invalid person selected."
+
+    return render_template('forms/withdraw.html', form=form, persons=persons)
+
 #making queries
 
 @app.route('/persons', methods=['GET'])
@@ -553,59 +613,6 @@ def create_loan():
     return render_template('forms/loan_form.html', form = form)
 
 
-
-@app.route('/expense/create', methods=['GET', 'POST'])
-def create_expense():
-    form = ExpenseForm()
-    if form.validate_on_submit():
-        if form.existing_expense.data:
-            # Handle existing expense selection
-            query.update_expense(id=form.existing_expense.data,amount=form.amount.data,date=form.date.data,
-                                    ref_no=form.ref_no.data,bank_id=form.bank_id.data,
-                                    description=form.description.data)
-        else:
-            query.add_expense(name=form.name.data,amount=form.amount.data,date=form.date.data,
-                                    ref_no=form.ref_no.data,bank_id=form.bank_id.data,
-                                    description=form.description.data)
-        return redirect(url_for('dashboard'))
-    return render_template('forms/expense_form.html', form=form)
-
-@app.route('/withdraw', methods=['GET', 'POST'])
-def withdraw():
-    # Add logic to retrieve the list of persons from the database
-    # Replace `get_all_persons()` with an appropriate function that retrieves the list of persons.
-    persons = query.get_persons()
-
-    form = WithdrawalForm()
-    form.person.choices = [(person.id, person.name) for person in query.get_persons()]
-    if form.validate_on_submit():
-        person_id = form.person.data
-        amount = form.amount.data
-        
-        # Retrieve the selected person from the database
-        selected_person = query.get_person(person_id)
-
-        if selected_person:
-            # Perform validation to ensure the withdrawal amount does not exceed the available balance
-            if amount <= selected_person.total_balance:
-                # Update the balance in the database (subtract the withdrawal amount)
-                selected_person.total_balance -= amount
-
-                # Save the changes to the database
-                # (You'll need to commit the session if using SQLAlchemy)
-                # db.session.commit()
-
-                # You may want to add additional logic for transaction history, etc.
-
-                return f"Withdrawal of {amount} successful for {selected_person.name}. Updated balance: {selected_person.balance_bfd}"
-            else:
-                return f"Insufficient balance for {selected_person.name} to withdraw {amount}."
-        else:
-            return "Invalid person selected."
-
-    return render_template('forms/withdraw.html', form=form, persons=persons)
-
-
 #uploads 
 
 @app.route('/upload_savings', methods=['GET', 'POST'])
@@ -714,7 +721,6 @@ def reset_password():
         form.person.choices = [(person.id,f'{person.name}({person.employee_id})') for person in query.get_persons()]
     else:
         form.person.choices = [(person.id,f'{person.name}({person.employee_id})') for person in query.get_persons() if person.role.name =='User' ]
-
 
     if form.validate_on_submit():
         person_id = form.person.data

@@ -71,7 +71,7 @@ class ExpenseForm(FlaskForm):
     amount = FloatField('Amount', validators=[DataRequired()])
     date = DateField('Date', validators=[DataRequired()])
     description = StringField('Description')
-    main_account = SelectField('Select Account', choices=[(1,'Expense'),(2,'Asset'),(3,'Investment'),(4,'Liability')], coerce=int) #change name to sub-account
+    main_account = SelectField('Select Account', choices=[(1,'Asset'),(2,'Expense'),(3,'Investment'),(4,'Liability')], coerce=int) #change name to sub-account
     bank = SelectField('Bank', choices=[], coerce=int)
     ref_no = StringField('Reference Number')
 
