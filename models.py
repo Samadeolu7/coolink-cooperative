@@ -4,7 +4,7 @@ from datetime import datetime, date
 from flask_login import UserMixin
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cooperative.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:samore7@localhost/cooperativedb' 
 db = SQLAlchemy(app)
 
 

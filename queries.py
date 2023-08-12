@@ -2,8 +2,9 @@ from sqlalchemy import select,or_
 from sqlalchemy.orm import selectinload
 from models import *
 from datetime import datetime
-import random
 import string
+import random
+import bcrypt
 import csv
 
 def log_report(report):
@@ -13,15 +14,23 @@ class Queries():
 
     def __init__(self,db) -> None:
         self.db = db
+        self.salt = bcrypt.gensalt()
 
-    def generate_password(self,lenght=12):
-        characters = string.ascii_letters+string.digits+string.punctuation
-        password=''.join(random.choice(characters)for _ in range(lenght))
+    def generate_password(self, length=12):
+        characters = string.ascii_letters + string.digits + string.punctuation
+        password = ''.join(random.choice(characters) for _ in range(length))
         return password
+
+    def hash_password(self, password):
+        salt = self.salt
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
+        return hashed_password.decode('utf-8')
+
     
     def create_new_user(self, name ,employee_id,phone_no , balance , loan_balance, email,company_id,role_id =4 ):
         password = self.generate_password()
-        self.db.session.add(Person(name =name,employee_id=employee_id,email=email,password=password,
+        hashed_password = self.hash_password(password) 
+        self.db.session.add(Person(name =name,employee_id=employee_id,email=email,password=hashed_password,
                                    total_balance=balance,loan_balance=loan_balance,loan_balance_bfd=loan_balance,
                                    phone_no=phone_no,balance_bfd =balance,company_id=company_id,role_id=role_id))
         self.db.session.commit()
@@ -307,20 +316,6 @@ class Queries():
 
             self.db.session.commit()
 
-    # def make_payment(amount,payment_type,description,date,bank_id,ref_no):
-        
-
-    #     if payment_type == 'expense':
-    #         expense.balance += float(amount)
-    #         bank_payment = BankPayment(amount=amount, date=date,exact_date=datetime.utcnow(),
-    #                                    description=description,ref_no=ref_no, bank_balance=bank.new_balance,
-    #                                     bank_id=bank.id)
-    #     elif payment_type == 'asset':
-    #     elif payment_type =='liability':
-    #     elif payment_type == 'equity':
-    #     elif payment_type =='income':
-    #     elif payment_type =='investment':
-
     def get_companies(self):
         company = Company.query.all()
 
@@ -419,3 +414,12 @@ class Queries():
         elif ledger == 3:
             sub_accounts = Investment.query.all()
             return sub_accounts
+        
+    def change_password(self,user, password,new_password):
+        if bcrypt.checkpw(password.encode('utf-8'), user.password.encode('utf-8')):
+            hashed_new_password = bcrypt.hashpw(new_password.encode('utf-8'), self.salt)
+            user.password = hashed_new_password
+            db.session.commit()
+            return True
+        else:
+            return False
