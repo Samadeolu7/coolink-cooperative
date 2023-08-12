@@ -1,49 +1,107 @@
-<!-- templates/index.html -->
+{%extends 'base.html' %}
 
-<!DOCTYPE html>
-<html>
+{%block title%}
+Bank Payment Voucher
+{% endblock %}
 
-<head>
-    <title>Bank Payment Voucher</title>
-</head>
+{% block header%}
+Bank Payment Voucher
+{% endblock  %}
 
-<body>
+{% block anchor%}
+<a href="{{ url_for('get_persons') }}" id='arrow'><i class="fa-solid fa-arrow-left"></i></a>
+{% endblock  %}
 
-    <h1>Bank Payment Voucher</h1>
-    <form method="POST" id="expenseForm">
-        {{ form.hidden_tag() }}
-        {{ form.main_account.label }} {{ form.main_account(id="main_account") }}
-        <br>
-        {{ form.sub_account.label }} {{ form.sub_account(id="sub_account") }}<br>
-        {{ form.amount.label }} {{ form.amount }}<br>
-        {{ form.bank.label }} {{ form.bank }}<br>
-        {{ form.date.label }} {{ form.date }}<br>
-        {{ form.description.label }} {{ form.description }}<br>
-        {{ form.ref_no.label }} {{ form.ref_no }}<br>
-        <input type="submit" value="Submit">
-    </form>
+{%block content%}
+<body id="form">
+    <div class="full-form-content">
 
-    <script>
-        const mainAccountDropdown = document.getElementById('main_account');
-        const subAccountDropdown = document.getElementById('sub_account');
-    
+        <div class="form-wrapper" id="long-form">
 
-        mainAccountDropdown.addEventListener('change', async (event) => {
-            const selectedMainAccount = event.target.value;
+            <form method="POST" action="/" id="expenseForm">
+                {{ form.hidden_tag() }}
 
-            // Make an asynchronous request to fetch sub-account choices
-            const response = await fetch(`/get_sub_accounts/${selectedMainAccount}`);
-            const subAccountChoices = await response.json();
+                <h1>Bank Payment Voucher</h1>
 
-            // Clear and update sub-account dropdown
-            subAccountDropdown.innerHTML = '';
-            subAccountChoices.forEach(choice => {
-                const option = new Option(choice.name, choice.id);
-                subAccountDropdown.appendChild(option);
+                <div class="form-label">
+                {{ form.main_account.label (class_='input-label') }} <br></div>
+                
+                <div class="form-box">
+                {{ form.main_account(id="main_account", class_="input") }}
+                <br></div>
+
+                <div class="form-label">
+                {{ form.sub_account.label (class_='input-label')  }} <br></div>
+                
+                <div class="form-box">
+                {{ form.sub_account(id="sub_account", class_="input") }}<br></div>
+
+                <div class="form-label">
+                {{ form.amount.label(class_='input-label') }} <br>
+                </div>
+        
+                <div class="form-box">
+                {{ form.amount(class_="input") }}
+                <br></div>
+
+                <div class="form-label">
+                {{ form.bank.label(class_='input-label') }} <br>
+                </div>
+        
+                <div class="form-box">
+                {{ form.bank(class_="input") }}
+                <br></div>
+
+                <div class="form-label">
+                {{ form.date.label (class_='input-label')}} <br>
+                </div>
+        
+                <div class="form-box">
+                {{ form.date(class_="input") }}
+                <br></div>
+
+                <div class="form-label">
+                {{ form.description.label(class_='input-label') }} <br>
+                </div>
+        
+                <div class="form-box">
+                {{ form.description(class_="input") }}
+                <br></div>
+
+                <div class="form-label">
+                {{ form.ref_no.label(class_='input-label') }} <br>
+                </div>
+        
+                <div class="form-box">
+                {{ form.ref_no(class_="input") }} <br></div>
+
+                <div class="button-wrapper">
+                <input type="submit" value="Submit" class="button"></div>
+            </form>
+        </div>
+
+        <script>
+            const mainAccountDropdown = document.getElementById('main_account');
+            const subAccountDropdown = document.getElementById('sub_account');
+        
+
+            mainAccountDropdown.addEventListener('change', async (event) => {
+                const selectedMainAccount = event.target.value;
+
+                // Make an asynchronous request to fetch sub-account choices
+                const response = await fetch(`/get_sub_accounts/${selectedMainAccount}`);
+                const subAccountChoices = await response.json();
+
+                // Clear and update sub-account dropdown
+                subAccountDropdown.innerHTML = '';
+                subAccountChoices.forEach(choice => {
+                    const option = new Option(choice.name, choice.id);
+                    subAccountDropdown.appendChild(option);
+                });
             });
-        });
 
-    </script>
+        </script>
+    </div>
 </body>
 
-</html>
+{%endblock%}

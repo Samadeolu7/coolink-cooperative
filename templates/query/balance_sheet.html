@@ -1,17 +1,18 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Coollink Employees Multi-Purpose Co-operative Society - Balance Sheet</title>
-    <!-- Include any CSS styles or frameworks you want to use -->
+{%extends 'base.html' %}
 
-    <!-- Include Chart.js library -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-    <h1>Balance Sheet</h1>
+{%block title%}
+Coollink Employees Multi-Purpose Co-operative Society - Balance Sheet
+{% endblock %}
 
+{% block header%}
+Balance Sheet
+{% endblock  %}
+
+{%block content%}
+<body id='balance-sheet'>
     <!-- Display your balance sheet data here -->
-    <table>
+    <div id='person'>
+    <table class='tab-content'>
         <tr>
             <td>Total Cash and Equivalents:</td>
             <td>{{ total_cash_and_equivalents }}</td>
@@ -42,8 +43,13 @@
             <td>Total Liabilities & Equity:</td>
             <td>{{ total_liabilities_and_equity }}</td>
         </tr>
+  
     </table>
-    <div style="width: 80%; margin: auto;">
+</div>
+
+    <!-- <div style="width: 80%; margin: auto;"> -->
+
+    <div class="bal-chart">
         <!-- Add a canvas element where the chart will be rendered -->
         <canvas id="myChart"></canvas>
       </div>
@@ -92,6 +98,4 @@
 
 
 </body>
-</html>
-
-
+{%endblock%}

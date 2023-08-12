@@ -1,65 +1,109 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Create Loan</title>
-</head>
-<body>
-    <h1>Create Loan</h1>
-    <form method="POST" >
-        {{ form.hidden_tag() }}
-        <div>
-            {{ form.employee_id.label }} {{ form.employee_id }}
-            {% if form.employee_id.errors %}
-                <ul>
-                    {% for error in form.employee_id.errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
-        <div>
-            {{ form.amount.label }} {{ form.amount }}
-            {% if form.amount.errors %}
-                <ul>
-                    {% for error in form.amount.errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
-        <div>
-            {{ form.interest_rate.label }} {{ form.interest_rate }}
-            {% if form.interest_rate.errors %}
-                <ul>
-                    {% for error in form.interest_rate.errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
-        <div>
-            {{ form.start_date.label }} {{ form.start_date }}
-            {% if form.start_date.errors %}
-                <ul>
-                    {% for error in form.start_date.errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
-        <div>
-            {{ form.end_date.label }} {{ form.end_date }}
-            {% if form.end_date.errors %}
-                <ul>
-                    {% for error in form.end_date.errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </div>
-        <div>
-            {{ form.submit }}
-        </div>
-    </form>
+{%extends 'base.html' %}
+
+{%block title%}
+Create Loan
+{% endblock %}
+
+{% block header%}
+Create Loan
+{% endblock  %}
+
+{% block anchor%}
+<a href="{{ url_for('get_persons') }}" id='arrow'><i class="fa-solid fa-arrow-left"></i></a>
+{% endblock  %}
+
+{%block content%}
+<body id="form">
+    <div class="full-form-content">
+  
+    <div class="form-wrapper" id="long-form"> 
+        <form method="POST" >
+            {{ form.hidden_tag() }}
+
+            <h1>Create Loan</h1>
+
+            <div class="form-label">
+                {{ form.employee_id.label (class_='input-label') }} <br>
+            </div>    
+
+            <div class="form-box">
+                {{ form.employee_id(class_="input") }} <br>
+                {% if form.employee_id.errors %}
+                    <ul>
+                        {% for error in form.employee_id.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+
+            <div class="form-label">
+                {{ form.amount.label(class_='input-label') }} <br>
+            </div>
+
+            <div class="form-box">
+                {{ form.amount(class_="input") }} <br>
+                {% if form.amount.errors %}
+                    <ul>
+                        {% for error in form.amount.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+            
+            <div class="form-label">
+                {{ form.interest_rate.label (class_='input-label')}}<br>
+            </div>
+
+            <div class="form-box">
+                {{ form.interest_rate(class_="input") }}<br>
+                {% if form.interest_rate.errors %}
+                    <ul>
+                        {% for error in form.interest_rate.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+
+            <div class="form-label">
+                {{ form.start_date.label (class_='input-label')}} <br>
+            </div>
+
+            <div class="form-box">
+                {{ form.start_date (class_="input")}} <br>
+                {% if form.start_date.errors %}
+                    <ul>
+                        {% for error in form.start_date.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+
+            <div class="form-label">
+                {{ form.end_date.label (class_='input-label')}}<br>
+            </div>
+
+            <div class="form-box">
+                {{ form.end_date (class_="input") }} <br>
+                {% if form.end_date.errors %}
+                    <ul>
+                        {% for error in form.end_date.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+
+            <div class="button-wrapper">
+                {{ form.submit (class_="button")}}
+            </div>
+
+        </form>
+
+    </div>
 </body>
-</html>
+
+{%endblock%}

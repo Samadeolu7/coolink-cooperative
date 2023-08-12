@@ -1,25 +1,28 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bank Information</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
-</head>
-<body>
-    <div class="container mt-4">
-        <h1>Bank Information</h1>
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Bank Name</th>
-                    <th>Balance B/FWD</th>
-                    <th>Balance</th>
+{%extends 'base.html' %}
 
-                </tr>
-            </thead>
+{%block title%}
+Bank Information
+{% endblock %}
+
+{% block header%}
+Bank Information
+{% endblock  %}
+
+{% block anchor%}
+<a href="{{ url_for('get_persons') }}" id='arrow'><i class="fa-solid fa-arrow-left"></i></a>
+{% endblock  %}
+
+{%block content%}
+<body id='person'>
+        <table  class="tab-content">
             <tbody>
+                    <tr>
+                        <th>ID</th>
+                        <th>Bank Name</th>
+                        <th>Balance B/FWD</th>
+                        <th>Balance</th>
+    
+                    </tr>
                 {% for company in companies %}
                 <tr>
                     <td>{{ company.id }}</td>
@@ -31,6 +34,5 @@
                 {% endfor %}
             </tbody>
         </table>
-    </div>
 </body>
-</html>
+{%endblock%}

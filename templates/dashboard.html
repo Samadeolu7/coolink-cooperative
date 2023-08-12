@@ -1,117 +1,138 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Dashboard</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
-    <!-- Add selectize.js CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.13.3/css/selectize.min.css" />
-    <style>
-        /* Custom CSS styles go here */
-        /* For example, you can add additional styling for the dashboard */
-        /* Ensure the navigation bar extends to full height */
-        body,
-        html {
-            height: 100%;
-        }
-
-        .container-full-height {
-            min-height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-
-        #content {
-            flex: 1;
-        }
-
-        #sidebar {
-            /* Optional: Adjust the width of the sidebar as needed */
-            flex: 0 0 250px;
-            transition: all 0.3s;
-        }
-
-        .hide-sidebar #sidebar {
-            display: none;
-        }
-
-        .hide-sidebar #content {
-            margin-left: 0;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock  %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <link rel="stylesheet" href="\static\css\style.css">
 </head>
-
-<body class="container-full-height">
-    <div class="row h-100">
-        <!-- Sidebar -->
+<body class="special-dash">
+    
+    <div class='all-sections'>
         {% if person.role.id != 4 %}
-        <nav id="sidebar" class="col-md-3 d-md-block bg-light">
-            <div class="position-sticky">
-                <h4 class="my-4">Dashboard Navigation</h4>
-                <!-- search_page.html -->
-                <h1>Search</h1>
-                <form method="POST" action="#" id="searchForm">
-                    {{ form.hidden_tag() }} {{ form.search_query.label }} {{
-                    form.search_query() }}
-                </form>
+        <nav class='section-1'>
+            <div class="logo"></div>
+            <ul class="side-bar">
 
-                <ul id="searchDropdown"></ul>
+                <li class="active" >
+                    <a href="#" class="nav-link"><i class="fa-solid fa-gauge"></i>
+                    <span>Dashboard</span></a>
+                </li>
+
+                {% if person.role.id == 1 or person.role.id == 3 %}
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('forms') }}"><i class="fa-solid fa-align-justify"></i><span>Forms</span></a>
+                </li>
+                {% endif %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('queries') }}"> <i class="fa-solid fa-chart-line"></i><span>Report</span></a>
+                </li>
+
+                {% if person.role.id == 1 or person.role.id == 3 %}
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('ledger_admin') }}"><i class="fa-solid fa-book"></i><span>Ledger Admin</span></a>
+                    
+                </li>
                 {% endif %}
 
-                <!-- Add your navigation links here -->
-                <ul class="nav flex-column h-100">
-                    {% if person.role.id == 1 or person.role.id == 3 %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('forms') }}">Forms</a>
-                    </li>
-                    {% endif %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('queries') }}">Report</a>
-                    </li>
-                    {% if person.role.id == 1 or person.role.id == 3 %}
+                {% if person.role.id == 1 %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('role_assignment') }}"><i class="fa-brands fa-atlassian"></i><span>Role Assignment</span></a>  
+                </li>
+                {% endif %}
+                {% if person.role.id == 1 or person.role.id == 3 %}
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('ledger_admin') }}">Ledger Admin</a>
-                    </li>
-                    {% endif %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('reset_password') }}"><i class="fa-solid fa-lock"></i><span>Reset Password</span></a>
+                </li>
 
-                    {% if person.role.id == 1 %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('role_assignment') }}">Role Assignment</a>
-                    </li>
-                    {% endif %}
-                    {% if person.role.id == 1 or person.role.id == 3 %}
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('reset_password') }}">Reset Password</a>
-                    </li>
-                    {% endif %}
-
-                    <!-- Add more navigation links as needed -->
-                </ul>
-            </div>
+                <li class="logout">
+                    <a class='nav-link' href="#"><i class="fa-sharp fa-solid fa-right-from-bracket"></i><span>Logout</span></a>
+                </li>
+                {% endif %}
+            </ul>
         </nav>
+        {%endif%}
+         
+        <div class='section-2'>
 
-        <!-- Main Content -->
-        <main id="content" class="col-md-9 ms-sm-auto col-lg-9 px-md-4">
-            <!-- Button to toggle the sidebar -->
-            <div class="my-4">
+        <div class="head-wrap">
+
+            <div class="head-title">
+                <span>Employee-id: {{person.id}}</span>
                 <h1>Welcome, {{ person.name }}!</h1>
-                <!-- Add more content specific to the logged-in user here -->
-            </div>
-            <div>
-                <a href="{{url_for('savings_account',person_id=person.id)}}"><p><strong>Current Balance:</strong> {{ person.balance_bfd | currency}}</p></a>
-                <a href="{{url_for('loan_account',person_id=person.id)}}"><p><strong>Loan Balance:</strong> {{ person.loan_balance | currency}}</p></a>
-                <!-- Add more balance information here -->
+                <!-- <div class="user-info">
+                    <i class="fa-solid fa-user"></i>
+                </div> -->
             </div>
 
-        </main>
-        
+        </div>
+
+        {%block content%} 
+        <div class="all-cards-wrap">
+
+        <h3>Today's data</h3>
+        <div class="all-cards"> 
+
+            <div class="card" id="current-bal"> 
+                <div class="container">
+                    
+                    <div class='content-con'>
+                    <a href="{{url_for('savings_account',person_id=person.id)}}">
+                        
+                        <div>
+                        <p><strong>Current Balance:</strong></p>
+                        </div>
+                        
+                        <div>
+                        <p><strong>{{ person.balance_bfd | currency}}</strong></p>
+                        </div>
+                    </a>
+                    </div>
+
+                    <div class="icon-con"><i class="fa-solid fa-coins"></i></div>
+
+                </div>
+            </div>
+    
+            <div class="card" id="loan-bal">
+                <div class="container">
+
+                    <div class='content-con'>
+                    <a href="{{url_for('loan_account',person_id=person.id)}}">
+                        
+                        <div>
+                        <p><strong>Loan Balance:</strong></p>
+                        </div>
+
+                        <div>
+                        <p><strong>{{ person.loan_balance | currency}}</strong></p>
+                        </div>
+                    
+                    </a>
+                    </div>
+                    
+
+                    <div class="icon-con"><i class="fa-solid fa-landmark"></i></div>
+
+                </div>
+            </div>
+
+        </div>
+
+        </div>
+
+
+
+
+
+        </div>
     </div>
 
-    
     <!-- Add jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- Add selectize.js JavaScript -->
@@ -169,5 +190,4 @@
         });
     </script>
 </body>
-
-</html>
+{%endblock%}

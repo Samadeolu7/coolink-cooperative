@@ -3,7 +3,7 @@ from forms import *
 from functools import wraps
 from models import *
 from excel_helper import create_excel,generate_repayment_schedule,export_repayment_schedule_to_excel,send_upload_to_loan_repayment,send_upload_to_savings,start_up
-from pdf_helper import create_pdf
+from pdf_helper2 import create_pdf
 from queries import Queries
 import pandas as pd,json,csv
 from filters import format_currency 
@@ -14,8 +14,8 @@ login_manager = LoginManager()
 
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cooperative.db'  # Replace with your database URI
-app.config['SECRET_KEY'] = 'your_secret_key'  # Replace with your own secret key
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:samore7@localhost/cooperativedb'  # Replace with your database URI
+app.config['SECRET_KEY'] = 'your_secret_key'
 db.init_app(app)
 query= Queries(db)
 login_manager.init_app(app)
@@ -746,3 +746,20 @@ def get_sub_accounts(main_account_id):
     sub_account_options = [{'id': sub_account.id, 'name': sub_account.name} for sub_account in sub_accounts]
 
     return jsonify(sub_account_options)
+
+
+@app.route('/change_password', methods=['GET', 'POST'])
+def change_password():
+    form = ChangePasswordForm()
+
+    if form.validate_on_submit():
+        user =current_user # Replace with actual user retrieval
+        if query.change_password(user,form.current_password.data,form.new_password.data):
+        
+            # Redirect to a success page or profile page
+            return redirect(url_for('dashboard'))
+        else:
+            form.current_password.errors.append('Invalid current password')
+            return redirect(url_for('change_password'))
+
+    return render_template('forms/change_password.html', form=form)
