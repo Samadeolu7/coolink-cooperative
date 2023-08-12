@@ -1,18 +1,42 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ledger Admin</title>
-</head>
-<body>
+{%extends 'base.html' %}
+
+{%block title%}
+Ledger Admin
+{% endblock %}
+
+{% block header%}
+Ledger Admin
+{% endblock  %}
+
+{% block anchor%}
+<a href="{{ url_for('get_persons') }}" id='arrow'><i class="fa-solid fa-arrow-left"></i></a>
+{% endblock  %}
+
+{%block content%}
+<body id="form">
+    <div class="full-form-content">
+
+    <div class="form-wrapper"> 
     <form method="POST">
         {{ form.hidden_tag() }}
-        <br>
-        {{ form.ledger.label }} {{ form.ledger() }}
-        <br>
-        {{ form.submit.label }} {{ form.submit() }}
+
+        <h1>Ledger Admin</h1>
+
+        <div class="form-label">
+        {{ form.ledger.label (class_='input-label')}} <br>
+        </div>
+
+        <div class="form-box">
+        {{ form.ledger(class_="input") }}
+        <br></div>
+
+        <!-- {{ form.submit.label }} <br> -->
+        <div class="button-wrapper">
+        {{ form.submit(class_="button") }}</div>
         
     </form>
+    </div>
+</div>
 </body>
-</html>
+
+{%endblock%}

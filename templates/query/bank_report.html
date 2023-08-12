@@ -1,20 +1,18 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Bank Report</title>
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 8px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-    </style>
-</head>
-<body>
+{%extends 'base.html' %}
+
+{%block title%}
+Bank Report
+{% endblock %}
+
+{% block header%}
+Bank Report
+{% endblock  %}
+
+{% block anchor%}
+<a href="{{ url_for('get_persons') }}" id='arrow'><i class="fa-solid fa-arrow-left"></i></a>
+{% endblock  %}
+
+{%block content%}
     <h1>Bank Report</h1>
 
     <h2>Bank Details</h2>
@@ -78,4 +76,6 @@
         });
     </script>
 </body>
-</html>
+
+{%endblock%}
+

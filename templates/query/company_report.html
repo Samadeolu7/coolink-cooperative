@@ -1,19 +1,18 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>company Report</title>
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 8px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-    </style>
-</head>
+{%extends 'base.html' %}
+
+{%block title%}
+company Report
+{% endblock %}
+
+{% block header%}
+company Report
+{% endblock  %}
+
+{% block anchor%}
+<a href="{{ url_for('get_persons') }}" id='arrow'><i class="fa-solid fa-arrow-left"></i></a>
+{% endblock  %}
+
+{%block content%}
 <body>
     <h1>company Report</h1>
 
@@ -78,4 +77,4 @@
         });
     </script>
 </body>
-</html>
+{%endblock%}

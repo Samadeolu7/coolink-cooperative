@@ -14,12 +14,38 @@ COOLINK CO-OPERATIVE LOAN ACCOUNT
 
 {%block content%}
 <body id="person">
-    <div class="dp">
+    <!-- <div class="dp">
         <div class='p-tag'><h2>Name: {{ person.name }}</h2></div>
         <div class='p-tag'><h2>Company: {{ person.company.name }}</h2></div>
         <div class='p-tag'><h2>Member ID: {{ person.employee_id }}</h2></div>
         <div class='p-tag'><h2>Loan: {{ person.loan_balance | currency }}</h2></div>
-    </div>
+    </div> -->
+
+    
+    <table class='tab-content'id="info-table" >
+        
+        <tr>
+            <td>Name:</td>
+            <td>{{ person.name }}</td>
+        </tr>
+
+        <tr>
+            <td>Company:</td>
+            <td>{{ person.company.name }}</td>
+        </tr>
+
+        <tr>
+            <td>Member ID:</td>
+            <td>{{ person.employee_id }}</td>
+        </tr>
+
+        <tr>
+            <td>Loan:</td>
+            <td>{{ person.loan_balance | currency }}</td>
+        </tr>
+        
+   
+
         
         <table class='tab-content'>
             <thead>

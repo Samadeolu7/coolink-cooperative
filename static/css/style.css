@@ -139,6 +139,7 @@
 
 .index #nav {
     border-bottom: #483d8b solid;
+    margin-bottom: 1em;
     /* border-style: solid; */
 }
 
@@ -220,7 +221,7 @@
 }
 
 #person th, #person td {
-    padding: 8px;
+    padding: 6px;
     text-align: left;
     border-bottom: 1px solid #ddd;
 }
@@ -289,7 +290,333 @@
     border: 1px dotted #483d8b;
 }
 
+#person #info-table {
+    margin-bottom: 20px;
+    width: 60%;
+    font-weight: 600;
+    /* font-size: large; */
+}
+
 /* Person end */
 
 /* QUERY END*/
 
+/* special-dash(dashboard) start*/
+.special-dash {
+    background-color: #c2e7ff2e;
+    /* display: block; */
+}
+
+.special-dash .all-sections {
+    display: flex;
+    /* width: auto; */
+}
+
+/* .special-dash .div {
+    height: 100%;
+} */
+
+.special-dash .section-1 {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    padding: 0 1.7rem;
+    overflow: hidden;
+    position: sticky;
+    width: 240px;
+    height: 100vh;
+}
+
+.special-dash .logo {
+    height: 80px;
+    padding: 16px;
+}
+
+.special-dash .side-bar {
+    height: 88%;
+    position: relative;
+    list-style: none;
+    padding: 0;
+}
+
+.special-dash .side-bar li {
+    padding: 1rem;
+    margin: 8px 0;
+    border-radius: 8px;
+    transition: all 0.2s ease-in;
+
+}
+
+.special-dash .side-bar li:hover, .active {
+    background:#473d8b57;
+}
+
+.special-dash .side-bar a {
+    font-size: 17px;
+    text-decoration: none;
+    gap: 1.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.special-dash .side-bar a i {
+    font-size: 1.2rem;
+}
+
+.special-dash .side-bar .logout {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+}
+
+.special-dash .section-2 {
+    position: relative;
+    width: 90%;
+}
+
+.special-dash .section-2 .head-wrap {
+    background-color: #fff;
+    margin: 20px;
+    padding: 20px;
+    border-radius: 10px;
+    /* align-items: center; */
+}
+
+.special-dash .section-2 .head-wrap span, h3 {
+    color: #4545459a;
+    margin-bottom: 10px;
+}
+
+/* .special-dash .section-2 .head-wrap {
+    margin: 20px;
+    padding: 20px;
+    width: 90%;
+    border-radius: 20px;
+    background-color: #fff;
+    height: 62vh;
+} */
+
+.special-dash .section-2 .identity {
+    margin-bottom: 1.5em;
+}
+
+.special-dash .section-2 .all-cards-wrap {
+    background: #fff;
+    height: 76vh;
+    margin: 20px;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.special-dash .section-2 .all-cards {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.special-dash  .section-2 .all-cards * {
+    flex: 1 1 200px;
+}
+.special-dash .section-2 .card {
+    background: transparent;
+    margin: 10px;
+    /* display: flex; */
+    border-radius: 10px;
+    padding: 30px 40px;
+    border:2px solid rgba(255, 255, 255, .2);
+    backdrop-filter: blur(30px);
+    box-shadow: 0 0 10px rgba(0,0,0,.2);
+    /* text-align: center; */
+    background-color: #483d8b;
+    align-items: center;
+}
+
+.special-dash .section-2 a{
+    color: #fff;
+    line-height: 2.5;
+    text-decoration: none;
+}
+
+.special-dash .section-2 a:hover {
+    text-decoration: underline;
+    transition: 0s;
+    /* color: #000; */
+}
+
+.special-dash .section-2 #current-bal {
+    background: rgba(108, 204, 108, 0.836);
+}
+
+.special-dash .section-2 #loan-bal {
+    background: rgb(199, 120, 120);
+}
+
+.special-dash .section-2 .icon-con {
+    border-radius: 40px;
+    background-color:green;
+    margin: 10px;
+    margin-right: 50px;
+    padding: 10px;
+    height: auto;
+    width:min-content;
+    float: right;
+    position: absolute;
+    right: 0;
+}
+
+.special-dash .section-2 .content-con a div {
+    display: block;
+}
+
+.special-dash .section-2 i {
+    font-size: 2rem;
+    color: #000;
+}
+
+.special-dash .section-2 a {
+    color: #000;
+    font-size: 20px;
+}
+
+.special-dash .container {
+    display: flex;
+}
+/* special-dash(dashboard) end */
+
+/* balance sheet start */
+
+/* #balance-sheet td {
+    font-weight: 500;
+} */
+.bal-chart {
+    width: 90%; 
+    margin: auto;
+    margin-top: 3em;
+    /* background: #ddd; */
+    padding: 0;
+}
+/* balance sheet end */
+
+/* ledger report start */
+#person .tab-content .total {
+    background: #524894d0;
+}
+/* ledger report end */
+
+
+/* forms start */
+
+/* bank_form start */
+/* .form {
+    max-width: 50%;
+} */
+
+#form .full-form-content {
+    max-width: 38em;
+    padding: 1em 3em 2em 3em;
+    margin: 5em auto;
+    background-color: #fff;
+    border-radius: 4.2px;
+    box-shadow: 0px 3px 10px -2px #483d8b;
+}
+
+#form .form-wrapper {
+    width: auto;
+    padding: 0 40px;
+
+}
+
+#form h1 {
+    text-align: center;
+    padding: 5px;
+    margin: 6px;
+}
+#form .form-wrapper .form-label {
+    text-align: center;
+    width: fit-content;
+    margin-bottom: 10px;
+}
+
+#form .form-wrapper .input{
+    width: 100%;
+    padding: 1em;
+    line-height: 1.4;
+    background-color: #f9f9f9;
+    border: 1px solid #e5e5e5;
+    border-radius: 3px;
+    transition: 0.35s ease-in-out;
+    transition: all 0.35s ease-in-out;
+    margin-bottom: 30px;
+    color: #000;
+}
+
+#form .input:focus {
+    outline: 0;
+    border-color: #483d8b;
+  }
+
+
+#form .form-wrapper .button-wrapper .button {
+    /* margin: 0 6em; */
+    display: inline-block;
+    text-decoration: none;
+    border: 1px solid #483d8b;
+    padding: 12px 34px;
+    font-size: 15px;
+    background: transparent;
+    position: relative;
+    cursor: pointer;
+    transition: 1s;
+}
+
+#form .form-wrapper .button-wrapper {
+    align-items: center;
+    text-align: center;
+}
+
+#form .button:hover {
+    border: 1px solid #483d8b;
+    background-color: #483d8b;
+    transition: 0.35s ease-in-out;
+    transition: all 0.35s ease-in-out;
+    box-shadow: 0px 3px 10px -2px #483d8b;
+}
+
+            /* long form */
+
+#form #long-form .input {
+    width: 100%;
+    padding: 0.7em;
+    line-height: 1.4;
+}
+
+#form #long-form .form-label {
+    margin-bottom: 5px;
+}
+
+#form #long-form .input {
+    margin-bottom: 20px;
+}
+
+#form .form-wrapper .drop-down select {
+    /* display: inline-block; */
+    text-decoration: none;
+    background-color: #f9f9f9;
+    border: 1px solid #e5e5e5;
+    padding: 12px 34px;
+    font-size: 15px;
+    background: transparent;
+    /* position: relative; */
+    cursor: pointer;
+    transition: 1s;
+    margin-left: 1em;
+}
+
+#form .form-wrapper .select-wrapper {
+    display: flex;
+    align-items: baseline;
+    margin: 0.7em 0 4em 0;
+}
+/* bank_form end */
+
+
+/* forms end */

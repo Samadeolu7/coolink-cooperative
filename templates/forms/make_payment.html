@@ -1,10 +1,21 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Make Payment</title>
-</head>
-<body>
-    <h1>Make Payment</h1>
+{%extends 'base.html' %}
+
+{%block title%}
+Make Payment
+{% endblock %}
+
+{% block header%}
+Make Payment
+{% endblock  %}
+
+{% block anchor%}
+<a href="{{ url_for('get_persons') }}" id='arrow'><i class="fa-solid fa-arrow-left"></i></a>
+{% endblock  %}
+
+{%block content%}
+<body id="form">
+    <div class="full-form-content">
+    
     {% with messages = get_flashed_messages() %}
   {% if messages %}
     <ul class="flash-messages">
@@ -15,22 +26,64 @@
   {% endif %}
 {% endwith %}
 
+  <div class="form-wrapper" id="long-form">
     <form method="POST">
-        {{ form.hidden_tag() }}
-        <br>
-        {{ form.ref_no.label }} {{ form.ref_no() }}
-        <br>
-        {{ form.bank.label }} {{ form.bank() }}
-        <br>
-        {{ form.amount.label }} {{ form.amount() }}
-        <br>
-        {{ form.date.label }} {{ form.date() }}
-        <br>
-        {{ form.payment_type.label }} {{ form.payment_type() }}
-        <br>
-        {{ form.description.label }} {{ form.description() }}
-        <br>
-        <input type="submit" value="Submit">
+        {{ form.hidden_tag}}
+
+        <h1>Make Payment</h1>
+        
+        <div class="form-label">
+        {{ form.ref_no.label(class_='input-label') }} <br>
+        </div>
+
+        <div class="form-box">
+        {{ form.ref_no(class_="input") }} <br></div>
+        
+        <div class="form-label">
+        {{ form.bank.label(class_='input-label') }} <br>
+        </div>
+
+        <div class="form-box">
+        {{ form.bank(class_="input") }}
+        <br></div>
+
+        <div class="form-label">
+        {{ form.amount.label(class_='input-label') }} <br>
+        </div>
+
+        <div class="form-box">
+        {{ form.amount(class_="input") }}
+        <br></div>
+
+        <div class="form-label">
+        {{ form.date.label (class_='input-label')}} <br>
+        </div>
+
+        <div class="form-box">
+        {{ form.date(class_="input") }}
+        <br></div>
+
+        <div class="form-label">
+        {{ form.payment_type.label (class_='input-label')}} <br>
+        </div>
+
+        <div class="form-box">
+        {{ form.payment_type(class_="input") }}
+        <br></div>
+
+        <div class="form-label">
+        {{ form.description.label(class_='input-label') }} <br>
+        </div>
+
+        <div class="form-box">
+        {{ form.description(class_="input") }}
+        <br></div>
+
+        <div class="button-wrapper">
+        <input type="submit" value="Submit" class="button"></div>
     </form>
+  </div>
+</div>
 </body>
-</html>
+
+{%endblock%}

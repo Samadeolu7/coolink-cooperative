@@ -1,20 +1,48 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Role Assignment</title>
-</head>
-<body>
-    <h1>Role Assignment</h1>
+{%extends 'base.html' %}
 
-    <form  method="post">
-        {{ form.hidden_tag() }}
-        {{ form.person.label }} {{ form.person }}
-        <br>
-        {{ form.role.label }} {{ form.role }}
-        <br>
-        {{ form.submit }}
-    </form>
+{%block title%}
+Role Assignment
+{% endblock %}
+
+{% block header%}
+Role Assignment
+{% endblock  %}
+
+{% block anchor%}
+<a href="{{ url_for('get_persons') }}" id='arrow'><i class="fa-solid fa-arrow-left"></i></a>
+{% endblock  %}
+
+{%block content%}
+<body id="form">
+    <div class="full-form-content">
+
+        <div class="form-wrapper" id="long-form">
+
+            <form  method="post">
+                {{ form.hidden_tag() }}
+                <h1>Role Assignment</h1>
+
+                <div class="form-label">
+                {{ form.person.label(class_='input-label') }} <br></div>
+                
+                <div class="form-box">
+                {{form.person(class_="input")}}
+                <br></div>
+
+                <div class="form-label">
+                {{ form.role.label(class_='input-label') }} <br>
+                </div>
+
+                <div class="form-box">
+                {{ form.role(class_="input") }}
+                <br></div>
+
+                <div class="button-wrapper">
+                {{ form.submit(class="button") }}
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
-</html>
+
+{%endblock%}

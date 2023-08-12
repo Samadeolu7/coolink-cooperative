@@ -1,10 +1,20 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Create Person</title>
-</head>
-<body>
-    <h1>Create Person</h1>
+{%extends 'base.html' %}
+
+{%block title%}
+Create Person
+{% endblock %}
+
+{% block header%}
+Create Person
+{% endblock  %}
+
+{% block anchor%}
+<a href="{{ url_for('get_persons') }}" id='arrow'><i class="fa-solid fa-arrow-left"></i></a>
+{% endblock  %}
+
+{%block content%}
+<body id="form">
+    <div class="full-form-content">
     {% with messages = get_flashed_messages() %}
     {% if messages %}
         <ul class="flash-messages">
@@ -15,28 +25,80 @@
     {% endif %}
     {% endwith %}
 
-    <form method="POST">
-        {{ form.hidden_tag() }}
-        {{ form.employee_id.label }} {{ form.employee_id() }}
-        <br>
-        {{ form.name.label }} {{ form.name() }}
-        <br>
-        {{ form.email.label }} {{ form.email() }}
-        <br>
-        {{ form.phone_no.label }} {{ form.phone_no() }}
-        <br>
-        {{ form.total_balance.label }} {{ form.total_balance() }}
-        <br>
-        {{ form.loan_balance.label }} {{ form.loan_balance() }}
-        <br>
-        {{ form.company_id.label }}
-        <select name="{{ form.company_id.name }}">
-            {% for company in companies %}
-                <option value="{{ company.id }}">{{ company.name }}</option>
-            {% endfor %}
-        </select>
-        <br>
-        <input type="submit" value="Create">
-    </form>
+    <div class="form-wrapper" id="long-form"> 
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            <h1>Create Person</h1>
+            <div class="form-label">
+                {{ form.employee_id.label(class_='input-label')}} <br>
+            </div>
+            
+            <div class="form-box">
+                {{ form.employee_id(class_="input") }} <br>
+            </div>
+
+            <div class="form-label">
+                {{ form.name.label (class_='input-label')}} <br>
+            </div>
+
+            <div class="form-box">
+                {{ form.name(class_="input") }} <br>
+            </div>
+
+            <div class="form-label">
+                {{ form.email.label(class_='input-label') }} <br>
+            </div>
+
+            <div class="form-box">
+                {{ form.email(class_="input") }}<br>
+            </div>
+
+            <div class="form-label">
+                {{ form.phone_no.label (class_='input-label')}} <br>
+            </div>
+
+            <div class="form-box">
+                {{ form.phone_no(class_="input") }}<br>
+            </div>
+
+            <div class="form-label">
+                {{ form.total_balance.label(class_='input-label') }} <br>
+            </div>
+
+            <div class="form-box">
+                {{ form.total_balance(class_="input") }}
+            </div>
+
+            <div class="form-label">
+                {{ form.loan_balance.label(class_='input-label') }} <br>
+            </div>
+
+            <div class="form-box">
+                {{ form.loan_balance(class_="input") }} <br>
+            </div>
+
+            <div class="select-wrapper">
+         
+                <div class="form-label">
+                {{ form.company_id.label (class_='input-label')}} 
+                </div>
+
+                <div class="drop-down">
+                    <select name="{{ form.company_id.name }}" class_ ='drop'>
+                        {% for company in companies %}
+                            <option value="{{ company.id }}">{{ company.name }}</option>
+                        {% endfor %}
+                    </select> <br>
+                </div>
+
+            </div>
+
+            <div class="button-wrapper">
+                <input type="submit" value="Create" class="button">
+            </div>
+        </form>
+    </div>
+    </div>
 </body>
-</html>
+
+{%endblock%}
