@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect,send_file, render_template, redirect, url_for, flash,jsonify
+from flask import Flask, render_template, request, redirect,send_file, render_template, redirect, url_for, flash,jsonify,g
 from forms import *
 from functools import wraps
 from models import *
@@ -14,7 +14,7 @@ login_manager = LoginManager()
 
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:samore7@localhost/cooperativedb'  # Replace with your database URI
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cooperative.db'  # Replace with your database URI
 app.config['SECRET_KEY'] = 'your_secret_key'
 db.init_app(app)
 query= Queries(db)
@@ -22,6 +22,7 @@ login_manager.init_app(app)
 
 @login_manager.user_loader
 def load_user(person_id):
+
     return Person.query.get(person_id)
 
 def role_required(roles_required):
@@ -43,6 +44,10 @@ def role_required(roles_required):
 
     return decorator
 
+@app.before_request
+def before_request():
+  g.user = current_user
+  
 def log_report(report):
     with open("report.txt", 'a', encoding='utf-8') as f:
             f.write(f'{report}\n')
@@ -61,7 +66,7 @@ def login():
             login_user(user)
             return redirect(url_for('dashboard'))
 
-        form.errors.append('Invalid User Credentials')
+        form.errors.password.append('Invalid User Credentials')
 
         # next = request.args.get('next')
         # # url_has_allowed_host_and_scheme should check if the url is safe
@@ -430,20 +435,29 @@ def get_income():
 
 @app.route('/savings_account/<person_id>', methods=['GET', 'POST'])
 @login_required
-@role_required(['Admin','Secretary','Sub-Admin'])
 def savings_account(person_id):
-    person = query.get_person(person_id)
-    payments = person.payments_made
-    
-    return render_template('query/savings_account.html', payments= payments,person=person)
+    user = current_user
+    if user.role.id !=4 or user.id==int(person_id):
+        person = query.get_person(person_id)
+        payments = person.payments_made
+        
+        return render_template('query/savings_account.html', payments= payments,person=person)
+    else:
+        return redirect(url_for('savings_account',person_id=user.id))
 
 @app.route('/loan/<person_id>', methods=['GET', 'POST'])
 @login_required
 def loan_account(person_id):
-    loans = query.get_person_loans(person_id)
-    person = query.get_person(person_id)
-    payments = [payment for payment in person.loan_payments_made ]
-    return render_template('query/loan_account.html',payments=payments, person=person, loans=loans)
+    user = current_user
+    if user.role.id !=4 or user.id==int(person_id):
+        loans = query.get_person_loans(person_id)
+        person = query.get_person(person_id)
+        payments = [payment for payment in person.loan_payments_made ]
+        return render_template('query/loan_account.html',payments=payments, person=person, loans=loans)
+    else:
+        return redirect(url_for('loan_account',person_id=user.id))
+    
+    
 
 @app.route('/banks_report')
 @login_required
@@ -696,7 +710,7 @@ def download_excel(type,type_id):
 @login_required
 def logout():
   logout_user()
-  current_user = None
+  
   return redirect(url_for('dashboard'))
 
 #dynamic lookup
@@ -763,3 +777,11 @@ def change_password():
             return redirect(url_for('change_password'))
 
     return render_template('forms/change_password.html', form=form)
+
+@app.route('/edit_profile')
+def edit_profile():
+    form = EditProfileForm()
+    if form.validate_on_submit():
+        user =current_user 
+        if query.edit_profile(user,form.name.date,form.email.data,form.phone_no.data,form.company_id.data):
+            return

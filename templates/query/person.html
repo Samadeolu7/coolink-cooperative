@@ -37,11 +37,14 @@ EMPLOYEE DETAILS
             {%endfor%}
         </tbody>
     </table>
+
+    
     <!-- <h2>Download Excel Report</h2> -->
     <button id="downloadExcelButton">Download Excel Report</button>
 
     <!-- <h2>Download PDF Report</h2> -->
     <button id="downloadPdfButton">Download PDF Report</button>
+
 
     <script>
         // Get the button element by its ID
@@ -62,5 +65,7 @@ EMPLOYEE DETAILS
             window.location.href = linkUrlPdf;
         });
     </script>
+
 </body>
+
 {%endblock%}

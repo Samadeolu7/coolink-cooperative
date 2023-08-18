@@ -19,17 +19,19 @@ Ledgers
                 <th>Code</th>
                 <th>Name</th>
                 <th>Description</th>
-                <th>Balance</th>
+                <th>Debit</th>
+                <th>Credit</th>
                
             </tr>
             <tr>
-                <th colspan="5" class="total">Assets</th>
+                <th colspan="6" class="total">Assets</th>
             </tr>
             <tr>
                 <td>Cr</td>
                 <td>400100  </td>
                 <td><a href="{{url_for('get_loan')}}">Account Receivables</a></td>  <!-- Fetching the person's name -->
                 <td>Total Recievables from Loans</td>
+                <td> _ </td>
                 <td>{{ total_accounts_receivable| currency }}</td>
                 
             </tr>
@@ -38,6 +40,7 @@ Ledgers
                 <td>400101  </td>
                 <td><a href="{{url_for('get_loan')}}">Company Receivables</a></td>  <!-- Fetching the person's name -->
                 <td>Total Recievables from Companies</td>
+                <td> _ </td>
                 <td>{{ company| currency }}</td>
                 
             </tr>
@@ -47,6 +50,7 @@ Ledgers
                 <td>{{ 400101+bank.id }}</td>
                 <td><a href="">{{ bank.name }}</a></td>  <!-- Fetching the person's name -->
                 <td>{{ bank.description}}</td>
+                <td> _ </td>
                 <td>{{ bank.new_balance | currency }}</td>
                 
             </tr>
@@ -61,6 +65,7 @@ Ledgers
                         <a href="">{{ asset.name}}</a>
                     </td>
                     <td>{{ asset.description}}</td>
+                    <td> _ </td>
                     <td>{{ asset.balance | currency }}</td>
 
                     
@@ -72,7 +77,9 @@ Ledgers
                 <td>{{ 600100+income.id }}</td>
                 <td><a href="">{{ income.name }}</a></td>  <!-- Fetching the person's name -->
                 <td>{{ income.description }}</td>
+                <td> _ </td>
                 <td>{{ income.balance | currency }}</td>
+                
                 
             </tr>
             {% endfor %}
@@ -83,18 +90,19 @@ Ledgers
                 <td>{{ 400200+investment.id }}</td>
                 <td><a href="">{{ investment.name }}</a></td>  <!-- Fetching the person's name -->
                 <td>{{ investment.description}}</td>
+                <td> _ </td>
                 <td>{{ investment.balance | currency }}</td>
                 
             </tr>
             {% endfor %}
             <tr>
-                <th colspan="4" class="total">Total Assets</th>
+                <th colspan="5" class="total">Total</th>
                 
                 <th colspan="1" class="total">{{total_assets | currency}}</th>
                 
             </tr>
             <tr>
-                <th colspan="5" class="total">Liabilities</th>
+                <th colspan="6" class="total">Liabilities</th>
             </tr>
             {% for expense in expenses %}
             <tr>
@@ -103,6 +111,7 @@ Ledgers
                 <td><a href="">{{ expense.name }}</a></td>  <!-- Fetching the person's name -->
                 <td>{{ expense.description }}</td>
                 <td>{{ expense.balance | currency }}</td>
+                <td> _ </td>
                 
             </tr>
             {% endfor %}
@@ -113,6 +122,7 @@ Ledgers
                 <td><a href="{{url_for('get_payments')}}">Accounts Payables</a></td>  <!-- Fetching the person's name -->
                 <td>Total Balance from Members Savings</td>
                 <td>{{ total_accounts_payable | currency }}</td>
+                <td> _ </td>
                 
             </tr>
             
@@ -123,29 +133,30 @@ Ledgers
                 <td><a href="">{{ liability.name }}</a></td>  <!-- Fetching the person's name -->
                 <td>{{ liability.description}}</td>
                 <td>{{ liability.balance | currency }}</td>
+                <td> _ </td>
                 
             </tr>
             {% endfor %}
             <tr>
-                <th colspan="4" class="total">Total Liability</th>
+                <th colspan="4" class="total">Total</th>
                 
-                <th colspan="1" class="total">{{total_liabilities | currency}}</th>
+                <th colspan="2" class="total">{{total_liabilities | currency}}</th>
                 
             </tr>
             <tr></tr>
-            <tr>
+            <!-- <tr>
                 <th colspan="4" class="total">Total Equity</th>
                 
-                <th colspan="1" class="total">{{total_equity | currency}}</th>
+                <th colspan="2" class="total">{{total_equity | currency}}</th>
                 
-            </tr>
+            </tr> -->
             <tr></tr>
-            <tr>
-                <th colspan="4" class="total">Total Liability and Equity</th>
+            <!-- <tr>
+                <th colspan="5" class="total">Total Liability and Equity</th>
                 
                 <th colspan="1" class="total">{{total_liabilities_and_equity | currency}}</th>
                 
-            </tr>
+            </tr> -->
         </tbody>
     </table>
 

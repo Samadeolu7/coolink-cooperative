@@ -11,7 +11,7 @@
 <body class="special-dash">
     
     <div class='all-sections'>
-        {% if person.role.id != 4 %}
+        
         <nav class='section-1'>
             <div class="logo"></div>
             <ul class="side-bar">
@@ -27,10 +27,12 @@
                     <a class="nav-link" href="{{ url_for('forms') }}"><i class="fa-solid fa-align-justify"></i><span>Forms</span></a>
                 </li>
                 {% endif %}
+                {% if person.role.id != 4 %}
+                
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('queries') }}"> <i class="fa-solid fa-chart-line"></i><span>Report</span></a>
                 </li>
-
+                {% endif %}
                 {% if person.role.id == 1 or person.role.id == 3 %}
 
                 <li class="nav-item">
@@ -49,14 +51,15 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('reset_password') }}"><i class="fa-solid fa-lock"></i><span>Reset Password</span></a>
                 </li>
+                {% endif %}
 
                 <li class="logout">
-                    <a class='nav-link' href="#"><i class="fa-sharp fa-solid fa-right-from-bracket"></i><span>Logout</span></a>
+                    <a class='nav-link' href="{{url_for('logout')}}"><i class="fa-sharp fa-solid fa-right-from-bracket"></i><span>Logout</span></a>
                 </li>
-                {% endif %}
+                
             </ul>
         </nav>
-        {%endif%}
+        
          
         <div class='section-2'>
 
