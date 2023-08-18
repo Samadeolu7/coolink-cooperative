@@ -34,16 +34,33 @@ class Queries():
                                    total_balance=balance,loan_balance=loan_balance,loan_balance_bfd=loan_balance,
                                    phone_no=phone_no,balance_bfd =balance,company_id=company_id,role_id=role_id))
         self.db.session.commit()
-
         #create .csv file
         with open (f'credentials/{employee_id}_credentials.csv','w',newline='') as file:
             writer = csv.writer(file)
             writer.writerow(['Username','Password'])
             writer.writerow([f'{employee_id} or {email}',password])
-        
 
         return file.name
     
+    def edit_profile(self, person_id, email, phone_no, company_id):
+        try:
+            # Get the user's person record based on the selected person_id
+            person = Person.query.get(person_id)
+
+            # Update user's profile information
+            person.email = email
+            person.phone_no = phone_no
+            person.company_id = company_id
+
+            # Commit the changes to the database
+            db.session.commit()
+
+            return True  # Indicate success
+        except Exception as e:
+            print(e)  # Handle or log the error
+            db.session.rollback()  # Rollback changes on error
+            return False  # Indicate failure
+
     def get_user(self,identifier):
         return Person.query.filter(or_(Person.email == identifier, Person.employee_id == identifier)).first()
         

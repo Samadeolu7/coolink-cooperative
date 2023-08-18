@@ -761,6 +761,11 @@ def get_sub_accounts(main_account_id):
 
     return jsonify(sub_account_options)
 
+@app.route('/get_person_info/<person_id>')
+def get_person_info(person_id):
+    person =query.get_person(person_id)
+    return person.to_json()
+
 
 @app.route('/change_password', methods=['GET', 'POST'])
 def change_password():
@@ -778,10 +783,16 @@ def change_password():
 
     return render_template('forms/change_password.html', form=form)
 
-@app.route('/edit_profile')
+@app.route('/edit_profile', methods=['GET', 'POST'])
 def edit_profile():
     form = EditProfileForm()
+    form.person.choices = [(person.id,f'{person.name}({person.employee_id})') for person in query.get_persons()]
+    form.company_id.choices = [(company.id,company.name)for company in query.get_companies()]
     if form.validate_on_submit():
         user =current_user 
-        if query.edit_profile(user,form.name.date,form.email.data,form.phone_no.data,form.company_id.data):
-            return
+        if query.edit_profile(form.person.data,form.email.data,form.phone_no.data,form.company_id.data):
+            flash('Profile updated successfully!', 'success')
+        else:
+            flash('An error occurred while updating the profile.', 'error')
+
+    return render_template('forms/edit_profile.html', form=form)
