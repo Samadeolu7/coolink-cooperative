@@ -18,7 +18,7 @@ Bank Payment Voucher
 
         <div class="form-wrapper" id="long-form">
 
-            <form method="POST" action="/" id="expenseForm">
+            <form method="POST" id="expenseForm">
                 {{ form.hidden_tag() }}
 
                 <h1>Bank Payment Voucher</h1>
@@ -79,27 +79,33 @@ Bank Payment Voucher
                 <input type="submit" value="Submit" class="button"></div>
             </form>
         </div>
-
         <script>
             const mainAccountDropdown = document.getElementById('main_account');
             const subAccountDropdown = document.getElementById('sub_account');
-        
-
-            mainAccountDropdown.addEventListener('change', async (event) => {
-                const selectedMainAccount = event.target.value;
-
-                // Make an asynchronous request to fetch sub-account choices
+    
+            // Function to fetch sub-account choices and update the dropdown
+            async function fetchAndPopulateSubAccounts() {
+                const selectedMainAccount = mainAccountDropdown.value;
                 const response = await fetch(`/get_sub_accounts/${selectedMainAccount}`);
                 const subAccountChoices = await response.json();
-
+    
                 // Clear and update sub-account dropdown
                 subAccountDropdown.innerHTML = '';
                 subAccountChoices.forEach(choice => {
                     const option = new Option(choice.name, choice.id);
                     subAccountDropdown.appendChild(option);
                 });
+            }
+    
+            // Call the function initially to populate sub-accounts
+            fetchAndPopulateSubAccounts();
+    
+            mainAccountDropdown.addEventListener('change', async (event) => {
+                const selectedMainAccount = event.target.value;
+    
+                // Call the function to update sub-account choices
+                fetchAndPopulateSubAccounts();
             });
-
         </script>
     </div>
 </body>
