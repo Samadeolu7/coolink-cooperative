@@ -1,0 +1,81 @@
+{%extends 'base.html' %}
+
+{%block title%}
+Edit Person
+{% endblock %}
+
+{% block header%}
+Edit Person
+{% endblock %}
+
+{% block anchor%}
+<a href="{{ url_for('get_persons') }}" id='arrow'><i class="fa-solid fa-arrow-left"></i></a>
+{% endblock %}
+
+{%block content%}
+
+<body>
+    <div class="full-form-content">
+        <!-- Your HTML content here -->
+
+        <div class="form-wrapper" id="long-form">
+
+            <form id="edit-profile-form" method="POST" action="/edit_profile">
+                {{ form.hidden_tag() }}
+                <div class="form-label">
+
+                    <label for="person">Select Person:</label>
+                </div>
+                <div class="select-wrapper">
+                    {{ form.person(class="form-control") }}
+                </div>
+                <div class="form-label">
+
+                    <label for="email">Email:</label>
+                </div>
+                <div class="form-box">
+                    {{ form.email(class="form-control") }}
+                </div>
+
+                <div class="form-label">
+
+                    <label for="phone_no">Phone No:</label>
+                </div>
+                <div class="form-box">
+                    {{ form.phone_no(class="form-control") }}
+                </div>
+
+                <div class="form-label">
+
+                    <label for="company_id">Company ID:</label>
+                </div>
+                <div class="form-box">
+                    {{ form.company_id(class="form-control") }}
+                </div>
+                <div class="button-wrapper">
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+        <!-- Your other HTML content here -->
+        <script>
+            const selectPerson = document.querySelector('#person');
+            const emailInput = document.querySelector('#email');
+            const phoneNoInput = document.querySelector('#phone_no');
+            const companyIdInput = document.querySelector('#company_id');
+
+            selectPerson.addEventListener('change', () => {
+                const selectedPersonId = selectPerson.value;
+                fetch(`/get_person_info/${selectedPersonId}`)
+                    .then(response => response.json())
+                    .then(personInfo => {
+                        emailInput.value = personInfo.email;
+                        phoneNoInput.value = personInfo.phone_no;
+                        companyIdInput.value = personInfo.company_id;
+                    })
+                    .catch(error => console.error('Error fetching person info:', error));
+            });
+        </script>
+</body>
+{%endblock%}

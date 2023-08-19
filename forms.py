@@ -10,6 +10,7 @@ app = Flask(__name__)
 
 
 class ChangePasswordForm(FlaskForm):
+
     current_password = PasswordField('Current Password', validators=[DataRequired()])
     new_password = PasswordField('New Password', validators=[
         DataRequired(),
@@ -22,18 +23,21 @@ class ChangePasswordForm(FlaskForm):
 
 
 class LoginForm(FlaskForm):
+
     identifier = StringField('Email', validators=[ DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Log In')
 
 
 class CompanyForm(FlaskForm):
+
     name = StringField('Name', validators=[DataRequired()])
     submit = SubmitField('Submit')
     balance_bfd = FloatField('Balance B/FWD')
 
 
 class BankForm(FlaskForm):
+
     name = StringField('Name',validators=[DataRequired()] )
     balance = FloatField('Balance B/FWD')
 
@@ -51,6 +55,7 @@ class PersonForm(FlaskForm):
 
 
 class MakePaymentForm(FlaskForm):
+
     amount = DecimalField('Amount', validators=[DataRequired()])
     date = DateField('Date', validators=[DataRequired()])
     payment_type = SelectField('Payment Type', choices=[('savings', 'Savings'), ('loan', 'Loan')], validators=[DataRequired()])
@@ -61,6 +66,7 @@ class MakePaymentForm(FlaskForm):
     submit = SubmitField('Submit')
 
 class PaymentForm(FlaskForm):
+
     amount = DecimalField('Amount', validators=[DataRequired()])
     date = DateField('Date', validators=[DataRequired()])
     payment_type = SelectField('Payment Type', choices=[], validators=[DataRequired()])
@@ -70,6 +76,7 @@ class PaymentForm(FlaskForm):
     submit = SubmitField('Submit')
 
 class LoanForm(FlaskForm):
+
     employee_id = StringField('Employee ID', validators=[DataRequired()])
     amount = IntegerField('Amount', validators=[DataRequired()])
     interest_rate = SelectField('Interest Rate', choices=[(5, '5%'), (10, '10%'), (15, '15%')], validators=[DataRequired()])
@@ -79,7 +86,8 @@ class LoanForm(FlaskForm):
     submit = SubmitField('Submit')
 
 
-class ExpenseForm(FlaskForm):
+class ExpenseForm(FlaskForm): #bank voucher payment
+
     sub_account = SelectField('Sub-Select Account', choices=[], coerce=int) #change name to main account
     amount = FloatField('Amount', validators=[DataRequired()])
     date = DateField('Date', validators=[DataRequired()])
@@ -88,24 +96,14 @@ class ExpenseForm(FlaskForm):
     bank = SelectField('Bank', choices=[], coerce=int)
     ref_no = StringField('Reference Number')
 
-
-# class InvestmentForm(FlaskForm):
-#     name = StringField('Name', validators=[DataRequired()])
-#     amount = FloatField('Amount', validators=[DataRequired()])
-#     date = DateField('Date', validators=[DataRequired()])
-#     description = StringField('Description')
-#     existing_investment = SelectField('Existing Expense', choices=[], coerce=int)
-#     bank = StringField('Bank')
-#     ref_no = StringField('Reference Number')
-
-
 class UploadForm(FlaskForm):
+
     description = StringField('Description', validators=[DataRequired()])
     date = DateField('Date', validators=[DataRequired()])
     submit = SubmitField('Submit')
 
-
 class IncomeForm(FlaskForm):
+
     name = SelectField('Sub-Account', choices=[('loan','Loan Application Form'),('form','Registration Form')], validators=[DataRequired()])
     amount = DecimalField('Amount', validators=[DataRequired()])
     date = DateField('Date', validators=[DataRequired()])
@@ -115,6 +113,7 @@ class IncomeForm(FlaskForm):
     submit = SubmitField('Submit')
 
 class WithdrawalForm(FlaskForm):
+
     person = SelectField('Select Person', coerce=int, validators=[DataRequired()])
     balance = FloatField('Available Balance', render_kw={'readonly': True})
     description = StringField('Description')
@@ -124,32 +123,42 @@ class WithdrawalForm(FlaskForm):
     submit = SubmitField('Withdraw')
 
 class RoleAssignmentForm(FlaskForm):
+
     person = SelectField('Select Person', choices=[], validators=[DataRequired()])
     role = SelectField('Role', choices=[], validators=[DataRequired()])
     submit = SubmitField('Assign Role')
 
 class DateFilterForm(FlaskForm):
+
     start_date = DateField('Start Date', format='%Y-%m-%d', validators=[Optional()])
     end_date = DateField('End Date', format='%Y-%m-%d', validators=[Optional()])
     submit = SubmitField('Apply Filter')
 
 class SearchForm(FlaskForm):
+
     search_query = StringField('Search')
     submit = SubmitField('Search')
 
 class LedgerAdminForm(FlaskForm):
+
     ledger = SelectField('Select Ledger',choices=[(1,'Asset'),(2,'Expenses'),(3,'Income'),(4,'Liabilities'),(5,'Investments')],validators=[DataRequired()])
     submit = SubmitField('Create New Ledger')
 
 class LedgerForm(FlaskForm):
+
     name = StringField('Name', validators=[DataRequired()])
     description = StringField('Description', validators=[DataRequired()])
     submit = SubmitField('Create')
 
 class ResetPasswordForm(FlaskForm):
+
     person = SelectField('Select Person', choices=[], validators=[DataRequired()])
     submit = SubmitField('Reset Password')
 
 class EditProfileForm(FlaskForm):
-    #todo
-    pass
+
+    person = SelectField('Select Person', coerce=int, validators=[DataRequired()])
+    email = StringField('Email', validators=[ Email()])
+    phone_no = StringField('Phone No',validators=[DataRequired()])
+    company_id = SelectField('Bank', choices=[], coerce=int)
+    submit = SubmitField('Submit')
