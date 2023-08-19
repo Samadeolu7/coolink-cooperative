@@ -1,100 +1,88 @@
-<!DOCTYPE html>
-<html lang="en">
+{%extends 'dashboard.html' %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Accounting Website</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link rel="stylesheet" href="\static\css\style.css">
-</head>
+{%block title%}
+Forms
+{% endblock %}
 
-<body class="index">
-    <section id="nav">
-        <a href="{{url_for('dashboard')}}" class="head">Accounting</a>
-        <a href="#" class="tail"><i class="fa-sharp fa-solid fa-right-from-bracket"></i></a>
-    </section>
+{%block dash%}
+nav-item
+{%endblock%} 
 
+{%block form%}
+active
+{%endblock%} 
 
-    <section id="topic">
+{%block content%}
+<section id="topic">
 
-        <h1>Create New Entries</h1>
+    <!-- <h1>Create New Entries</h1> -->
 
 
-        <div class='all-cards'>
-            <div class="card">
-                <div class="container">
-                    <a href="{{ url_for('create_bank') }}">Create Bank</a>
-                </div>
+    <div class='all-cards'>
+        <div class="card">
+            <div class="container">
+                <a href="{{ url_for('create_bank') }}">Create Bank</a>
             </div>
+        </div>
 
-            <div class="card">
-                <div class="container">
-                    <a href="{{ url_for('create_company') }}">Create Company</a>
-                </div>
+        <div class="card">
+            <div class="container">
+                <a href="{{ url_for('create_company') }}">Create Company</a>
             </div>
+        </div>
 
-            <div class="card">
-                <div class="container">
-                    <a href="{{ url_for('create_person') }}">Create Member</a>
-                </div>
+        <div class="card">
+            <div class="container">
+                <a href="{{ url_for('create_person') }}">Create Member</a>
             </div>
+        </div>
 
-            <div class="card">
-                <div class="container">
-                    <a href="{{ url_for('create_loan') }}">Create Loan</a>
-                </div>
+        <div class="card">
+            <div class="container">
+                <a href="{{ url_for('create_loan') }}">Create Loan</a>
             </div>
+        </div>
 
-            <div class="card">
-                <div class="container">
-                    <a href="{{ url_for('make_payment') }}"> Bank Payment Receipt </a>
-                    <!-- make payment into the system -->
-                </div>
+        <div class="card">
+            <div class="container">
+                <a href="{{ url_for('make_payment') }}"> Bank Payment Receipt </a>
+                <!-- make payment into the system -->
             </div>
+        </div>
 
-            <div class="card">
-                <div class="container">
-                    <a href="{{ url_for('make_income') }}">Input Income</a>
-                </div>
+        <div class="card">
+            <div class="container">
+                <a href="{{ url_for('make_income') }}">Input Income</a>
             </div>
+        </div>
 
-            <div class="card">
-                <div class="container">
-                    <a href="{{ url_for('create_expense') }}">Bank Payment Voucher</a> 
-                    <!-- add expense to the system -->
-                </div>
+        <div class="card">
+            <div class="container">
+                <a href="{{ url_for('create_expense') }}">Bank Payment Voucher</a> 
+                <!-- add expense to the system -->
             </div>
+        </div>
 
-            <div class="card">
+        <div class="card">
 
-                <div class="container">
-                    <a href="{{ url_for('upload_savings') }}">Upload Savings</a>
-                </div>
+            <div class="container">
+                <a href="{{ url_for('upload_savings') }}">Upload Savings</a>
             </div>
+        </div>
 
-            <div class="card">
+        <div class="card">
 
-                <div class="container">
-                    <a href="{{ url_for('withdraw') }}">Make Withdrawal</a>
-                </div>
+            <div class="container">
+                <a href="{{ url_for('withdraw') }}">Make Withdrawal</a>
             </div>
+        </div>
 
-            <div class="card">
+        <div class="card">
 
-                <div class="container">
-                    <a href="{{ url_for('startup') }}">Start Up</a>
-                </div>
+            <div class="container">
+                <a href="{{ url_for('startup') }}">Start Up</a>
             </div>
+        </div>
 
-    </section>
-
-
-    <!-- 
-    <footer>
-        <p>&copy; 2023 Your Accounting Website</p>
-    </footer> -->
-
-</body>
-
-</html>
+</section>
+{%endblock%}

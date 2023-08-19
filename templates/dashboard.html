@@ -14,22 +14,23 @@
         
         <nav class='section-1'>
             <div class="logo"></div>
-            <ul class="side-bar">
-
-                <li class="active" >
-                    <a href="#" class="nav-link"><i class="fa-solid fa-gauge"></i>
+            <ul class="side-bar" id="side-bar">
+                
+                <li class="{%block dash%}active nav-item{%endblock%}">
+                    <a href="{{ url_for('dashboard') }}" class="nav-link"><i class="fa-solid fa-gauge"></i>
                     <span>Dashboard</span></a>
                 </li>
+                
 
                 {% if person.role.id == 1 or person.role.id == 3 %}
 
-                <li class="nav-item">
+                <li class="{%block form%}nav-item{%endblock%}">
                     <a class="nav-link" href="{{ url_for('forms') }}"><i class="fa-solid fa-align-justify"></i><span>Forms</span></a>
-                </li>
+                </li> 
                 {% endif %}
                 {% if person.role.id != 4 %}
                 
-                <li class="nav-item">
+                <li class="{%block query%}nav-item{%endblock%}">
                     <a class="nav-link" href="{{ url_for('queries') }}"> <i class="fa-solid fa-chart-line"></i><span>Report</span></a>
                 </li>
                 {% endif %}
@@ -77,12 +78,11 @@
             </div>
 
         </div>
-
-        {%block content%} 
+       
         <div class="all-cards-wrap">
-
+        {%block content%} 
         <h3>Today's data</h3>
-        <div class="all-cards"> 
+        <div class="all-cards" id="dash-all-cards"> 
 
             <div class="card" id="current-bal"> 
                 <div class="container">
@@ -123,7 +123,7 @@
                     </div>
                     
 
-                    <div class="icon-con"><i class="fa-solid fa-landmark"></i></div>
+                    <div class="icon-con" id='landmark'><i class="fa-solid fa-landmark"></i></div>
 
                 </div>
             </div>
@@ -131,10 +131,6 @@
         </div>
 
         </div>
-
-
-
-
 
         </div>
     </div>
@@ -194,6 +190,10 @@
                 }
             });
         });
+
     </script>
+
+
+
 </body>
 {%endblock%}

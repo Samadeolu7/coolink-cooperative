@@ -414,8 +414,13 @@
 }
 
 .special-dash  .section-2 .all-cards * {
+    flex: 0 1 180px;
+}
+
+.special-dash .section-2 #dash-all-cards * {
     flex: 1 1 200px;
 }
+
 .special-dash .section-2 .card {
     background: transparent;
     margin: 10px;
@@ -426,9 +431,11 @@
     backdrop-filter: blur(30px);
     box-shadow: 0 0 10px rgba(0,0,0,.2);
     /* text-align: center; */
-    background-color: #483d8b;
+    background-color: #f5f5f5;
     align-items: center;
 }
+
+
 
 .special-dash .section-2 a{
     color: #fff;
@@ -461,6 +468,10 @@
     float: right;
     position: absolute;
     right: 0;
+}
+
+.special-dash .section-2 #landmark {
+    background-color:#b30404fa;
 }
 
 .special-dash .section-2 .content-con a div {

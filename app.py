@@ -89,14 +89,16 @@ def dashboard():
 @login_required
 @role_required(['Admin','Secretary'])
 def forms():
-    return render_template('forms.html')
+    person = current_user 
+    return render_template('forms.html',person=person)
 
 @app.route('/queries')
 
 @login_required
 @role_required(['Admin','Secretary','Sub-Admin'])
 def queries():
-    return render_template('queries.html')
+    person = current_user 
+    return render_template('queries.html', person=person)
 
 @app.template_filter('to_json')
 @login_required
