@@ -9,7 +9,7 @@ COOLINK CO-OPERATIVE LOAN ACCOUNT
 {% endblock  %}
 
 {% block anchor%}
-<a href="{{ url_for('get_persons') }}" id='arrow'><i class="fa-solid fa-arrow-left"></i></a>
+<a href="{{ url_for('queries') }}" id='arrow'><i class="fa-solid fa-arrow-left"></i></a>
 {% endblock  %}
 
 {%block content%}
@@ -44,7 +44,7 @@ COOLINK CO-OPERATIVE LOAN ACCOUNT
             <td>{{ person.loan_balance | currency }}</td>
         </tr>
         
-   
+    </table>
 
         
         <table class='tab-content'>
