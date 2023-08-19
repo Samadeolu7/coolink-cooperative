@@ -15,6 +15,17 @@ Upload Excel File
 {%block content%}
 <body id="form">
     <div class="full-form-content">
+        <div class = "flashed-messages">
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class="flash-messages">
+                    {% for message in messages %}
+                        <li class="{{ message[1] }}">{{message}}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            {% endwith %}
+            </div>
 
         <div class="form-wrapper" id="long-form">
             <form method="POST" enctype="multipart/form-data">

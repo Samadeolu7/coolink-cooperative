@@ -16,6 +16,18 @@ Edit Person
 
 <body>
     <div class="full-form-content">
+        <div>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul class="flash-messages">
+                {% for message in messages %}
+                    <li class="{{ message[1] }}">{{message}}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        {% endwith %}
+        </div>
+    <div class="full-form-content">
         <!-- Your HTML content here -->
 
         <div class="form-wrapper" id="long-form">

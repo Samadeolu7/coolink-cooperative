@@ -15,15 +15,18 @@ Create Bank
 {%block content%}
 <body id="form">
     <div class="full-form-content">
+        
+    <div>
     {% with messages = get_flashed_messages() %}
     {% if messages %}
         <ul class="flash-messages">
             {% for message in messages %}
-                <li class="{{ message[1] }}">{{ message[0] }}</li>
+                <li class="{{ message[1] }}">{{message}}</li>
             {% endfor %}
         </ul>
     {% endif %}
     {% endwith %}
+    </div>
 
    <div class="form-wrapper"> 
         <form method="POST">
