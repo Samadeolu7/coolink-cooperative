@@ -1,11 +1,27 @@
 {%extends 'base.html' %}
 
 {%block title%}
-Upload Excel File
+
+    {% if route_type == 'savings' %}
+        Upload Savings
+    {% elif route_type == 'loan' %}
+        Upload Loan Repayment
+    {% else %}
+        Upload File
+    {% endif %}
+
 {% endblock %}
 
 {% block header%}
-Upload Excel File
+
+    {% if route_type == 'savings' %}
+        Upload Savings
+    {% elif route_type == 'loan' %}
+        Upload Loan Repayment
+    {% else %}
+        Upload File
+    {% endif %}
+
 {% endblock  %}
 
 {% block anchor%}
@@ -15,12 +31,12 @@ Upload Excel File
 {%block content%}
 <body id="form">
     <div class="full-form-content">
-        <div class = "flashed-messages">
-            {% with messages = get_flashed_messages() %}
+        <div class = "flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 <ul class="flash-messages">
                     {% for message in messages %}
-                        <li class="{{ message[1] }}">{{message}}</li>
+                        <li class="fade-out {{message[0]}}">{{message[1]}}</li>
                     {% endfor %}
                 </ul>
             {% endif %}

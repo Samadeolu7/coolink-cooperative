@@ -1,11 +1,11 @@
 {%extends 'base.html' %}
 
 {%block title%}
-Make Payment
+Make Withdrawal
 {% endblock %}
 
 {% block header%}
-Make Payment
+Make Withdrawal
 {% endblock  %}
 
 {% block anchor%}
@@ -15,12 +15,12 @@ Make Payment
 {%block content%}
 <body id="form">
     <div class="full-form-content">
-        <div class = "flashed-messages">
-            {% with messages = get_flashed_messages() %}
+        <div class = "flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 <ul class="flash-messages">
                     {% for message in messages %}
-                        <li class="{{ message[1] }}">{{message}}</li>
+                        <li class="fade-out {{message[0]}}">{{message[1]}}</li>
                     {% endfor %}
                 </ul>
             {% endif %}
@@ -29,7 +29,7 @@ Make Payment
 
         <div class="form-wrapper" id="long-form">
             <form action="{{ url_for('withdraw') }}" method="post">
-                {{ form.csrf_token }}
+                {{ form.hidden_tag() }}
 
                 <h1>Withdrawal Page</h1>
 
@@ -51,9 +51,6 @@ Make Payment
 
                 <div class="form-label">
                 {{ form.date.label (class_='input-label')}} <br>
-                {% for error in form.amount.errors %}
-                <p style="color: red;">{{ error }}</p>
-                {% endfor %}
                 </div>
         
                 <div class="form-box">

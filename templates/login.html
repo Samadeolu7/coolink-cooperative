@@ -14,6 +14,17 @@
             <!-- <img src="\static\images\coolink2.png" alt="coollinks-logo"> -->
             
             <h1 style='text-align: center'> Login </h1>
+            <div class = "flash-messages">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <ul class="flash-messages">
+                        {% for message in messages %}
+                            <li class="fade-out {{message[0]}}">{{message[1]}}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+                {% endwith %}
+                </div>
             <div class="input-box">
                 <!-- <input type="text" placeholder="username" required> -->
 

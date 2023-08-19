@@ -100,10 +100,10 @@ def send_upload_to_savings(filename,description,date):
     for index, row in df.iterrows():
             query.save_amount_company(row['COY'],row['Amount'],date,row['Ref No'],description)
 
-def send_upload_to_loan_repayment(filename):
+def send_upload_to_loan_repayment(filename,description,date):
     df = process_excel(filename)
     for index, row in df.iterrows():
-        query.repay_loan_company(row['COY'],row['Amount'],row['Date'],row['description'])
+        query.repay_loan_company(row['COY'],row['Amount'],date,row['Ref No'],description,)
 
 # Function to generate the repayment schedule
 def generate_repayment_schedule(person_id, loan_amount, interest_rate, start_date, end_date):

@@ -30,12 +30,12 @@ def role_required(roles_required):
         @wraps(view_func)
         def wrapper(*args, **kwargs):
             if not current_user.is_authenticated:
-                flash("You must be logged in to access this page.", "danger")
+                flash("You must be logged in to access this page.", "error")
                 return redirect(url_for("login"))
 
             user_role = current_user.role
             if user_role.name not in roles_required:
-                flash("You don't have the required role to access this page.", "danger")
+                flash("You don't have the required role to access this page.", "error")
                 return redirect(url_for("dashboard"))  # Change this to your desired redirect
 
             return view_func(*args, **kwargs)
@@ -66,16 +66,9 @@ def login():
             login_user(user)
             return redirect(url_for('dashboard'))
 
-        form.errors.password.append('Invalid User Credentials')
+        flash('Invalid User Credentials','error')
 
-        # next = request.args.get('next')
-        # # url_has_allowed_host_and_scheme should check if the url is safe
-        # # for redirects, meaning it matches the request host.
-        # # See Django's url_has_allowed_host_and_scheme for an example.
-        # if not url_has_allowed_host_and_scheme(next, request.host):
-        #     return abort(400)
-
-        return redirect( url_for('login',form=form,error=form.errors))
+        return redirect( url_for('login',form=form))
     return render_template('login.html', form=form,error=form.errors)
 
 @app.route('/dashboard')
@@ -93,7 +86,6 @@ def forms():
     return render_template('forms.html',person=person)
 
 @app.route('/queries')
-
 @login_required
 @role_required(['Admin','Secretary','Sub-Admin'])
 def queries():
@@ -122,20 +114,6 @@ def currency(value):
     modified_value = format_currency(value)  # Modify the value as needed
     return modified_value
 
-@app.route('/search_suggestions', methods=['GET'])
-def search_suggestions():
-    query = request.args.get('query', '')
-    # Perform the search query using Flask-SQLAlchemy
-    # For example, search the Company and Person models for the given query
-    companies_results = Company.query.filter(Company.name.ilike(f'%{query}%')).all()
-    persons_results = Person.query.filter(Person.name.ilike(f'%{query}%')).all()
-
-    suggestions = {
-        'companies': [[company.id,company.name] for company in companies_results],
-        'persons': [[person.id,person.name] for person in persons_results]
-    }
-
-    return jsonify(suggestions)
 
 #creating data
 @app.route('/company/create', methods=['GET', 'POST'])
@@ -149,7 +127,7 @@ def create_company():
         flash('Company created successfully.', 'success')
         return redirect(url_for('dashboard'))
     else:
-        flash(form.errors)
+        flash(f'{form.errors}','error')
 
     return render_template('forms/company_form.html', form=form)
 
@@ -158,14 +136,15 @@ def create_company():
 @role_required(['Admin','Secretary'])
 def create_bank():
     form = BankForm()
-    if form.validate_on_submit():
-        query.create_bank(form.name.data,form.balance.data)#remember to add to form for admin or ask in meeting
-        
-        flash('Company created successfully.', 'success')
-        return redirect(url_for('dashboard'))
-    else:
-        flash(form.errors)
-    
+    if request.method == "POST":
+        if form.validate_on_submit():
+            query.create_bank(form.name.data,form.balance.data)#remember to add to form for admin or ask in meeting
+            
+            flash('Company created successfully.', 'success')
+            return redirect(url_for('dashboard'))
+        else:
+            flash(form.errors)
+
     return render_template('forms/bank_form.html', form=form)
 
 @app.route('/person/create', methods=['GET', 'POST'])
@@ -184,11 +163,12 @@ def create_person():
             loan_balance=form.loan_balance.data,
             company_id=form.company_id.data
         )
+        flash("Succesfully created Member","success")
         return redirect(f'/download/{file}')
         
     else:
         
-                flash(f'Error in field {form.errors}')
+        flash(f'Error in field {form.errors}','error')
     return render_template('forms/person_form.html', form=form, companies=Company.query.all())
 
 @app.route('/ledger_admin', methods=['GET', 'POST'])
@@ -196,7 +176,10 @@ def create_person():
 def ledger_admin():
     form = LedgerAdminForm()
     if form.validate_on_submit():
+        flash("Succesfully created Member","success")
         return redirect(url_for('new_ledger',ledger=form.ledger.data))
+    flash(f'Error in field {form.errors}','error')
+    
     return render_template('admin/ledger_admin.html',form=form)
 
 @app.route('/ledger/<ledger>', methods=['GET', 'POST'])
@@ -205,7 +188,11 @@ def new_ledger(ledger):
     form = LedgerForm()
     if form.validate_on_submit():
         query.create_new_ledger(int(ledger),form.name.data,form.description.data)
+        flash("Succesfully created Ledger","success")
+
         return redirect(url_for('dashboard'))
+    flash(f'Error in field {form.errors}','error')
+    
     return render_template('admin/ledger.html',form=form)
 
 @app.route('/role_assignment', methods=['GET', 'POST'])
@@ -227,9 +214,36 @@ def role_assignment():
         if person and role:
             person.role = role
             db.session.commit()
-            return redirect(url_for('dashboard'))
+            flash("Succesfully changed Role","success")
 
+            return redirect(url_for('dashboard'))
+    flash(f'Error in field {form.errors}','error')
+    
     return render_template('admin/role_assignment.html', form=form)
+
+@app.route('/reset_password',methods=['GET', 'POST'])
+@login_required
+@role_required(['Admin','Secretary'])
+def reset_password():
+    form = ResetPasswordForm()
+    if current_user.role.name == 'Admin':
+        form.person.choices = [(person.id,f'{person.name}({person.employee_id})') for person in query.get_persons()]
+    else:
+        form.person.choices = [(person.id,f'{person.name}({person.employee_id})') for person in query.get_persons() if person.role.name =='User' ]
+
+    if form.validate_on_submit():
+        person_id = form.person.data
+        password = query.generate_password()
+        person = query.get_person(person_id)
+        person.password = password 
+        db.session.commit()
+        with open (f'credentials/{person.employee_id}_credentials.csv','w',newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['Username','Password'])
+            writer.writerow([f'{person.employee_id} or {person.email}',password])
+
+        return redirect(url_for('download',file_path=file.name))
+    return render_template('admin/reset_password.html',form = form)
 
 @app.route('/make_payment', methods=['GET', 'POST'])
 @login_required
@@ -259,12 +273,12 @@ def make_payment():
 
                 query.repay_loan(selected_person.id,amount,date,bank_id,ref_no,description)
    
-            flash('Payment submitted successfully.')
+            flash('Payment submitted successfully.','success')
             return redirect(url_for('dashboard'))
         else:
         
-           flash('Invalid person selection.')
-
+            flash(f'Error in field {form.errors}','error')
+         
         return redirect(url_for('get_person', person_id=selected_person_id))
     
 
@@ -288,8 +302,11 @@ def payment():
         ref_no=form.ref_no.data
         
         query.make_payment(amount,payment_type,description,date=date,bank_id= bank_id,ref_no=ref_no)
-    
+        flash('Payment submitted successfully.','success')
+
         return redirect(url_for('get_person'))
+    flash(f'Error in field {form.errors}','error')
+
 
     return render_template('forms/payment.html', form=form)
 
@@ -308,7 +325,10 @@ def make_income():
         bank_id = form.bank.data
         ref_no=form.ref_no.data
 
-        query.make_income(amount,date,ref_no,bank_id,description)
+        query.add_income(amount,date,ref_no,bank_id,description)
+        flash('Income submitted successfully.','success')
+        return redirect(url_for('dashboard'))
+
 
     return render_template('forms/income_form.html', form=form)
 
@@ -329,7 +349,7 @@ def create_expense():
             # Handle existing expense selection
         query.add_transaction(form.main_account.data,form.sub_account.data,form.amount.data,form.date.data,
                                      form.ref_no.data,form.bank.data,form.description.data)
-        
+        flash('Transaction submitted successfully.','success')
         return redirect(url_for('dashboard'))
     else:
         log_report(form.errors)
@@ -345,32 +365,145 @@ def withdraw():
 
     form = WithdrawalForm()
     form.person.choices = [(person.id, person.name) for person in query.get_persons()]
+    form.bank_id.choices=[(bank.id,bank.name) for bank in query.get_banks()]
     if form.validate_on_submit():
         person_id = form.person.data
         amount = form.amount.data
-        
+        description=form.description.data
+        ref_no=form.ref_no.data
+        bank_id=form.bank_id.data
+        date = form.date.data
         # Retrieve the selected person from the database
         selected_person = query.get_person(person_id)
-
-        if selected_person:
-            # Perform validation to ensure the withdrawal amount does not exceed the available balance
-            if amount <= selected_person.total_balance:
-                # Update the balance in the database (subtract the withdrawal amount)
-                selected_person.total_balance -= amount
-
-                # Save the changes to the database
-                # (You'll need to commit the session if using SQLAlchemy)
-                # db.session.commit()
-
-                # You may want to add additional logic for transaction history, etc.
-
-                return f"Withdrawal of {amount} successful for {selected_person.name}. Updated balance: {selected_person.balance_bfd}"
-            else:
-                return f"Insufficient balance for {selected_person.name} to withdraw {amount}."
+        if query.withdraw(person_id,amount,description,ref_no,bank_id,date):
+            flash(f"Withdrawal of {amount} successful for {selected_person.name}. Updated balance: {selected_person.balance_bfd}")
+            return render_template('dashboard')
         else:
-            return "Invalid person selected."
-
+            flash(f"Insufficient balance for {selected_person.name} to withdraw {amount}.")
+            return render_template('forms/withdraw.html', form=form, persons=persons)
     return render_template('forms/withdraw.html', form=form, persons=persons)
+
+@app.route('/loan/create', methods=['GET', 'POST'])
+@login_required
+@role_required(['Admin','Secretary'])
+def create_loan():
+    form = LoanForm()
+    if form.validate_on_submit():
+        query.make_loan(employee_id=form.employee_id.data,
+            amount=form.amount.data,
+            interest_rate=form.interest_rate.data,
+            start_date=form.start_date.data,
+            end_date=form.end_date.data)
+        
+        person_id=form.employee_id.data
+        amount=form.amount.data
+        interest_rate=form.interest_rate.data
+        start_date=pd.to_datetime(form.start_date.data)
+        end_date=pd.to_datetime(form.end_date.data)
+        
+        # Generate the repayment schedule
+        repayment_schedule = generate_repayment_schedule(person_id, amount, interest_rate, start_date, end_date)
+
+        # Export the repayment schedule to Excel
+        file_path = export_repayment_schedule_to_excel(repayment_schedule, person_id)
+
+        # Return the file path for download
+        flash('Loan created successfully.','success')
+
+        return redirect(f'/download/{file_path}')
+
+    return render_template('forms/loan_form.html', form = form)
+
+@app.route('/change_password', methods=['GET', 'POST'])
+def change_password():
+    form = ChangePasswordForm()
+
+    if form.validate_on_submit():
+        user =current_user # Replace with actual user retrieval
+        if query.change_password(user,form.current_password.data,form.new_password.data):
+        
+            # Redirect to a success page or profile page
+            flash('Password Changed successfully.','success')
+
+            return redirect(url_for('dashboard'))
+        else:
+            form.current_password.errors.append('Invalid current password')
+            return redirect(url_for('change_password'))
+
+    return render_template('forms/change_password.html', form=form)
+
+@app.route('/edit_profile', methods=['GET', 'POST'])
+def edit_profile():
+    form = EditProfileForm()
+    form.person.choices = [(person.id,f'{person.name}({person.employee_id})') for person in query.get_persons()]
+    form.company_id.choices = [(company.id,company.name)for company in query.get_companies()]
+    if form.validate_on_submit():
+        user =current_user 
+        if query.edit_profile(form.person.data,form.email.data,form.phone_no.data,form.company_id.data):
+            flash('Profile updated successfully!', 'success')
+        else:
+            flash('An error occurred while updating the profile.', 'error')
+
+    return render_template('forms/edit_profile.html', form=form)
+
+#upload
+
+@app.route('/upload_savings', methods=['GET', 'POST'])
+@login_required
+@role_required(['Admin','Secretary'])
+def upload_savings():
+    form = UploadForm()
+    if request.method == 'POST' and form.validate_on_submit():
+        file = request.files['file']
+        log_report('validated_file')
+        if file :
+            log_report('found_file')
+            # Save the uploaded file
+            file.save(file.filename)
+            # Process the uploaded file
+            send_upload_to_savings(file,form.description.data,form.date.data)
+            flash('Savings updated successfully!', 'success')
+
+            return redirect(url_for('get_payments'))
+    else:
+        log_report(form.errors)
+    return render_template('forms/upload.html', form = form, route_type='savings')
+
+@app.route('/upload_loan_repayment', methods=['GET', 'POST'])
+@login_required
+@role_required(['Admin','Secretary'])
+def upload_loan():
+    form = UploadForm()
+    if request.method == 'POST':
+        file = request.files['file']
+        if file :
+            # Save the uploaded file
+            file.save(file.filename)
+            # Process the uploaded file
+            send_upload_to_loan_repayment(file.filename,form.description.data,form.date.data)
+            flash('Savings updated successfully!', 'success')
+
+            return redirect('/dashboard')
+    return render_template('forms/upload.html',form=form, route_type='loan')
+
+@app.route('/startup', methods=['GET', 'POST'])
+@login_required
+@role_required(['Admin','Secretary'])
+def startup():
+    
+    if request.method == 'POST' :
+        file = request.files['file']
+        log_report('validated_file')
+        if file :
+            log_report('found_file')
+            # Save the uploaded file
+            file.save(file.filename)
+            # Process the uploaded file
+            file=start_up(file)
+            flash('Savings updated successfully!', 'success')
+            return redirect(url_for('download',file_path=file))
+
+    return render_template('forms/startup.html')
 
 #making queries
 
@@ -599,91 +732,12 @@ def balance_sheet():
                            total_equity=total_equity,
                            total_liabilities_and_equity=total_liabilities_and_equity)
 
-@app.route('/loan/create', methods=['GET', 'POST'])
-@login_required
-@role_required(['Admin','Secretary'])
-def create_loan():
-    form = LoanForm()
-    if form.validate_on_submit():
-        query.make_loan(employee_id=form.employee_id.data,
-            amount=form.amount.data,
-            interest_rate=form.interest_rate.data,
-            start_date=form.start_date.data,
-            end_date=form.end_date.data)
-        
-        person_id=form.employee_id.data
-        amount=form.amount.data
-        interest_rate=form.interest_rate.data
-        start_date=pd.to_datetime(form.start_date.data)
-        end_date=pd.to_datetime(form.end_date.data)
-        
-        # Generate the repayment schedule
-        repayment_schedule = generate_repayment_schedule(person_id, amount, interest_rate, start_date, end_date)
 
-        # Export the repayment schedule to Excel
-        file_path = export_repayment_schedule_to_excel(repayment_schedule, person_id)
-
-        # Return the file path for download
-        return redirect(f'/download/{file_path}')
-
-    return render_template('forms/loan_form.html', form = form)
 
 
 #uploads 
 
-@app.route('/upload_savings', methods=['GET', 'POST'])
-@login_required
-@role_required(['Admin','Secretary'])
-def upload_savings():
-    form = UploadForm()
-    if request.method == 'POST' and form.validate_on_submit():
-        file = request.files['file']
-        log_report('validated_file')
-        if file :
-            log_report('found_file')
-            # Save the uploaded file
-            file.save(file.filename)
-            # Process the uploaded file
-            send_upload_to_savings(file,form.description.data,form.date.data)
 
-            return redirect(url_for('get_payments'))
-    else:
-        log_report(form.errors)
-    return render_template('forms/upload.html', form = form)
-
-@app.route('/upload_loan_repayment', methods=['GET', 'POST'])
-@login_required
-@role_required(['Admin','Secretary'])
-def upload_loan():
-    form = UploadForm()
-    if request.method == 'POST':
-        file = request.files['file']
-        if file :
-            # Save the uploaded file
-            file.save(file.filename)
-            # Process the uploaded file
-            send_upload_to_loan_repayment(file.filename)
-
-            return redirect('/dashboard')
-    return render_template('forms/upload.html',form=form)
-
-@app.route('/startup', methods=['GET', 'POST'])
-@login_required
-@role_required(['Admin','Secretary'])
-def startup():
-    
-    if request.method == 'POST' :
-        file = request.files['file']
-        log_report('validated_file')
-        if file :
-            log_report('found_file')
-            # Save the uploaded file
-            file.save(file.filename)
-            # Process the uploaded file
-            file=start_up(file)
-            return redirect(url_for('download',file_path=file))
-
-    return render_template('forms/startup.html')
 
 #DOWNLOADS
 @app.route('/download/<path:file_path>', methods=['GET'])
@@ -716,42 +770,35 @@ def logout():
   return redirect(url_for('dashboard'))
 
 #dynamic lookup
-@app.route('/get_balance/<int:person_id>')
-def get_balance(person_id):
-    selected_person = Person.query.get(person_id)
-    if selected_person:
-        return format_currency(selected_person.total_balance)
-    else:
-        return jsonify(error='Person not found'), 404
+
     
 @app.route('/forgot_password')
 def forgot_password():
     pass
 
-@app.route('/reset_password',methods=['GET', 'POST'])
-@login_required
-@role_required(['Admin','Secretary'])
-def reset_password():
-    form = ResetPasswordForm()
-    if current_user.role.name == 'Admin':
-        form.person.choices = [(person.id,f'{person.name}({person.employee_id})') for person in query.get_persons()]
-    else:
-        form.person.choices = [(person.id,f'{person.name}({person.employee_id})') for person in query.get_persons() if person.role.name =='User' ]
 
-    if form.validate_on_submit():
-        person_id = form.person.data
-        password = query.generate_password()
-        person = query.get_person(person_id)
-        person.password = password 
-        db.session.commit()
-        with open (f'credentials/{person.employee_id}_credentials.csv','w',newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow(['Username','Password'])
-            writer.writerow([f'{person.employee_id} or {person.email}',password])
 
-        return redirect(url_for('download',file_path=file.name))
-    return render_template('admin/reset_password.html',form = form)
-        
+# API endpoints
+@app.route('/get_person_info/<person_id>')
+def get_person_info(person_id):
+    person =query.get_person(person_id)
+    return person.to_json()
+
+@app.route('/search_suggestions', methods=['GET'])
+def search_suggestions():
+    query = request.args.get('query', '')
+    # Perform the search query using Flask-SQLAlchemy
+    # For example, search the Company and Person models for the given query
+    companies_results = Company.query.filter(Company.name.ilike(f'%{query}%')).all()
+    persons_results = Person.query.filter(Person.name.ilike(f'%{query}%')).all()
+
+    suggestions = {
+        'companies': [[company.id,company.name] for company in companies_results],
+        'persons': [[person.id,person.name] for person in persons_results]
+    }
+
+    return jsonify(suggestions)
+
 @app.route('/get_sub_accounts/<int:main_account_id>')
 def get_sub_accounts(main_account_id):
     # Fetch sub-account options based on the selected main_account
@@ -763,38 +810,20 @@ def get_sub_accounts(main_account_id):
 
     return jsonify(sub_account_options)
 
-@app.route('/get_person_info/<person_id>')
-def get_person_info(person_id):
-    person =query.get_person(person_id)
-    return person.to_json()
+@app.route('/get_balance/<int:person_id>')
+def get_balance(person_id):
+    selected_person = Person.query.get(person_id)
+    if selected_person:
+        return format_currency(selected_person.total_balance)
+    else:
+        return jsonify(error='Person not found'), 404
 
+#errorhandlers
 
-@app.route('/change_password', methods=['GET', 'POST'])
-def change_password():
-    form = ChangePasswordForm()
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template('404.html'), 404
 
-    if form.validate_on_submit():
-        user =current_user # Replace with actual user retrieval
-        if query.change_password(user,form.current_password.data,form.new_password.data):
-        
-            # Redirect to a success page or profile page
-            return redirect(url_for('dashboard'))
-        else:
-            form.current_password.errors.append('Invalid current password')
-            return redirect(url_for('change_password'))
-
-    return render_template('forms/change_password.html', form=form)
-
-@app.route('/edit_profile', methods=['GET', 'POST'])
-def edit_profile():
-    form = EditProfileForm()
-    form.person.choices = [(person.id,f'{person.name}({person.employee_id})') for person in query.get_persons()]
-    form.company_id.choices = [(company.id,company.name)for company in query.get_companies()]
-    if form.validate_on_submit():
-        user =current_user 
-        if query.edit_profile(form.person.data,form.email.data,form.phone_no.data,form.company_id.data):
-            flash('Profile updated successfully!', 'success')
-        else:
-            flash('An error occurred while updating the profile.', 'error')
-
-    return render_template('forms/edit_profile.html', form=form)
+@app.errorhandler(500)
+def internal_server_error(error):
+    return render_template('500.html'), 500

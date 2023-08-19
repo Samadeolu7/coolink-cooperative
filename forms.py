@@ -120,6 +120,7 @@ class WithdrawalForm(FlaskForm):
     ref_no = StringField('Ref Number', validators=[DataRequired()])
     date = DateField('Date', validators=[DataRequired()])
     amount = FloatField('Withdraw Amount', validators=[DataRequired(), NumberRange(min=0.01)])
+    bank_id = SelectField('Select Person', coerce=int, validators=[DataRequired()])
     submit = SubmitField('Withdraw')
 
 class RoleAssignmentForm(FlaskForm):
