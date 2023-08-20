@@ -103,6 +103,19 @@ class Queries:
             or_(Person.email == identifier, Person.employee_id == identifier)
         ).first()
 
+    def get_ledger_report(self,ledger,ledger_id):
+        if ledger == "asset":
+           return Asset.query.filter_by(id=ledger_id).first()
+        elif ledger == "expense":
+           return Expense.query.filter_by(id=ledger_id).first()
+        elif ledger == "liability":
+           return Liability.query.filter_by(id=ledger_id).first()
+        elif ledger == "investment":
+           return Investment.query.filter_by(id=ledger_id).first()
+        elif ledger == "income":
+           return Income.query.filter_by(id=ledger_id).first()
+        
+
     def validate_password(self, email, password):
         user_password = (
             self.db.session.query(Person).filter(Person.email == email).first()
@@ -184,28 +197,22 @@ class Queries:
         elif id == 4:
             self.add_liability(sub_id, amount, date, ref_no, bank_id, description)
 
-    def add_income(self, amount, date, ref_no, bank_id, description=None):
+    def add_income(self,id,amount, date, ref_no, bank_id, description=None):
         bank = Bank.query.filter_by(id=bank_id).first()
         if bank:
-            last_entry = Income.query.order_by(Income.id.desc()).first()
-            if last_entry:
-                income_payment = Income(
+            income = income.query.filter_by(id=id).first()
+            income.balance += float(amount)
+            income_payment = IncomePayment(
                     amount=float(amount),
                     date=date,
                     exact_date=datetime.utcnow(),
                     description=description,
                     ref_no=ref_no,
-                    balance=amount + last_entry.balance,
+                    balance=income.balance,
                     bank_id=bank.id,
+                    income_id=id
                 )
-            else:
-                income = Income(
-                    amount=float(amount),
-                    description=description,
-                    ref_no=ref_no,
-                    date=date,
-                    balance=float(amount),
-                )
+            
             self.db.session.add(income_payment)
 
             bank.new_balance += float(amount)
@@ -234,8 +241,9 @@ class Queries:
                 exact_date=datetime.utcnow(),
                 description=description,
                 ref_no=ref_no,
-                balance=float(amount),
+                balance=expense.balance,
                 bank_id=bank.id,
+                expense_id=id
             )
 
             self.db.session.add(expense_payment)
@@ -267,8 +275,9 @@ class Queries:
                     exact_date=datetime.utcnow(),
                     description=description,
                     ref_no=ref_no,
-                    balance=float(amount),
+                    balance=asset.balance,
                     bank_id=bank.id,
+                    asset_id=id
                 )
 
                 self.db.session.add(asset_payment)
@@ -302,8 +311,9 @@ class Queries:
                 exact_date=datetime.utcnow(),
                 description=description,
                 ref_no=ref_no,
-                balance=float(amount),
+                balance=liability.balance,
                 bank_id=bank.id,
+                liability_id=id
             )
 
             self.db.session.add(liability_payment)
@@ -334,8 +344,9 @@ class Queries:
                 exact_date=datetime.utcnow(),
                 description=description,
                 ref_no=ref_no,
-                balance=float(amount),
+                balance=investment.balance,
                 bank_id=bank.id,
+                investment_id=id
             )
 
             self.db.session.add(investment_payment)

@@ -1,11 +1,11 @@
 {%extends 'base.html' %}
 
 {%block title%}
-Ledger Report
+loan account
 {% endblock %}
 
 {% block header%}
-Ledgers
+COOLINK CO-OPERATIVE {{ledger_report.name}} ACCOUNT
 {% endblock  %}
 
 {% block anchor%}
@@ -13,171 +13,62 @@ Ledgers
 {% endblock  %}
 
 {%block content%}
-
 <body id="person">
-    <table class="tab-content">
-        <tbody>
-            <tr>
-
-                <th>Cr/Db</th>
-                <th>Code</th>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Debit</th>
-                <th>Credit</th>
-               
-            </tr>
-            <tr>
-                <th colspan="6" class="total">Assets</th>
-            </tr>
-            <tr>
-                <td>Cr</td>
-                <td>400100  </td>
-                <td><a href="{{url_for('get_loan')}}">Account Receivables</a></td>  <!-- Fetching the person's name -->
-                <td>Total Recievables from Loans</td>
-                <td> _ </td>
-                <td>{{ total_accounts_receivable| currency }}</td>
-                
-            </tr>
-            <tr>
-                <td>Cr</td>
-                <td>400101  </td>
-                <td><a href="{{url_for('get_loan')}}">Company Receivables</a></td>  <!-- Fetching the person's name -->
-                <td>Total Recievables from Companies</td>
-                <td> _ </td>
-                <td>{{ company| currency }}</td>
-                
-            </tr>
-            {% for bank in banks %}
-            <tr>
-                <td>Cr</td>
-                <td>{{ 400101+bank.id }}</td>
-                <td><a href="">{{ bank.name }}</a></td>  <!-- Fetching the person's name -->
-                <td>{{ bank.description}}</td>
-                <td> _ </td>
-                <td>{{ bank.new_balance | currency }}</td>
-                
-            </tr>
-            
-            {% endfor %}
-            
-            {% for asset in assets %}
+    <form method="get" class="">
+        <div class="">
+            {{ form.start_date.label }}
+            {{ form.start_date(class="form-control") }}
+        </div>
+        <div class="">
+            {{ form.end_date.label }}
+            {{ form.end_date(class="form-control") }}
+        </div>
+        <button type="submit" class="">Apply Filter</button>
+    </form>
+        <table class='tab-content'>
+            <tbody>
                 <tr>
-                    <td>Cr</td>
-                    <td>{{ 400150+asset.id }}</td>
-                    <td>
-                        <a href="">{{ asset.name}}</a>
-                    </td>
-                    <td>{{ asset.description}}</td>
-                    <td> _ </td>
-                    <td>{{ asset.balance | currency }}</td>
-
-                    
+                    <th>Date</th>
+                    <th>Reference Number</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Balance</th>
                 </tr>
-            {% endfor %}
-            {% for income in incomes %}
-            <tr>
-                <td>Cr</td>
-                <td>{{ 600100+income.id }}</td>
-                <td><a href="">{{ income.name }}</a></td>  <!-- Fetching the person's name -->
-                <td>{{ income.description }}</td>
-                <td> _ </td>
-                <td>{{ income.balance | currency }}</td>
-                
-                
-            </tr>
-            {% endfor %}
-            
-            {% for investment in investments %}
-            <tr>
-                <td>Cr</td>
-                <td>{{ 400200+investment.id }}</td>
-                <td><a href="">{{ investment.name }}</a></td>  <!-- Fetching the person's name -->
-                <td>{{ investment.description}}</td>
-                <td> _ </td>
-                <td>{{ investment.balance | currency }}</td>
-                
-            </tr>
-            {% endfor %}
-            <tr>
-                <th colspan="5" class="total">Total</th>
-                
-                <th colspan="1" class="total">{{total_assets | currency}}</th>
-                
-            </tr>
-            <tr>
-                <th colspan="6" class="total">Liabilities</th>
-            </tr>
-            {% for expense in expenses %}
-            <tr>
-                <td>Db</td>
-                <td>{{ 800100+expense.id }}</td>
-                <td><a href="">{{ expense.name }}</a></td>  <!-- Fetching the person's name -->
-                <td>{{ expense.description }}</td>
-                <td>{{ expense.balance | currency }}</td>
-                <td> _ </td>
-                
-            </tr>
-            {% endfor %}
+                {% for payment in payments %}
+                    <tr>
+                        <td>{{ payment.date }}</td>
+                        <td>{{ payment.ref_no }}</td>
+                        <td>{{ payment.description }}</td>
+                        <td>{{ payment.amount | currency }}</td>
+                        <td>{{ payment.balance | currency}}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
-            <tr>
-                <td>Db</td>
-                <td>500200 </td>
-                <td><a href="{{url_for('get_payments')}}">Accounts Payables</a></td>  <!-- Fetching the person's name -->
-                <td>Total Balance from Members Savings</td>
-                <td>{{ total_accounts_payable | currency }}</td>
-                <td> _ </td>
-                
-            </tr>
-            
-            {% for liability in liabilities %}
-            <tr>
-                <td>Db</td>
-                <td>{{ 500200 + liability.id }}</td>
-                <td><a href="">{{ liability.name }}</a></td>  <!-- Fetching the person's name -->
-                <td>{{ liability.description}}</td>
-                <td>{{ liability.balance | currency }}</td>
-                <td> _ </td>
-                
-            </tr>
-            {% endfor %}
-            <tr>
-                <th colspan="4" class="total">Total</th>
-                
-                <th colspan="2" class="total">{{total_liabilities | currency}}</th>
-                
-            </tr>
-            <tr></tr>
-            <!-- <tr>
-                <th colspan="4" class="total">Total Equity</th>
-                
-                <th colspan="2" class="total">{{total_equity | currency}}</th>
-                
-            </tr> -->
-            <tr></tr>
-            <!-- <tr>
-                <th colspan="5" class="total">Total Liability and Equity</th>
-                
-                <th colspan="1" class="total">{{total_liabilities_and_equity | currency}}</th>
-                
-            </tr> -->
-        </tbody>
-    </table>
+        <button id="downloadExcelButton">Download Report</button>
 
-
-
-
-<!-- <style>
-    .bold {
-        border: 2px solid black; /* Bold bottom border */
-    }
+        <button id="downloadPdfButton">Download Report</button>
     
-    .thin-all {
-        border: 1px solid #ccc; /* Thin borders on all sides */
-    }
+        <script>
+            // Get the button element by its ID
+            var buttonExcel = document.getElementById("downloadExcelButton");
+            var buttonPdf = document.getElementById("downloadPdfButton");
     
-    .ultra-thin-all {
-        border: 0.5px solid #ccc; /* Even thinner borders on all sides */
-    }
-    </style> -->
+            // Define the link URL
+            var linkUrlExcel = "{{url_for('download_excel',type='{{ledger_report}}',type_id='None')}}";
+            var linkUrlPdf = "{{url_for('download_pdf',type='ledger_report',type_id='None')}}";
+    
+            // Add a click event listener to the button
+            buttonExcel.addEventListener("click", function() {
+                // Redirect to the link URL
+                window.location.href = linkUrlExcel;
+            });
+            buttonPdf.addEventListener("click", function() {
+                // Redirect to the link URL
+                window.location.href = linkUrlPdf;
+            });
+        </script>
+    </body>
+
 {%endblock%}

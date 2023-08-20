@@ -20,6 +20,17 @@ COOLINK CO-OPERATIVE SAVINGS ACCOUNT
         <div class='p-tag'><h2>Member ID: {{ person.employee_id }}</h2></div>
         <div class='p-tag'><h2>Total balance: {{ person.total_balance | currency }}</h2></div>
     </div> -->
+    <form method="get" class="">
+        <div class="">
+            {{ form.start_date.label }}
+            {{ form.start_date(class="form-control") }}
+        </div>
+        <div class="">
+            {{ form.end_date.label }}
+            {{ form.end_date(class="form-control") }}
+        </div>
+        <button type="submit" class="">Apply Filter</button>
+    </form>
     <table class='tab-content'id="info-table" >
         
         <tr>

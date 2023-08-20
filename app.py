@@ -706,7 +706,7 @@ def get_loan():
     start_date = form.start_date.data
     end_date = form.end_date.data
     filtered_payments = filter_payments(start_date, end_date, loans)
-    return render_template("query/loans.html", loans=filtered_payments)
+    return render_template("query/loans.html", loans=filtered_payments, form=form)
 
 
 @app.route("/income", methods=["GET"])
@@ -719,7 +719,7 @@ def get_income():
     start_date = form.start_date.data
     end_date = form.end_date.data
     filtered_payments = filter_payments(start_date, end_date, incomes)
-    return render_template("query/income.html", incomes=filtered_payments)
+    return render_template("query/income.html", incomes=filtered_payments, form=form)
 
 
 @app.route("/savings_account/<person_id>", methods=["GET", "POST"])
@@ -729,9 +729,17 @@ def savings_account(person_id):
     if user.role.id != 4 or user.id == int(person_id):
         person = query.get_person(person_id)
         payments = person.payments_made
+        form = DateFilterForm(request.args)
+        # Filter payments based on date range
+        start_date = form.start_date.data
+        end_date = form.end_date.data
+        filtered_payments = filter_payments(start_date, end_date, payments)
 
         return render_template(
-            "query/savings_account.html", payments=payments, person=person
+            "query/savings_account.html",
+            payments=filtered_payments,
+            person=person,
+            form=form,
         )
     else:
         return redirect(url_for("savings_account", person_id=user.id))
@@ -744,9 +752,18 @@ def loan_account(person_id):
     if user.role.id != 4 or user.id == int(person_id):
         loans = query.get_person_loans(person_id)
         person = query.get_person(person_id)
-        payments = [payment for payment in person.loan_payments_made]
+        payments = person.loan_payments_made
+        form = DateFilterForm(request.args)
+        # Filter payments based on date range
+        start_date = form.start_date.data
+        end_date = form.end_date.data
+        filtered_payments = filter_payments(start_date, end_date, payments)
         return render_template(
-            "query/loan_account.html", payments=payments, person=person, loans=loans
+            "query/loan_account.html",
+            payments=filtered_payments,
+            person=person,
+            loans=loans,
+            form=form,
         )
     else:
         return redirect(url_for("loan_account", person_id=user.id))
@@ -758,6 +775,24 @@ def loan_account(person_id):
 def bank_report():
     banks = query.get_banks()
     return render_template("query/banks.html", banks=banks)
+
+
+@app.route("/ledger_report/<ledger>/<ledger_id>")
+@login_required
+@role_required(["Admin", "Secretary", "Sub-Admin"])
+def ledger_report(ledger, ledger_id):
+    ledger_report = query.get_ledger_report(ledger, ledger_id)
+    form = DateFilterForm(request.args)
+    # Filter payments based on date range
+    start_date = form.start_date.data
+    end_date = form.end_date.data
+    filtered_payments = filter_payments(start_date, end_date, ledger_report.payments)
+    return render_template(
+        "query/ledger_report.html",
+        form=form,
+        ledger_report=ledger_report,
+        payments=filtered_payments,
+    )
 
 
 @app.route("/companies_report")
@@ -818,10 +853,10 @@ def individual_bank_report(bank_id):
     )
 
 
-@app.route("/ledger_report")
+@app.route("/trial_balance")
 @login_required
 @role_required(["Admin", "Secretary", "Sub-Admin"])
-def ledger_report():
+def trial_balance():
     # Retrieve data from the database
     companies = Company.query.all()
     banks = Bank.query.all()
@@ -873,7 +908,7 @@ def ledger_report():
     total_liabilities_and_equity = total_liabilities + total_equity
 
     return render_template(
-        "query/ledger_report.html",
+        "query/trial_balance.html",
         assets=assets,
         total_expenses=total_expenses,
         expenses=expenses,
@@ -1032,11 +1067,11 @@ def get_balance(person_id):
 # errorhandlers
 
 
-@app.errorhandler(404)
-def page_not_found(error):
-    return render_template("404.html"), 404
+# @app.errorhandler(404)
+# def page_not_found(error):
+#     return render_template("404.html"), 404
 
 
-@app.errorhandler(500)
-def internal_server_error(error):
-    return render_template("500.html"), 500
+# @app.errorhandler(500)
+# def internal_server_error(error):
+#     return render_template("500.html"), 500
