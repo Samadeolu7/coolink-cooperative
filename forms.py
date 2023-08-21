@@ -90,7 +90,7 @@ class PaymentForm(FlaskForm):
 
 
 class LoanForm(FlaskForm):
-    employee_id = StringField("Employee ID", validators=[DataRequired()])
+    name = SelectField("Select Person", coerce=int, validators=[DataRequired()])
     amount = IntegerField("Amount", validators=[DataRequired()])
     interest_rate = SelectField(
         "Interest Rate",
@@ -100,6 +100,8 @@ class LoanForm(FlaskForm):
     start_date = DateField("Start Date", validators=[DataRequired()])
     end_date = DateField("End Date", validators=[DataRequired()])
     description = StringField("Description")
+    ref_no = StringField("Ref Number", validators=[DataRequired()])
+    bank = SelectField("Bank", coerce=int, validators=[DataRequired()])
     submit = SubmitField("Submit")
 
 
@@ -200,4 +202,15 @@ class EditProfileForm(FlaskForm):
     email = StringField("Email", validators=[Email()])
     phone_no = StringField("Phone No", validators=[DataRequired()])
     company_id = SelectField("Bank", choices=[], coerce=int)
+    submit = SubmitField("Submit")
+
+
+class RegisterLoanForm(FlaskForm):
+
+    name = SelectField("Select Person", validators=[DataRequired()])
+    amount = DecimalField("Amount", validators=[DataRequired()])
+    date = DateField("Date", validators=[DataRequired()])
+    bank = SelectField("Bank", coerce=int, validators=[DataRequired()])
+    description = StringField("Description")
+    ref_no = StringField("Ref Number", validators=[DataRequired()])
     submit = SubmitField("Submit")

@@ -103,18 +103,17 @@ class Queries:
             or_(Person.email == identifier, Person.employee_id == identifier)
         ).first()
 
-    def get_ledger_report(self,ledger,ledger_id):
+    def get_ledger_report(self, ledger, ledger_id):
         if ledger == "asset":
-           return Asset.query.filter_by(id=ledger_id).first()
+            return Asset.query.filter_by(id=ledger_id).first()
         elif ledger == "expense":
-           return Expense.query.filter_by(id=ledger_id).first()
+            return Expense.query.filter_by(id=ledger_id).first()
         elif ledger == "liability":
-           return Liability.query.filter_by(id=ledger_id).first()
+            return Liability.query.filter_by(id=ledger_id).first()
         elif ledger == "investment":
-           return Investment.query.filter_by(id=ledger_id).first()
+            return Investment.query.filter_by(id=ledger_id).first()
         elif ledger == "income":
-           return Income.query.filter_by(id=ledger_id).first()
-        
+            return Income.query.filter_by(id=ledger_id).first()
 
     def validate_password(self, email, password):
         user_password = (
@@ -197,22 +196,49 @@ class Queries:
         elif id == 4:
             self.add_liability(sub_id, amount, date, ref_no, bank_id, description)
 
-    def add_income(self,id,amount, date, ref_no, bank_id, description=None):
+
+    
+    def registeration_payment(
+        self, id, amount, date, ref_no, bank_id, description, loan=False
+    ):
+        try:
+            person = Person.query.filter_by(id=id).first()
+            if person:
+                
+                form_payment = FormPayment(name=person.name,employee_id=person.employee_id, loan=loan)
+                self.db.session.add(form_payment)
+
+                if loan:
+                    name = "Loan Application Form"
+                else:
+                    name = "Registration Form"
+
+                income = Income.query.filter_by(name=name).first()
+                self.add_income(
+                     income.id, amount, date, ref_no, bank_id, description
+                )
+                self.db.session.commit()
+                return True
+        except Exception as e:
+            self.db.session.rollback()
+            return str(e)
+
+    def add_income(self, id, amount, date, ref_no, bank_id, description):
         bank = Bank.query.filter_by(id=bank_id).first()
         if bank:
-            income = income.query.filter_by(id=id).first()
+            income = Income.query.filter_by(id=id).first()
             income.balance += float(amount)
             income_payment = IncomePayment(
-                    amount=float(amount),
-                    date=date,
-                    exact_date=datetime.utcnow(),
-                    description=description,
-                    ref_no=ref_no,
-                    balance=income.balance,
-                    bank_id=bank.id,
-                    income_id=id
-                )
-            
+                amount=float(amount),
+                date=date,
+                exact_date=datetime.utcnow(),
+                description=description,
+                ref_no=ref_no,
+                balance=income.balance,
+                bank_id=bank.id,
+                income_id=id,
+            )
+
             self.db.session.add(income_payment)
 
             bank.new_balance += float(amount)
@@ -243,7 +269,7 @@ class Queries:
                 ref_no=ref_no,
                 balance=expense.balance,
                 bank_id=bank.id,
-                expense_id=id
+                expense_id=id,
             )
 
             self.db.session.add(expense_payment)
@@ -277,7 +303,7 @@ class Queries:
                     ref_no=ref_no,
                     balance=asset.balance,
                     bank_id=bank.id,
-                    asset_id=id
+                    asset_id=id,
                 )
 
                 self.db.session.add(asset_payment)
@@ -313,7 +339,7 @@ class Queries:
                 ref_no=ref_no,
                 balance=liability.balance,
                 bank_id=bank.id,
-                liability_id=id
+                liability_id=id,
             )
 
             self.db.session.add(liability_payment)
@@ -346,7 +372,7 @@ class Queries:
                 ref_no=ref_no,
                 balance=investment.balance,
                 bank_id=bank.id,
-                investment_id=id
+                investment_id=id,
             )
 
             self.db.session.add(investment_payment)
@@ -478,6 +504,7 @@ class Queries:
         self,
         employee_id,
         amount,
+        bank_id,
         interest_rate,
         start_date,
         end_date,
@@ -486,6 +513,8 @@ class Queries:
     ):
         try:
             person = Person.query.filter_by(employee_id=employee_id).first()
+            log_report(person.employee_id)
+            log_report(employee_id)
             if not person:
                 raise ValueError("Person not found.")
             if person:
@@ -502,7 +531,7 @@ class Queries:
 
                 loan_payment = LoanPayment(
                     amount=amount,
-                    exact_date=datetime.utc(),
+                    exact_date=datetime.utcnow(),
                     date=start_date,
                     description=description,
                     ref_no=ref_no,
@@ -515,7 +544,7 @@ class Queries:
                 person.loan_balance += interest_amount
                 interest_payment = LoanPayment(
                     amount=interest_amount,
-                    exact_date=datetime.utc(),
+                    exact_date=datetime.utcnow(),
                     date=start_date,
                     description=description,
                     ref_no=ref_no,
@@ -524,30 +553,14 @@ class Queries:
                 )
 
                 self.db.session.add(interest_payment)
+                name = "Interest"
+                income = Income.query.filter_by(name=name).first()
+                self.add_income(
+                     income.id, amount, start_date, ref_no, bank_id, description
+                )
+                self.db.session.commit()
 
-                last_entry = Income.query.order_by(Income.id.desc()).first()
-                if last_entry:
-                    balance = last_entry.balance + interest_amount
-                    income = Income(
-                        amount=interest_amount,
-                        description=f"loan interest on {person.name}",
-                        ref_no=ref_no,
-                        date=date,
-                        balance=balance,
-                    )
-                    self.db.session.add(income)
-
-                else:
-                    income = Income(
-                        amount=interest_amount,
-                        description=f"loan interest on {person.name}",
-                        ref_no=ref_no,
-                        date=date,
-                        balance=interest_amount,
-                    )
-                    self.db.session.add(income)
-
-                bank = Bank.query.filter_by(id=1).first()  # change this !!!!!
+                bank = Bank.query.filter_by(id=bank_id).first()
 
                 if bank:
                     bank.new_balance -= float(amount)
@@ -555,15 +568,13 @@ class Queries:
                         amount=-1 * amount,
                         date=start_date,
                         person_id=person.id,
-                        loan=True,
                         exact_date=datetime.utcnow(),
                         description=f"loan given to {person.name}",
-                        balance=person.loan_balance,
                         bank_balance=bank.new_balance,
                         bank_id=bank.id,
                     )
-
                     self.db.session.add(bank_payment)
+                    self.delete_registered(person.employee_id)
                     self.db.session.commit()
                     return True
         except Exception as e:
@@ -791,8 +802,23 @@ class Queries:
 
     def get_persons(self):
         person = Person.query.all()
-        return person
 
+        return person
+    
+    def get_registered(self):
+
+        return FormPayment.query.all()
+    
+    def get_registered_person(self,id):
+
+        return FormPayment.query.filter_by(id=id).first()
+    
+    def delete_registered(self,employee_id):
+        person = FormPayment.query.filter_by(employee_id=employee_id).first()
+        log_report(employee_id)
+        db.session.delete(person)
+        db.session.commit()
+    
     def get_person(self, person_id):
         person = Person.query.filter_by(id=person_id).first()
         return person

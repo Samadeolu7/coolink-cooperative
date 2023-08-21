@@ -401,21 +401,63 @@ def payment():
     return render_template("forms/payment.html", form=form)
 
 
+@app.route("/forms/register", methods=["GET", "POST"])
+@login_required
+@role_required(["Admin", "Secretary"])
+def register_loan():
+    form = RegisterLoanForm()
+    form.name.choices = [
+        (person.id, (f"{person.name} ({person.employee_id})"))
+        for person in query.get_persons()
+    ]
+    form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
+    if request.method == "POST":
+        if form.validate_on_submit():
+            id = form.name.data
+            amount = form.amount.data
+            description = form.description.data
+            date = form.date.data
+            bank_id = form.bank.data
+            ref_no = form.ref_no.data
+            test = query.registeration_payment(
+                id, amount, date, ref_no, bank_id, description, loan=True
+            )
+            if test == True:
+                flash("Registration submitted successfully.", "success")
+            else:
+                log_report(test)
+                flash("something went wrong.", "error")
+                return redirect(url_for("register_loan"))
+            return redirect(url_for("dashboard"))
+        flash(form.errors, "error")
+
+    return render_template("forms/register_loan.html", form=form)
+
+
 @app.route("/make_income", methods=["GET", "POST"])
 @login_required
 @role_required(["Admin", "Secretary"])
 def make_income():
     form = IncomeForm()
+    form.name.choices = [(income.id, income.name) for income in query.get_income()]
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
     if request.method == "POST":
         if form.validate_on_submit():
+            id = form.name.data
             amount = form.amount.data
             description = form.description.data
             date = form.date.data
             bank_id = form.bank.data
             ref_no = form.ref_no.data
 
-            query.add_income(amount, date, ref_no, bank_id, description)
+            query.add_income(
+                id,
+                amount,
+                date,
+                ref_no,
+                bank_id,
+                description,
+            )
             flash("Income submitted successfully.", "success")
             return redirect(url_for("dashboard"))
         flash(form.errors, "error")
@@ -499,37 +541,52 @@ def withdraw():
 @role_required(["Admin", "Secretary"])
 def create_loan():
     form = LoanForm()
+    form.name.choices = [
+        (person.id, (f"{person.name} ({person.employee_id})"))
+        for person in query.get_registered()
+    ]
+    form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
     if request.method == "POST":
         if form.validate_on_submit():
-            query.make_loan(
-                employee_id=form.employee_id.data,
+            employee=query.get_registered_person(form.name.data)
+            employee_id=employee.employee_id
+            person = Person.query.filter_by(employee_id=employee_id).first()
+            log_report(person.employee_id)
+            test = query.make_loan(
+                employee_id=person.employee_id,
                 amount=form.amount.data,
                 interest_rate=form.interest_rate.data,
                 start_date=form.start_date.data,
                 end_date=form.end_date.data,
+                description=form.description.data,
+                ref_no=form.ref_no.data,
+                bank_id=form.bank.data
             )
+            if test == True:
+                person_id = person.employee_id
+                amount = form.amount.data
+                interest_rate = form.interest_rate.data
+                start_date = pd.to_datetime(form.start_date.data)
+                end_date = pd.to_datetime(form.end_date.data)
 
-            person_id = form.employee_id.data
-            amount = form.amount.data
-            interest_rate = form.interest_rate.data
-            start_date = pd.to_datetime(form.start_date.data)
-            end_date = pd.to_datetime(form.end_date.data)
+                # Generate the repayment schedule
+                repayment_schedule = generate_repayment_schedule(
+                    person_id, amount, interest_rate, start_date, end_date
+                )
 
-            # Generate the repayment schedule
-            repayment_schedule = generate_repayment_schedule(
-                person_id, amount, interest_rate, start_date, end_date
-            )
+                # Export the repayment schedule to Excel
+                file_path = export_repayment_schedule_to_excel(
+                    repayment_schedule, person_id
+                )
 
-            # Export the repayment schedule to Excel
-            file_path = export_repayment_schedule_to_excel(
-                repayment_schedule, person_id
-            )
+                # Return the file path for download
+                flash("Loan created successfully.", "success")
+        
 
-            # Return the file path for download
-            flash("Loan created successfully.", "success")
+                return redirect(f"/download/{file_path}")
+            flash(test, "error")
+            log_report(test)
         flash(form.errors, "error")
-
-        return redirect(f"/download/{file_path}")
 
     return render_template("forms/loan_form.html", form=form)
 

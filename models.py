@@ -381,7 +381,7 @@ class IncomePayment(db.Model):
     amount = db.Column(db.Float, nullable=False)
     exact_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     date = db.Column(db.Date, nullable=False)
-    expense_id = db.Column(
+    income_id = db.Column(
         db.Integer, db.ForeignKey("incomes.id"), nullable=True, index=True
     )
     description = db.Column(db.String, nullable=True)
@@ -553,6 +553,13 @@ class EquityPayment(db.Model):
             "balance": self.balance,
             "bank_id": self.bank_id,
         }
+    
+class FormPayment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
+    employee_id = db.Column(db.String, nullable=False)
+    loan = db.Column(db.Boolean,default = False)
+
 
 
 with app.app_context():

@@ -673,5 +673,5 @@
 }
 
 .flash-messages li.fade-out {
-    animation: fadeOut 3s ease-out forwards;
+    animation: fadeOut 15s ease-out forwards;
 }
