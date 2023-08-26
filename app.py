@@ -33,18 +33,20 @@ from flask_login import (
     logout_user,
     current_user,
 )
+from dotenv import load_dotenv
+import os
 
-
-login_manager = LoginManager()
-
+load_dotenv()
 
 app = Flask(__name__)
-app.config[
-    "SQLALCHEMY_DATABASE_URI"
-] = "sqlite:///cooperative.db"  # Replace with your database URI
-app.config["SECRET_KEY"] = "your_secret_key"
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
+
+
 db.init_app(app)
 query = Queries(db)
+login_manager = LoginManager()
+
 login_manager.init_app(app)
 
 
@@ -173,8 +175,8 @@ def create_company():
                 return redirect(url_for("dashboard"))
             else:
                 flash(company, "error")
-    else:
-        flash(f"{form.errors}", "error")
+        else:
+            flash(f"{form.errors}", "error")
 
     return render_template("forms/company_form.html", form=form)
 
@@ -192,8 +194,8 @@ def create_bank():
 
             flash("Company created successfully.", "success")
             return redirect(url_for("dashboard"))
-    else:
-        flash(f"{form.errors}", "error")
+        else:
+            flash(f"{form.errors}", "error")
 
     return render_template("forms/bank_form.html", form=form)
 
@@ -548,8 +550,8 @@ def create_loan():
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
     if request.method == "POST":
         if form.validate_on_submit():
-            employee=query.get_registered_person(form.name.data)
-            employee_id=employee.employee_id
+            employee = query.get_registered_person(form.name.data)
+            employee_id = employee.employee_id
             person = Person.query.filter_by(employee_id=employee_id).first()
             log_report(person.employee_id)
             test = query.make_loan(
@@ -560,7 +562,7 @@ def create_loan():
                 end_date=form.end_date.data,
                 description=form.description.data,
                 ref_no=form.ref_no.data,
-                bank_id=form.bank.data
+                bank_id=form.bank.data,
             )
             if test == True:
                 person_id = person.employee_id
@@ -581,7 +583,6 @@ def create_loan():
 
                 # Return the file path for download
                 flash("Loan created successfully.", "success")
-        
 
                 return redirect(f"/download/{file_path}")
             flash(test, "error")
@@ -769,14 +770,11 @@ def get_loan():
 @app.route("/income", methods=["GET"])
 @login_required
 @role_required(["Admin", "Secretary", "Sub-Admin"])
-def get_income():
+def income_statement():
     incomes = query.get_income()
-    form = DateFilterForm(request.args)
-    # Filter payments based on date range
-    start_date = form.start_date.data
-    end_date = form.end_date.data
-    filtered_payments = filter_payments(start_date, end_date, incomes)
-    return render_template("query/income.html", incomes=filtered_payments, form=form)
+    expense = query.get_expenses()
+
+    return render_template("query/income.html", incomes=incomes, expense=expense)
 
 
 @app.route("/savings_account/<person_id>", methods=["GET", "POST"])
@@ -1022,13 +1020,6 @@ def balance_sheet():
     return render_template(
         "query/balance_sheet.html",
         balance_sheet_data=balance_sheet_data,
-        total_cash_and_equivalents=total_cash_and_equivalents,
-        total_accounts_receivable=total_accounts_receivable,
-        total_assets=total_assets,
-        total_accounts_payable=total_accounts_payable,
-        total_liabilities=total_liabilities,
-        total_equity=total_equity,
-        total_liabilities_and_equity=total_liabilities_and_equity,
     )
 
 

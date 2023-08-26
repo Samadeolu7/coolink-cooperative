@@ -1,105 +1,174 @@
-{%extends 'base.html' %}
+{%extends 'base.html' %} {%block title%} Coollink Employees Multi-Purpose
+Co-operative Society - Balance Sheet {% endblock %} {% block header%} Balance
+Sheet {% endblock %} {% block anchor%}
+<a href="{{ url_for('queries') }}" id="arrow"
+  ><i class="fa-solid fa-arrow-left"></i
+></a>
+{% endblock %} {%block content%}
 
-{%block title%}
-Coollink Employees Multi-Purpose Co-operative Society - Balance Sheet
-{% endblock %}
+<body id="balance-sheet">
+  <!-- Display your balance sheet data here -->
+  <div id="person">
+   <!-- <table class="tab-content">
+      <tbody>
+        <tr>
+          <th>Name</th>
 
-{% block header%}
-Balance Sheet
-{% endblock  %}
+          <th>Credit</th>
+        </tr>
+        <tr>
+          <td>Total Cash and Equivalents:</td>
+          <td>{{ total_cash_and_equivalents }}</td>
+        </tr>
+        <tr>
+          <td>Total Accounts Receivable:</td>
+          <td>{{ total_accounts_receivable }}</td>
+        </tr>
+        
+        <tr>
+          <td>Total Assets:</td>
+          <td>{{ total_assets }}</td>
+        </tr>
+        <tr>
+          <td>Total Accounts Payable:</td>
+          <td>{{ total_accounts_payable }}</td>
+        </tr>
 
-{% block anchor%}
-<a href="{{ url_for('queries') }}" id='arrow'><i class="fa-solid fa-arrow-left"></i></a>
-{% endblock  %}
-
-{%block content%}
-<body id='balance-sheet'>
-    <!-- Display your balance sheet data here -->
-    <div id='person'>
-    <table class='tab-content'>
         <tr>
-            <td>Total Cash and Equivalents:</td>
-            <td>{{ total_cash_and_equivalents }}</td>
+          <td>Total Liabilities:</td>
+          <td>{{ total_liabilities }}</td>
         </tr>
         <tr>
-            <td>Total Accounts Receivable:</td>
-            <td>{{ total_accounts_receivable }}</td>
-        </tr>
-        <!-- Add other asset items here -->
-        <tr>
-            <td>Total Assets:</td>
-            <td>{{ total_assets }}</td>
+          <td>Total Equity:</td>
+          <td>{{ total_equity }}</td>
         </tr>
         <tr>
-            <td>Total Accounts Payable:</td>
-            <td>{{ total_accounts_payable }}</td>
+          <td>Total Liabilities & Equity:</td>
+          <td>{{ total_liabilities_and_equity }}</td>
         </tr>
-        <!-- Add other liability items here -->
-        <tr>
-            <td>Total Liabilities:</td>
-            <td>{{ total_liabilities }}</td>
-        </tr>
-        <tr>
-            <td>Total Equity:</td>
-            <td>{{ total_equity }}</td>
-        </tr>
-        <tr>
-            <td>Total Liabilities & Equity:</td>
-            <td>{{ total_liabilities_and_equity }}</td>
-        </tr>
-  
+      </tbody>
     </table>
+  </div>
+  <div id="person">-->
+  <table class="tab-content">
+    <tbody>
+      <tr>
+        <th>Name</th>
+
+        <th>Amount</th>
+      </tr>
+      <tr>
+        <th colspan="6" class="total">Assets</th>
+      </tr>
+      <tr>
+        <td><a href="{{url_for('bank_report')}}">Cash and Banks</a></td>
+    
+
+        <td>{{ total_cash_and_equivalents| currency }}</td>
+      </tr>
+      <tr>
+        <td><a href="{{url_for('get_loan')}}">Account Receivables</a></td>
+        <!-- Fetching the person's name -->
+
+        <td>{{ total_accounts_receivable| currency }}</td>
+      </tr>
+      <tr>
+        <td>
+          <a href="{{url_for('companies_report')}}">Company Receivables</a>
+        </td>
+        <!-- Fetching the person's name -->
+
+        <td>{{ company| currency }}</td>
+      </tr>
+      <tr>
+        <td>
+          <a href="{{url_for('companies_report')}}">Investments-Treasury bill</a>
+        </td>
+        <!-- Fetching the person's name -->
+
+        <td>-</td>
+      </tr>
+      <tr>
+        <th colspan="6" class="total">Liabilities</th>
+      </tr>
+      </tr>
+     {% for investment in investments %}
+      <tr>
+        <td>
+          <a
+            href="{{url_for('ledger_report',ledger='investment',ledger_id=investment.id)}}"
+            >{{ investment.name }}</a
+          >
+        </td>
+        <!-- Fetching the person's name -->
+
+        <td>_</td>
+        <td>{{ investment.balance | currency }}</td>
+      </tr>
+
+      {% endfor %}
+      <tr>
+        <th colspan="4" class="total">Equity</th>
+
+        <th colspan="2" class="total">{{total_equity | currency}}</th>
+      </tr>
+      <tr>
+        <th colspan="5" class="total">Total</th>
+
+        <th colspan="1" class="total">{{total_assets | currency}}</th>
+      </tr>
+      <tr>
+        <th colspan="6" class="total">Liabilities</th>
+      </tr>
+      {% for expense in expenses %}
+      <tr>
+        <td>
+          <a
+            href="{{url_for('ledger_report',ledger='expense',ledger_id=expense.id)}}"
+            >{{ expense.name }}</a
+          >
+        </td>
+        <!-- Fetching the person's name -->
+
+        <td>{{ expense.balance | currency }}</td>
+        <td>_</td>
+      </tr>
+      {% endfor %}
+
+      <tr>
+        <td><a href="{{url_for('get_payments')}}">Accounts Payables</a></td>
+        <!-- Fetching the person's name -->
+
+        <td>{{ total_accounts_payable | currency }}</td>
+        <td>_</td>
+      </tr>
+
+      {% for liability in liabilities %}
+      <tr>
+        <td>Db</td>
+        <td>{{ 500200 + liability.id }}</td>
+        <td>
+          <a
+            href="{{url_for('ledger_report',ledger='liability',ledger_id=liability.id)}}"
+            >{{ liability.name }}</a
+          >
+        </td>
+        <!-- Fetching the person's name -->
+        <td>{{ liability.description}}</td>
+        <td>{{ liability.balance | currency }}</td>
+        <td>_</td>
+      </tr>
+      {% endfor %}
+      <tr>
+        <th colspan="4" class="total">Total</th>
+
+        <th colspan="2" class="total">{{total_liabilities | currency}}</th>
+      </tr>
+      <tr></tr>
+
+      <tr></tr>
+    </tbody>
+  </table>
 </div>
-
-    <!-- <div style="width: 80%; margin: auto;"> -->
-
-    <div class="bal-chart">
-        <!-- Add a canvas element where the chart will be rendered -->
-        <!--<canvas id="myChart"></canvas>-->
-      </div>
-
-    <!-- JavaScript for Data Visualization (if needed) -->
-    <script>
-         
-        const balanceSheetData = JSON.parse('{{ balance_sheet_data|tojson|safe }}');
-
-        // Function to create the chart using Chart.js
-        function createChart() {
-            const ctx = document.getElementById('myChart').getContext('2d');
-            const myChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Assets', 'Liabilities & Equity'],
-                    datasets: [{
-                        label: 'Amount (N)',
-                        data: [balanceSheetData.total_assets, balanceSheetData.total_liabilities],
-                        backgroundColor: [
-                            'rgba(75, 192, 192, 0.2)',
-                            'rgba(255, 99, 132, 0.2)',
-                        ],
-                        borderColor: [
-                            'rgba(75, 192, 192, 1)',
-                            'rgba(255, 99, 132, 1)',
-                        ],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-        }
-
-        // Fetch data and create the chart when the page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            createChart();
-        });
-    </script>
-
-
 </body>
 {%endblock%}
