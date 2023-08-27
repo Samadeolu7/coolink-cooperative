@@ -9,12 +9,12 @@ Edit Person
 {% endblock %}
 
 {% block anchor%}
-<a href="{{ url_for('get_persons') }}" id='arrow'><i class="fa-solid fa-arrow-left"></i></a>
+<a href="{{ url_for('dashboard') }}" id='arrow'><i class="fa-solid fa-arrow-left"></i></a>
 {% endblock %}
 
 {%block content%}
 
-<body>
+<body id="form">
     <div class="full-form-content">
         <!-- Your HTML content here -->
 
@@ -22,38 +22,43 @@ Edit Person
 
             <form id="edit-profile-form" method="POST" action="/edit_profile">
                 {{ form.hidden_tag() }}
-                <div class="form-label">
 
-                    <label for="person">Select Person:</label>
-                </div>
-                <div class="select-wrapper">
-                    {{ form.person(class="form-control") }}
-                </div>
-                <div class="form-label">
+                <h1>Edit Profile</h1>
 
-                    <label for="email">Email:</label>
+                <div class="form-label">
+                    <label for="person" class_='input-label'>Select Person:</label>
                 </div>
+
                 <div class="form-box">
-                    {{ form.email(class="form-control") }}
+                    {{ form.person(class_="input") }}
                 </div>
 
                 <div class="form-label">
-
-                    <label for="phone_no">Phone No:</label>
+                    <label for="email" class_='input-label'>Email:</label>
                 </div>
+
                 <div class="form-box">
-                    {{ form.phone_no(class="form-control") }}
+                    {{ form.email(class_="input") }}
                 </div>
 
                 <div class="form-label">
+                    <label for="phone_no" class_='input-label'>Phone No:</label>
+                </div>
 
-                    <label for="company_id">Company ID:</label>
-                </div>
                 <div class="form-box">
-                    {{ form.company_id(class="form-control") }}
+                    {{ form.phone_no(class_="input") }}
                 </div>
+
+                <div class="form-label">
+                    <label for="company_id" class_='input-label'>Company ID:</label>
+                </div>
+
+                <div class="form-box">
+                    {{ form.company_id(class_="input") }}
+                </div>
+
                 <div class="button-wrapper">
-                    {{ form.submit(class="btn btn-primary") }}
+                    {{ form.submit(class_="button") }}
                 </div>
             </form>
         </div>

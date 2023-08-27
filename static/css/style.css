@@ -6,6 +6,16 @@
     /* color: #fff; */
 }
 
+/* img {
+    max-width: 60%;
+    max-height: 60%;
+    align-items: center;
+} */
+
+/* .logo {
+    align-items: center;
+} */
+
 /* Login page start  hex= D7262C, d7262c82*/
 
 .login {
@@ -363,11 +373,11 @@
     font-size: 1.2rem;
 }
 
-.special-dash .side-bar .logout {
+/* .special-dash .side-bar .logout {
     position: absolute;
     bottom: 0;
     left: 0;
-}
+} */
 
 .special-dash .section-2 {
     position: relative;
@@ -490,6 +500,15 @@
 
 .special-dash .container {
     display: flex;
+}
+
+.special-dash img {
+    max-width: 100%;
+    max-height: auto;
+}
+
+.special-dash #move {
+    margin-top: 30px;
 }
 /* special-dash(dashboard) end */
 
@@ -629,5 +648,130 @@
 }
 /* bank_form end */
 
-
 /* forms end */
+
+/* error pages start*/
+.loading body {
+    padding: 0;
+    margin: 0;
+}
+
+.loading *{
+    /* -webkit-box-sizing: border-box; */
+    box-sizing: border-box;
+}
+
+.loading #notfound {
+    position: relative;
+    height: 100vh;
+}
+
+.loading #notfound .notfound {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    -webkit-transform: translate(-50%,-50%);
+    -ms-transform: translate(-50%,-50%);
+    transform: translate(-50%,-50%);
+}
+
+.loading .notfound {
+    max-width: 710px;
+    width: 100%;
+    padding-left: 190px;
+    line-height: 1.4;
+}
+
+.loading .notfound .notfound-404 {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 150px;
+    height: 150px;
+}
+
+.loading .notfound .notfound-404 h1 {
+    font-family: passion one,cursive;
+    color: #00b5c3;
+    font-size: 150px;
+    letter-spacing: 15.5px;
+    margin: 0;
+    font-weight: 900;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    -webkit-transform: translate(-50%,-50%);
+    -ms-transform: translate(-50%,-50%);
+    transform: translate(-50%,-50%);
+}
+
+.loading h1 {
+    display: block;
+    font-size: 2em;
+    margin-block-start: 0.67em;
+    margin-block-end: 0.67em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    font-weight: bold;
+}
+
+.loading .notfound h2 {
+    font-family: raleway,sans-serif;
+    color: #292929;
+    font-size: 28px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    margin-top: 0;
+}
+
+.loading h2 {
+    display: block;
+    font-size: 1.5em;
+    margin-block-start: 0.83em;
+    margin-block-end: 0.83em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    font-weight: bold;
+}
+
+.loading .notfound p {
+    font-family: raleway,sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.loading p {
+    display: block;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+}
+
+.loading .notfound a {
+    font-family: raleway,sans-serif;
+    font-size: 14px;
+    text-decoration: none;
+    text-transform: uppercase;
+    background: #fff;
+    display: inline-block;
+    padding: 15px 30px;
+    border-radius: 40px;
+    color: #292929;
+    font-weight: 700;
+    -webkit-box-shadow: 0 4px 15px -5px rgba(0,0,0,.3);
+    box-shadow: 0 4px 15px -5px rgba(0,0,0,.3);
+    -webkit-transition: .2s all;
+    transition: .2s all;
+}
+
+.loading a:-webkit-any-link {
+    color: -webkit-link;
+    cursor: pointer;
+    text-decoration: underline;
+}
+/* error pages end */

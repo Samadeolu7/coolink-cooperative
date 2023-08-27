@@ -798,3 +798,8 @@ def edit_profile():
             flash('An error occurred while updating the profile.', 'error')
 
     return render_template('forms/edit_profile.html', form=form)
+
+
+@app.route('/error')
+def error():
+    return render_template('errorpage/errorbase.html')
