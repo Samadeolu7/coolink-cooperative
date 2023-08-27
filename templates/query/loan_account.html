@@ -14,24 +14,6 @@ COOLINK CO-OPERATIVE LOAN ACCOUNT
 
 {%block content%}
 <body id="person">
-    <!-- <div class="dp">
-        <div class='p-tag'><h2>Name: {{ person.name }}</h2></div>
-        <div class='p-tag'><h2>Company: {{ person.company.name }}</h2></div>
-        <div class='p-tag'><h2>Member ID: {{ person.employee_id }}</h2></div>
-        <div class='p-tag'><h2>Loan: {{ person.loan_balance | currency }}</h2></div>
-    </div> -->
-
-    <form method="get" class="">
-        <div class="">
-            {{ form.start_date.label }}
-            {{ form.start_date(class="form-control") }}
-        </div>
-        <div class="">
-            {{ form.end_date.label }}
-            {{ form.end_date(class="form-control") }}
-        </div>
-        <button type="submit" class="">Apply Filter</button>
-    </form>
     
     <table class='tab-content'id="info-table" >
         
@@ -57,7 +39,20 @@ COOLINK CO-OPERATIVE LOAN ACCOUNT
         
     </table>
 
-        
+    <form method="get" class="filt-wrap">
+        <div class="filt">
+            {{ form.start_date.label(class="filt_item")}}
+            {{ form.start_date(class="filt_item form-control") }}
+        </div>
+        <div class="filt">
+            {{ form.end_date.label(class="filt_item") }}
+            {{ form.end_date(class="filt_item form-control") }}
+        </div>
+        <div class="filt" >
+            <button type="submit" class="">Apply Filter</button>
+        </div>
+    </form>
+    
         <table class='tab-content'>
             <thead>
                 <tr>

@@ -1,11 +1,11 @@
 {%extends 'base.html' %}
 
 {%block title%}
-company Report
+Company Report
 {% endblock %}
 
 {% block header%}
-company Report
+Company Report
 {% endblock  %}
 
 {% block anchor%}
@@ -13,17 +13,48 @@ company Report
 {% endblock  %}
 
 {%block content%}
-<body>
-    <h1>company Report</h1>
-
-    <h2>company Details</h2>
+<body id='person'>
+    <!-- <h1>company Report</h1> -->
+<!-- 
+    
     <p>company ID: {{ company.id }}</p>
     <p>Name: {{ company.name }}</p>
     <p>Balance BFW: {{ company.balance_bfd | currency}}</p>
-    <p>Balance: {{ company.amount_accumulated | currency}}</p>
+    <p>Balance: {{ company.amount_accumulated | currency}}</p> -->
 
-    <h2>Payments Received</h2>
-    <table>
+    <!-- <h2 style="text-align:center;">Company Details</h2> -->
+    <table class='tab-content'id="info-table" >
+        
+        <tr>
+            <td>Company ID:</td>
+            <td>{{ company.id }}</td>
+        </tr>
+
+        <tr>
+            <td>Name:</td>
+            <td>{{ company.name }}</td>
+        </tr>
+
+        <tr>
+            <td>Balance BFW:</td>
+            <td>{{ company.balance_bfd | currency}}</td>
+        </tr>
+
+        <tr>
+            <td>Balance: </td>
+            <td>{{ company.amount_accumulated | currency}}</td>
+        </tr>
+
+        <tr>
+            <td>Total Amount Received: </td>
+            <td>{{ total_amount | currency }}</td>
+        </tr>
+        
+    </table>
+
+<!-- 
+    <h2 style="text-align:center;">Payments Received</h2> -->
+    <table class="tab-content">
         <thead>
             <tr>
                 <th>Payment ID</th>
@@ -50,12 +81,9 @@ company Report
         </tbody>
     </table>
 
-    <p>Total Amount Received: {{ total_amount | currency }}</p>
-    <h2>Download Excel Report</h2>
-    <button id="downloadExcelButton">Download Report</button>
+    <button id="downloadExcelButton">Download Excel Report</button>
 
-    <h2>Download PDF Report</h2>
-    <button id="downloadPdfButton">Download Report</button>
+    <button id="downloadPdfButton">Download PDF Report</button>
 
     <script>
         // Get the button element by its ID

@@ -14,17 +14,21 @@ Loan Information
 
 {%block content%}
 <body id="person">
-    <form method="get" class="">
-        <div class="">
-            {{ form.start_date.label }}
-            {{ form.start_date(class="form-control") }}
+    
+    <form method="get" class="filt-wrap">
+        <div class="filt">
+            {{ form.start_date.label(class="filt_item")}}
+            {{ form.start_date(class="filt_item form-control") }}
         </div>
-        <div class="">
-            {{ form.end_date.label }}
-            {{ form.end_date(class="form-control") }}
+        <div class="filt">
+            {{ form.end_date.label(class="filt_item") }}
+            {{ form.end_date(class="filt_item form-control") }}
         </div>
-        <button type="submit" class="">Apply Filter</button>
+        <div class="filt" >
+            <button type="submit" class="">Apply Filter</button>
+        </div>
     </form>
+
     <table class="tab-content">
     <div>
     <tbody>

@@ -15,8 +15,6 @@ Make Payment
 {%block content%}
 <body id="form">
     <div class="full-form-content">
-    
-      <div class="full-form-content">
         <div class = "flash-messages">
           {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
@@ -94,6 +92,7 @@ Make Payment
           <input type="submit" value="Submit" class="button"></div>
     </form>
   </div>
+</div>
 </body>
 
 {%endblock%}

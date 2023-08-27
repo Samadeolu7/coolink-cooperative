@@ -214,6 +214,7 @@
     color: #000;
     max-width: 90em;
     margin: 0 auto;
+    margin-bottom: 3px;
 }
 
 #person .tab-content {
@@ -532,13 +533,42 @@
 }
 /* ledger report end */
 
+/* savings_account start */
+
+#person .filt-wrap {
+    display: flex;
+    align-items: flex-start;
+}
+#person .filt {
+    display: flex;
+    /* margin: 0 10px; */
+}
+
+#person .filt-wrap .filt .filt_item {
+    margin: 0 5px;
+}
+
+#person .filt button {
+    margin: 0;
+    display: flex;
+    text-decoration: none;
+    border: 1px solid #483d8b;
+    padding: 0;
+    font-size: 20px;
+    background: transparent;
+    position: relative;
+}
+
+#person .filt button:hover {
+    color: #000;
+    cursor: pointer;
+}
+/* savings_account end */
 
 /* forms start */
 
 /* bank_form start */
-/* .form {
-    max-width: 50%;
-} */
+
 
 #form .full-form-content {
     max-width: 38em;
