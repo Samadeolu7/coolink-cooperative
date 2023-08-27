@@ -14,6 +14,17 @@ Loan Information
 
 {%block content%}
 <body id="person">
+    <form method="get" class="">
+        <div class="">
+            {{ form.start_date.label }}
+            {{ form.start_date(class="form-control") }}
+        </div>
+        <div class="">
+            {{ form.end_date.label }}
+            {{ form.end_date(class="form-control") }}
+        </div>
+        <button type="submit" class="">Apply Filter</button>
+    </form>
     <table class="tab-content">
     <div>
     <tbody>

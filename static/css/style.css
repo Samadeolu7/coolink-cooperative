@@ -650,6 +650,51 @@
 
 /* forms end */
 
+/* Mercy forgive me */
+/* some basic styling for flash messages */
+.flash-messages {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+}
+
+.flash-messages ul {
+    list-style: none;
+    padding: 10px;
+    margin: 0;
+}
+
+.flash-messages li {
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    font-size: 14px;
+}
+
+/* Add animation to fade out the flash messages */
+@keyframes fadeOut {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+}
+.flash-messages li.success {
+    background-color: #28a745; /* Green for success messages */
+}
+
+.flash-messages li.error {
+    background-color: #dc3545; /* Red for error messages */
+}
+
+.flash-messages li.info {
+    background-color: #17a2b8; /* Blue for info messages */
+}
+
+.flash-messages li.fade-out {
+    animation: fadeOut 15s ease-out forwards;
+}
+
+
 /* error pages start*/
 .loading body {
     padding: 0;

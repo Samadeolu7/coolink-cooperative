@@ -1,81 +1,190 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Accounting Trial Balance</title>
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        .text-center {
-            text-align: center;
-        }
-    </style>
-</head>
-<body>
-    <h1>Accounting Trial Balance</h1>
-    <table>
-        <tr>
-            <th colspan="2">Assets</th>
-        </tr>
-        <tr>
-            <td>Cash and Equivalents</td>
-            <td class="text-center">{{ total_cash_and_equivalents }}</td>
-        </tr>
-        <tr>
-            <td>Accounts Receivable</td>
-            <td class="text-center">{{ total_accounts_receivable }}</td>
-        </tr>
-        <tr>
-            <td>Bank</td>
-            <td class="text-center">
-                <ul>
-                    {% for bank in banks %}
-                        <li>{{ bank.name }}: {{ bank.new_balance }}</li>
-                    {% endfor %}
-                </ul>
-            </td>
-        </tr>
-        <tr>
-            <td>Income</td>
-            <td class="text-center">
-                <ul>
-                    {% for income in incomes %}
-                        <li>{{ income.name }}: {{ income.balance }}</li>
-                    {% endfor %}
-                </ul>
-            </td>
-        </tr>
-        <tr>
-            <th>Total Assets</th>
-            <th class="text-center">{{ total_assets }}</th>
-        </tr>
-        <tr>
-            <th colspan="2">Expenses</th>
-        </tr>
-        {% for exp in expense %}
-            <tr>
-                <td>{{ exp.name }}</td>
-                <td class="text-center">{{ exp.balance }}</td>
-            </tr>
-        {% endfor %}
-        <tr>
-            <th>Total Expenses</th>
-            <th class="text-center">{{ total_expenses }}</th>
-        </tr>
-        <tr>
-            <th>Total Liabilities &amp; Equity</th>
-            <th class="text-center">{{ total_liabilities_and_equity }}</th>
-        </tr>
-    </table>
-</body>
-</html>
+{%extends 'base.html' %}
 
+{%block title%}
+Ledger Report
+{% endblock %}
+
+{% block header%}
+Ledgers
+{% endblock  %}
+
+{% block anchor%}
+<a href="{{ url_for('queries') }}" id='arrow'><i class="fa-solid fa-arrow-left"></i></a>
+{% endblock  %}
+
+{%block content%}
+
+<body id="person">
+    <table class="tab-content">
+        <tbody>
+            <tr>
+
+                <th>Cr/Db</th>
+                <th>Code</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Debit</th>
+                <th>Credit</th>
+               
+            </tr>
+            <tr>
+                <th colspan="6" class="total">Assets</th>
+            </tr>
+            <tr>
+                <td>Cr</td>
+                <td>400100  </td>
+                <td><a href="{{url_for('get_loan')}}">Account Receivables</a></td>  <!-- Fetching the person's name -->
+                <td>Total Recievables from Loans</td>
+                <td> _ </td>
+                <td>{{ total_accounts_receivable| currency }}</td>
+                
+            </tr>
+            <tr>
+                <td>Cr</td>
+                <td>400101  </td>
+                <td><a href="{{url_for('companies_report')}}">Company Receivables</a></td>  <!-- Fetching the person's name -->
+                <td>Total Recievables from Companies</td>
+                <td> _ </td>
+                <td>{{ company| currency }}</td>
+                
+            </tr>
+            {% for bank in banks %}
+            <tr>
+                <td>Cr</td>
+                <td>{{ 400101+bank.id }}</td>
+                <td><a href="{{url_for('individual_bank_report',bank_id=bank.id)}}">{{ bank.name }}</a></td>  <!-- Fetching the person's name -->
+                <td>{{ bank.description}}</td>
+                <td> _ </td>
+                <td>{{ bank.new_balance | currency }}</td>
+                
+            </tr>
+            
+            {% endfor %}
+            
+            {% for asset in assets %}
+                <tr>
+                    <td>Cr</td>
+                    <td>{{ 400150+asset.id }}</td>
+                    <td>
+                        <a href="{{url_for('ledger_report',ledger='asset',ledger_id=asset.id)}}">{{ asset.name}}</a>
+                    </td>
+                    <td>{{ asset.description}}</td>
+                    <td> _ </td>
+                    <td>{{ asset.balance | currency }}</td>
+
+                    
+                </tr>
+            {% endfor %}
+            {% for income in incomes %}
+            <tr>
+                <td>Cr</td>
+                <td>{{ 600100+income.id }}</td>
+                <td><a href="{{url_for('ledger_report',ledger='income',ledger_id=income.id)}}">{{ income.name }}</a></td>  <!-- Fetching the person's name -->
+                <td>{{ income.description }}</td>
+                <td> _ </td>
+                <td>{{ income.balance | currency }}</td>
+                
+                
+            </tr>
+            {% endfor %}
+            
+            {% for investment in investments %}
+            <tr>
+                <td>Cr</td>
+                <td>{{ 400200+investment.id }}</td>
+                <td><a href="{{url_for('ledger_report',ledger='investment',ledger_id=investment.id)}}">{{ investment.name }}</a></td>  <!-- Fetching the person's name -->
+                <td>{{ investment.description}}</td>
+                <td> _ </td>
+                <td>{{ investment.balance | currency }}</td>
+                
+            </tr>
+            
+            {% endfor %}
+            <tr>
+                <th colspan="4" class="total">Equity</th>
+                
+                <th colspan="2" class="total">{{total_equity | currency}}</th>
+                
+            </tr> 
+            <tr>
+                <th colspan="5" class="total">Total</th>
+                
+                <th colspan="1" class="total">{{total_assets | currency}}</th>
+                
+            </tr>
+            <tr>
+                <th colspan="6" class="total">Liabilities</th>
+            </tr>
+            {% for expense in expenses %}
+            <tr>
+                <td>Db</td>
+                <td>{{ 800100+expense.id }}</td>
+                <td><a href="{{url_for('ledger_report',ledger='expense',ledger_id=expense.id)}}">{{ expense.name }}</a></td>  <!-- Fetching the person's name -->
+                <td>{{ expense.description }}</td>
+                <td>{{ expense.balance | currency }}</td>
+                <td> _ </td>
+                
+            </tr>
+            {% endfor %}
+
+            <tr>
+                <td>Db</td>
+                <td>500200 </td>
+                <td><a href="{{url_for('get_payments')}}">Accounts Payables</a></td>  <!-- Fetching the person's name -->
+                <td>Total Balance from Members Savings</td>
+                <td>{{ total_accounts_payable | currency }}</td>
+                <td> _ </td>
+                
+            </tr>
+            
+            {% for liability in liabilities %}
+            <tr>
+                <td>Db</td>
+                <td>{{ 500200 + liability.id }}</td>
+                <td><a href="{{url_for('ledger_report',ledger='liability',ledger_id=liability.id)}}">{{ liability.name }}</a></td>  <!-- Fetching the person's name -->
+                <td>{{ liability.description}}</td>
+                <td>{{ liability.balance | currency }}</td>
+                <td> _ </td>
+                
+            </tr>
+            {% endfor %}
+            <tr>
+                <th colspan="4" class="total">Total</th>
+                
+                <th colspan="2" class="total">{{total_liabilities | currency}}</th>
+                
+            </tr>
+            <tr></tr>
+            <!-- <tr>
+                <th colspan="4" class="total">Total Equity</th>
+                
+                <th colspan="2" class="total">{{total_equity | currency}}</th>
+                
+            </tr> -->
+            <tr></tr>
+            <!-- <tr>
+                <th colspan="5" class="total">Total Liability and Equity</th>
+                
+                <th colspan="1" class="total">{{total_liabilities_and_equity | currency}}</th>
+                
+            </tr> -->
+        </tbody>
+    </table>
+
+
+
+
+<!-- <style>
+    .bold {
+        border: 2px solid black; /* Bold bottom border */
+    }
+    
+    .thin-all {
+        border: 1px solid #ccc; /* Thin borders on all sides */
+    }
+    
+    .ultra-thin-all {
+        border: 0.5px solid #ccc; /* Even thinner borders on all sides */
+    }
+    </style> -->
+{%endblock%}
