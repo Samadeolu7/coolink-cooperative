@@ -98,8 +98,8 @@ COOLINK CO-OPERATIVE SAVINGS ACCOUNT
                 var buttonPdf = document.getElementById("downloadPdfButton");
         
                 // Define the link URL
-                var linkUrlExcel = "{{url_for('download_excel',type='savings',type_id=person.id)}}";
-                var linkUrlPdf = "{{url_for('download_pdf',type='savings',type_id=person.id)}}";
+                var linkUrlExcel = "{{url_for('download_excel',type='savings',type_id=person.id,payments=payments)}}";
+                var linkUrlPdf = "{{url_for('download_pdf',type='savings',type_id=person.id,payments=payments)}}";
         
                 // Add a click event listener to the button
                 buttonExcel.addEventListener("click", function() {

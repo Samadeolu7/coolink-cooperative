@@ -62,8 +62,8 @@ Bank Report
         var buttonPdf = document.getElementById("downloadPdfButton");
 
         // Define the link URL
-        var linkUrlExcel = "{{url_for('download_excel',type='bank',type_id=bank.id)}}";
-        var linkUrlPdf = "{{url_for('download_pdf',type='bank',type_id=bank.id)}}";
+        var linkUrlExcel = "{{url_for('download_excel',type='bank',type_id=bank.id,payments=payments)}}";
+        var linkUrlPdf = "{{url_for('download_pdf',type='bank',type_id=bank.id,payments=payments)}}";
 
         // Add a click event listener to the button
         buttonExcel.addEventListener("click", function() {

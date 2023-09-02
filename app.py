@@ -763,6 +763,7 @@ def get_loan():
     # Filter payments based on date range
     start_date = form.start_date.data
     end_date = form.end_date.data
+    
     filtered_payments = filter_payments(start_date, end_date, loans)
     return render_template("query/loans.html", loans=filtered_payments, form=form)
 
@@ -1044,8 +1045,8 @@ def download_pdf(type, type_id):
 
 @app.route("/download_excel/<type>/<type_id>")
 @login_required
-def download_excel(type, type_id):
-    file_path = create_excel(type, type_id)
+def download_excel(type, type_id,payments):
+    file_path = create_excel(type, type_id,payments)
 
     return redirect(f"/download/{file_path}")
 

@@ -8,39 +8,39 @@ from filters import format_currency
 from excel_helper import query
 
 
-def create_pdf(type, type_id):
+def create_pdf(type, type_id,payments):
     if type == "savings":
         if type_id == "None":
-            return create_all_savings_pdf()
+            return create_all_savings_pdf(payments)
         else:
-            person = query.get_person(type_id)
-            return create_payments_pdf(person)
+            person = query.get_person(type_id,payments)
+            return create_payments_pdf(person,payments)
 
     elif type == "loan":
         if type_id == "None":
-            return create_all_loan_pdf()
+            return create_all_loan_pdf(payments)
         else:
-            person = query.get_person(type_id)
-            return create_loan_pdf(person)
+            person = query.get_person(type_id,payments)
+            return create_loan_pdf(person,payments)
 
     elif type == "bank":
         if type_id == "None":
             return
         else:
-            bank = query.get_bank(type_id)
-            return create_bank_pdf(bank)
+            bank = query.get_bank(type_id,payments)
+            return create_bank_pdf(bank,payments)
 
     elif type == "income":
         if type_id == "None":
-            return create_income_pdf()
+            return create_income_pdf(payments)
         else:
             return
     elif type == "persons":
         if type_id == "None":
-            return create_persons_pdf()
+            return create_persons_pdf(payments)
 
 
-def create_persons_pdf():
+def create_persons_pdf(payments):
     # Create a list to hold the PDF elements
     elements = []
 
@@ -70,7 +70,7 @@ def create_persons_pdf():
         ]
     ]
 
-    for person in query.get_persons():
+    for person in payments:
         table_data.append(
             [
                 person.employee_id,
@@ -122,7 +122,7 @@ def create_persons_pdf():
     return file_path
 
 
-def create_payments_pdf(person):
+def create_payments_pdf(person,payments):
     # Create a list to hold the PDF elements
     elements = []
 
@@ -157,7 +157,7 @@ def create_payments_pdf(person):
         ],
     ]
 
-    for payment in person.payments_made:
+    for payment in payments:
         table_data.append(
             [
                 payment.date.strftime("%Y-%m-%d"),
@@ -196,7 +196,7 @@ def create_payments_pdf(person):
     return file_path
 
 
-def create_loan_pdf(person):
+def create_loan_pdf(person,payments):
     # Create a list to hold the PDF elements
     elements = []
 
@@ -231,7 +231,7 @@ def create_loan_pdf(person):
         ],
     ]
 
-    for payment in person.loan_payments_made:
+    for payment in payments:
         table_data.append(
             [
                 payment.date.strftime("%Y-%m-%d"),
@@ -270,7 +270,7 @@ def create_loan_pdf(person):
     return file_path
 
 
-def create_all_savings_pdf():
+def create_all_savings_pdf(payments):
     # Create a list to hold the PDF elements
     elements = []
 
@@ -290,7 +290,7 @@ def create_all_savings_pdf():
     # Create a table for the payment details
     table_data = [["Date", "Reference Number", "Description", "Amount"]]
 
-    for payment in query.get_savings():
+    for payment in payments:
         table_data.append(
             [
                 payment.date.strftime("%Y-%m-%d"),
@@ -328,7 +328,7 @@ def create_all_savings_pdf():
     return file_path
 
 
-def create_all_loan_pdf():
+def create_all_loan_pdf(payments):
     # Create a list to hold the PDF elements
     elements = []
 
@@ -348,7 +348,7 @@ def create_all_loan_pdf():
     # Create a table for the payment details
     table_data = [["Date", "Reference Number", "Description", "Amount"]]
 
-    for payment in query.get_loans():
+    for payment in payments:
         table_data.append(
             [
                 payment.date.strftime("%Y-%m-%d"),
@@ -386,7 +386,7 @@ def create_all_loan_pdf():
     return file_path
 
 
-def create_bank_pdf(bank):
+def create_bank_pdf(bank,payments):
     # Create a list to hold the PDF elements
     elements = []
 
@@ -407,7 +407,7 @@ def create_bank_pdf(bank):
     # Create a table for the payment details
     table_data = [["Date", "Reference Number", "Description", "Amount"]]
 
-    for payment in bank.payments:
+    for payment in payments:
         table_data.append(
             [
                 payment.date.strftime("%Y-%m-%d"),
@@ -446,7 +446,7 @@ def create_bank_pdf(bank):
     return file_path
 
 
-def create_income_pdf():
+def create_income_pdf(payments):
     # Create a list to hold the PDF elements
     elements = []
 
@@ -466,7 +466,7 @@ def create_income_pdf():
     # Create a table for the payment details
     table_data = [["Date", "Reference Number", "Description", "Amount"]]
 
-    for payment in query.get_income():
+    for payment in payments:
         table_data.append(
             [
                 payment.date.strftime("%Y-%m-%d"),

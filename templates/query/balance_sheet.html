@@ -149,7 +149,7 @@ Sheet {% endblock %} {% block anchor%}
         <td>{{ 500200 + liability.id }}</td>
         <td>
           <a
-            href="{{url_for('ledger_report',ledger='liability',ledger_id=liability.id)}}"
+            href="{{url_for('ledger_report',ledger='liability',ledger_id=liability.id,payments=payments)}}"
             >{{ liability.name }}</a
           >
         </td>

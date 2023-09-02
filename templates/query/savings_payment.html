@@ -65,8 +65,8 @@ Coolink Cooperative Savings Account
     var buttonPdf = document.getElementById("downloadPdfButton");
 
     // Define the link URL
-    var linkUrlExcel = "{{url_for('download_excel',type='savings',type_id='None')}}";
-    var linkUrlPdf = "{{url_for('download_pdf',type='savings',type_id='None')}}";
+    var linkUrlExcel = "{{url_for('download_excel',type='savings',type_id='None',payments=payments)}}";
+    var linkUrlPdf = "{{url_for('download_pdf',type='savings',type_id='None',payments=payments)}}";
 
     // Add a click event listener to the button
     buttonExcel.addEventListener("click", function() {
