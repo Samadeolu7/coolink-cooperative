@@ -991,6 +991,11 @@ def balance_sheet():
     # Retrieve data from the database
     companies = Company.query.all()
     banks = Bank.query.all()
+    assets = Asset.query.all()
+    investments = Investment.query.all()
+    expenses = Expense.query.all()
+    liabilities = Liability.query.all()
+
     total_cash_and_equivalents = sum(
         company.amount_accumulated for company in companies
     ) + sum(bank.new_balance for bank in banks)
@@ -1016,6 +1021,10 @@ def balance_sheet():
         "total_liabilities": total_liabilities,
         "total_equity": total_equity,
         "total_liabilities_and_equity": total_liabilities_and_equity,
+        "assets": assets,
+        "expenses": expenses,
+        "investments": investments,
+        "liabilities": liabilities,
     }
 
     return render_template(
@@ -1130,3 +1139,6 @@ def get_balance(person_id):
 @app.route('/error')
 def error():
     return render_template('errorpage/errorbase.html')
+
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=5000)

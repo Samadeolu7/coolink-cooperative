@@ -55,22 +55,22 @@ Sheet {% endblock %} {% block anchor%}
       <tr>
         <th>Name</th>
 
-        <th>Amount</th>
+        <th >Amount</th>
       </tr>
       <tr>
-        <th colspan="6" class="total">Assets</th>
+        <th colspan="2" class="total">Assets</th>
       </tr>
       <tr>
-        <td><a href="{{url_for('bank_report')}}">Cash and Banks</a></td>
+        <td ><a href="{{url_for('bank_report')}}">Cash and Banks</a></td>
     
 
-        <td>{{ total_cash_and_equivalents| currency }}</td>
+        <td >{{ balance_sheet_data.total_cash_and_equivalents| currency }}</td>
       </tr>
       <tr>
         <td><a href="{{url_for('get_loan')}}">Account Receivables</a></td>
         <!-- Fetching the person's name -->
 
-        <td>{{ total_accounts_receivable| currency }}</td>
+        <td >{{ balance_sheet_data.total_accounts_receivable| currency }}</td>
       </tr>
       <tr>
         <td>
@@ -78,21 +78,19 @@ Sheet {% endblock %} {% block anchor%}
         </td>
         <!-- Fetching the person's name -->
 
-        <td>{{ company| currency }}</td>
+        <td >{{ company| currency }}</td>
       </tr>
       <tr>
-        <td>
+        <td >
           <a href="{{url_for('companies_report')}}">Investments-Treasury bill</a>
         </td>
         <!-- Fetching the person's name -->
-
-        <td>-</td>
       </tr>
       <tr>
-        <th colspan="6" class="total">Liabilities</th>
+        <th colspan="2" class="total">Investments</th>
       </tr>
       </tr>
-     {% for investment in investments %}
+     {% for investment in balance_sheet_data.investments %}
       <tr>
         <td>
           <a
@@ -102,25 +100,24 @@ Sheet {% endblock %} {% block anchor%}
         </td>
         <!-- Fetching the person's name -->
 
-        <td>_</td>
         <td>{{ investment.balance | currency }}</td>
       </tr>
 
       {% endfor %}
       <tr>
-        <th colspan="4" class="total">Equity</th>
+        <th class="total">Equity</th>
 
-        <th colspan="2" class="total">{{total_equity | currency}}</th>
+        <th class="total">{{balance_sheet_data.total_equity | currency}}</th>
       </tr>
       <tr>
-        <th colspan="5" class="total">Total</th>
+        <th class="total">Total</th>
 
-        <th colspan="1" class="total">{{total_assets | currency}}</th>
+        <th class="total">{{balance_sheet_data.total_assets | currency}}</th>
       </tr>
       <tr>
-        <th colspan="6" class="total">Liabilities</th>
+        <th colspan="2" class="total">Liabilities</th>
       </tr>
-      {% for expense in expenses %}
+      {% for expense in balance_sheet_data.expenses %}
       <tr>
         <td>
           <a
@@ -131,7 +128,6 @@ Sheet {% endblock %} {% block anchor%}
         <!-- Fetching the person's name -->
 
         <td>{{ expense.balance | currency }}</td>
-        <td>_</td>
       </tr>
       {% endfor %}
 
@@ -139,14 +135,12 @@ Sheet {% endblock %} {% block anchor%}
         <td><a href="{{url_for('get_payments')}}">Accounts Payables</a></td>
         <!-- Fetching the person's name -->
 
-        <td>{{ total_accounts_payable | currency }}</td>
-        <td>_</td>
+        <td>{{ balance_sheet_data.total_accounts_payable | currency }}</td>
       </tr>
 
-      {% for liability in liabilities %}
+      {% for liability in balance_sheet_data.liabilities %}
       <tr>
-        <td>Db</td>
-        <td>{{ 500200 + liability.id }}</td>
+   
         <td>
           <a
             href="{{url_for('ledger_report',ledger='liability',ledger_id=liability.id,payments=payments)}}"
@@ -154,15 +148,13 @@ Sheet {% endblock %} {% block anchor%}
           >
         </td>
         <!-- Fetching the person's name -->
-        <td>{{ liability.description}}</td>
         <td>{{ liability.balance | currency }}</td>
-        <td>_</td>
       </tr>
       {% endfor %}
       <tr>
-        <th colspan="4" class="total">Total</th>
+        <th class="total">Total</th>
 
-        <th colspan="2" class="total">{{total_liabilities | currency}}</th>
+        <th class="total">{{balance_sheet_data.total_liabilities | currency}}</th>
       </tr>
       <tr></tr>
 
