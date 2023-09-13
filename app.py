@@ -21,6 +21,7 @@ from excel_helper import (
     send_upload_to_loan_repayment,
     send_upload_to_savings,
     start_up,
+    create_income_excel,
 )
 from pdf_helper import create_pdf
 from queries import Queries
@@ -773,9 +774,12 @@ def get_loan():
 @role_required(["Admin", "Secretary", "Sub-Admin"])
 def income_statement():
     incomes = query.get_income()
-    expense = query.get_expenses()
+    expenses = query.get_expenses()
 
-    return render_template("query/income.html", incomes=incomes, expense=expense)
+    net_income = sum(income.balance for income in incomes if income.balance) - sum(expense.balance for expense in expenses if expense.balance)
+
+    return render_template("query/income.html", incomes=incomes, expenses=expenses, net_income=net_income)
+
 
 
 @app.route("/savings_account/<person_id>", methods=["GET", "POST"])
@@ -1046,8 +1050,8 @@ def download(file_path):
 
 @app.route("/download_pdf/<type>/<type_id>")
 @login_required
-def download_pdf(type, type_id):
-    file_path = create_pdf(type, type_id)
+def download_pdf(type, type_id,payments):
+    file_path = create_pdf(type, type_id,payments)
 
     return redirect(f"/download/{file_path}")
 
@@ -1058,6 +1062,21 @@ def download_excel(type, type_id,payments):
     file_path = create_excel(type, type_id,payments)
 
     return redirect(f"/download/{file_path}")
+
+@app.route("/download_excel_income")
+@login_required
+def download_excel_income():
+
+    file_path = create_income_excel()
+    return redirect(url_for("download", file_path=file_path))
+
+
+@app.route("/download_excel_income")
+@login_required
+def download_pdf_income():
+
+    file_path = create_income_excel()
+    return redirect(url_for("download", file_path=file_path))
 
 
 @app.route("/logout", methods=["GET", "POST"])

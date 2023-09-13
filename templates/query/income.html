@@ -17,23 +17,41 @@ COOLINK CO-OPERATIVE INCOME ACCOUNT
     <table class='tab-content'>
         <thead>
             <tr>
-                <th>Date</th>
-                <th>Reference Number</th>
+                <th>Name</th>
                 <th>Description</th>
                 <th>Amount</th>
-                <th>Balance</th>
             </tr>
         </thead>
+                <tr>
+                    <th colspan="4" class="total">Incomes </th>
+
+                </tr>
+           
         <tbody>
             {% for income in incomes %}
                 <tr>
-                    <td>{{ income.date }}</td>
-                    <td>{{ income.ref_no }}</td>
+                    <td>{{ income.name }}</td>
                     <td>{{ income.description }}</td>
-                    <td>{{ income.amount | currency }}</td>
                     <td>{{ income.balance | currency}}</td>
                 </tr>
             {% endfor %}
+            <tr>
+                <th colspan="4" class="total">Expences </th>
+
+            </tr>
+            {% for income in expenses %}
+                <tr>
+                    <td>{{ income.name }}</td>
+                    <td>{{ income.description }}</td>
+                    <td>{{ income.balance | currency}}</td>
+                </tr>
+            {% endfor %}
+            <tr>
+                <th colspan="2" class="total">Net Income </th>
+                <th class="total">{{ net_income | currency}}</th>
+
+            </tr>
+
         </tbody>
     </table>
 
@@ -47,7 +65,7 @@ COOLINK CO-OPERATIVE INCOME ACCOUNT
         var buttonPdf = document.getElementById("downloadPdfButton");
 
         // Define the link URL
-        var linkUrlExcel = "{{url_for('download_excel',type='income',type_id='None',payments=payments)}}";
+        var linkUrlExcel = "{{url_for('download_excel_income')}}";
         var linkUrlPdf = "{{url_for('download_pdf',type='income',type_id='None',payments=payments)}}";
 
         // Add a click event listener to the button

@@ -852,9 +852,9 @@ class Queries:
         return loans
 
     def get_investments(self):
-        investment = Investment.query.all
+        investment = Investment.query.all()
         return investment
 
     def get_expenses(self):
-        expence = Expense.query.all
+        expence = Expense.query.all()
         return expence

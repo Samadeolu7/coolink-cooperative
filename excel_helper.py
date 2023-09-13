@@ -629,7 +629,7 @@ def create_banks_excel(bank,payments):
     return file_path
 
 
-def create_income_excel(payments):
+def create_income_excel():
     # Create a new workbook and select the active sheet
 
     workbook = Workbook()
@@ -645,28 +645,44 @@ def create_income_excel(payments):
     sheet["A2"] = " "
 
     # Add header row
-    header = ["Date", "Reference Number", "Description", "Amount"]
+    header = ["Name", "Description", "Amount"]
     for col_num, header_value in enumerate(header, start=1):
         cell = sheet.cell(row=6, column=col_num)
         cell.value = header_value
         cell.alignment = Alignment(horizontal="center", vertical="center")
 
     # Add payments made rows
-    for payment in payments:
+    income_row = ['Income']
+    sheet.append(income_row)
+    for payment in query.get_income():
         payment_row = [
-            payment.date.strftime("%Y-%m-%d"),
-            payment.ref_no,
+            payment.name,
             payment.description,
-            format_currency(payment.amount),
             format_currency(payment.balance),
         ]
         sheet.append(payment_row)
+
+    expense_row = ['Expense']
+    sheet.append(expense_row)
+    for payment in query.get_expenses():
+        payment_row = [
+            payment.name,
+            payment.description,
+            format_currency(payment.balance),
+        ]
+        sheet.append(payment_row)
+    
+    net_income = sum(income.balance for income in query.get_income() if income.balance) - sum(expense.balance for expense in query.get_expenses() if expense.balance)
+    net_income_row = ['Net Income', '', format_currency(net_income)]
+    sheet.append(net_income_row)
 
     # Save the workbook
     file_path = "excel/income.xlsx"
     workbook.save(file_path)
 
     return file_path
+
+
 
 
 with app.app_context():
