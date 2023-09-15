@@ -20,36 +20,36 @@ def log_report(report):
 
 
 # processing input functions
-def create_excel(type, type_id):
+def create_excel(type, type_id,payments):
     if type == "savings":
         if type_id == "None":
-            return create_all_savings_excel()
+            return create_all_savings_excel(payments)
         else:
             person = query.get_person(type_id)
-            return create_payments_excel(person)
+            return create_payments_excel(person,payments)
 
     elif type == "loan":
         if type_id == "None":
             return create_all_loans_excel()
         else:
             person = query.get_person(type_id)
-            return create_loan_excel(person)
+            return create_loan_excel(person,payments)
 
     elif type == "bank":
         if type_id == "None":
             return
         else:
             bank = query.get_bank(type_id)
-            return create_banks_excel(bank)
+            return create_banks_excel(bank,payments)
 
     elif type == "income":
         if type_id == "None":
-            return create_income_excel()
+            return create_income_excel(payments)
         else:
             return
     elif type == "persons":
         if type_id == "None":
-            return create_persons_excel()
+            return create_persons_excel(payments)
 
 
 def process_excel(filename):
@@ -335,7 +335,7 @@ def create_full_report():
     writer.close()
 
 
-def create_persons_excel():
+def create_persons_excel(payments):
     # Create a new workbook and select the active sheet
 
     workbook = Workbook()
@@ -368,7 +368,7 @@ def create_persons_excel():
         cell.alignment = Alignment(horizontal="center", vertical="center")
 
     # Add payments made rows
-    for person in query.get_persons():
+    for person in payments:
         payment_row = [
             person.employee_id,
             person.name,
@@ -387,7 +387,7 @@ def create_persons_excel():
     return file_path
 
 
-def create_payments_excel(person):
+def create_payments_excel(person,payments):
     # Create a new workbook and select the active sheet
 
     workbook = Workbook()
@@ -422,7 +422,7 @@ def create_payments_excel(person):
     sheet.append(balance_bfd_row)
 
     # Add payments made rows
-    for payment in person.payments_made:
+    for payment in payments:
         payment_row = [
             payment.date.strftime("%Y-%m-%d"),
             payment.ref_no,
@@ -449,7 +449,7 @@ def create_payments_excel(person):
     return file_path
 
 
-def create_loan_excel(person):
+def create_loan_excel(person,payments):
     # Create a new workbook and select the active sheet
 
     workbook = Workbook()
@@ -484,7 +484,7 @@ def create_loan_excel(person):
     sheet.append(balance_bfd_row)
 
     # Add payments made rows
-    for payment in person.loan_payments_made:
+    for payment in payments:
         payment_row = [
             payment.date.strftime("%Y-%m-%d"),
             payment.ref_no,
@@ -511,7 +511,7 @@ def create_loan_excel(person):
     return file_path
 
 
-def create_all_savings_excel():
+def create_all_savings_excel(payments):
     # Create a new workbook and select the active sheet
 
     workbook = Workbook()
@@ -534,7 +534,7 @@ def create_all_savings_excel():
         cell.alignment = Alignment(horizontal="center", vertical="center")
 
     # Add payments made rows
-    for payment in query.get_savings():
+    for payment in payments:
         payment_row = [
             payment.date.strftime("%Y-%m-%d"),
             payment.ref_no,
@@ -550,7 +550,7 @@ def create_all_savings_excel():
     return file_path
 
 
-def create_all_loans_excel():
+def create_all_loans_excel(payments):
     # Create a new workbook and select the active sheet
 
     workbook = Workbook()
@@ -573,7 +573,7 @@ def create_all_loans_excel():
         cell.alignment = Alignment(horizontal="center", vertical="center")
 
     # Add payments made rows
-    for payment in query.get_loans():
+    for payment in payments:
         payment_row = [
             payment.date.strftime("%Y-%m-%d"),
             payment.ref_no,
@@ -589,7 +589,7 @@ def create_all_loans_excel():
     return file_path
 
 
-def create_banks_excel(bank):
+def create_banks_excel(bank,payments):
     # Create a new workbook and select the active sheet
 
     workbook = Workbook()
@@ -612,7 +612,7 @@ def create_banks_excel(bank):
         cell.alignment = Alignment(horizontal="center", vertical="center")
 
     # Add payments made rows
-    for payment in query.get_bank(bank.id):
+    for payment in payments:
         payment_row = [
             payment.date.strftime("%Y-%m-%d"),
             payment.ref_no,
@@ -681,6 +681,9 @@ def create_income_excel():
     workbook.save(file_path)
 
     return file_path
+
+
+
 
 with app.app_context():
     process_excel("./Cooperative 2022 Financial.xlsx")

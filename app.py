@@ -23,7 +23,7 @@ from excel_helper import (
     start_up,
     create_income_excel,
 )
-from pdf_helper import create_pdf
+from pdf_helper import create_pdf,create_income_pdf
 from queries import Queries
 import pandas as pd, json, csv
 from filters import format_currency
@@ -776,7 +776,7 @@ def income_statement():
     incomes = query.get_income()
     expenses = query.get_expenses()
 
-    net_income = sum(income.balance for income in incomes if income.balance) - sum(expense.balance for expense in expenses if expense.balance)
+    net_income = query.get_net_income()
 
     return render_template("query/income.html", incomes=incomes, expenses=expenses, net_income=net_income)
 
@@ -1050,16 +1050,16 @@ def download(file_path):
 
 @app.route("/download_pdf/<type>/<type_id>")
 @login_required
-def download_pdf(type, type_id,payments):
-    file_path = create_pdf(type, type_id,payments)
+def download_pdf(type, type_id):
+    file_path = create_pdf(type, type_id)
 
     return redirect(f"/download/{file_path}")
 
 
 @app.route("/download_excel/<type>/<type_id>")
 @login_required
-def download_excel(type, type_id,payments):
-    file_path = create_excel(type, type_id,payments)
+def download_excel(type, type_id):
+    file_path = create_excel(type, type_id)
 
     return redirect(f"/download/{file_path}")
 
@@ -1071,11 +1071,11 @@ def download_excel_income():
     return redirect(url_for("download", file_path=file_path))
 
 
-@app.route("/download_excel_income")
+@app.route("/download_pdf_income")
 @login_required
 def download_pdf_income():
 
-    file_path = create_income_excel()
+    file_path = create_income_pdf()
     return redirect(url_for("download", file_path=file_path))
 
 

@@ -846,6 +846,12 @@ class Queries:
     def get_income(self):
         loans = Income.query.all()
         return loans
+    
+    def get_net_income(self):
+        income = Income.query.all()
+        expense = Expense.query.all()
+        net_income = sum([i.balance for i in income if i.balance]) - sum([e.balance for e in expense if e.balance])
+        return net_income
 
     def get_person_loans(self, person_id):
         loans = Loan.query.filter_by(person_id=person_id).first()

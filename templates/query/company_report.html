@@ -91,8 +91,8 @@ Company Report
         var buttonPdf = document.getElementById("downloadPdfButton");
 
         // Define the link URL
-        var linkUrlExcel = "{{url_for('download_excel',type='company',type_id=company.id,payments=payments)}}";
-        var linkUrlPdf = "{{url_for('download_pdf',type='company',type_id=company.id,payments=payments)}}";
+        var linkUrlExcel = "{{url_for('download_excel',type='company',type_id=company.id )}}";
+        var linkUrlPdf = "{{url_for('download_pdf',type='company',type_id=company.id )}}";
 
         // Add a click event listener to the button
         buttonExcel.addEventListener("click", function() {
