@@ -1143,14 +1143,15 @@ def get_balance(person_id):
 # errorhandlers
 
 
-# @app.errorhandler(404)
-# def page_not_found(error):
-#     return render_template("404.html"), 404
+@app.errorhandler(404)
+def page_not_found():
+    return render_template('errorpage/errorbase.html'), 404
 
 
-# @app.errorhandler(500)
-# def internal_server_error(error):
-#     return render_template("500.html"), 500
+@app.errorhandler(500)
+def internal_server_error(error):
+    log_report(error)
+    return render_template('errorpage/errorbase.html'), 500
 
 
 
@@ -1159,4 +1160,4 @@ def error():
     return render_template('errorpage/errorbase.html')
 
 if __name__ == "__main__":
-    app.run(host='41.78.210.235', port=2222)
+    app.run(host='41.78.210.235', port=8080)

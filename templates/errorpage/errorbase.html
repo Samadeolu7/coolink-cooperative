@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="\static\css\style.css">    
     
     <title>{%block title%}Error{%endblock%}</title>
+
 </head>
 <body class="loading">
 
@@ -15,8 +16,10 @@
   <div class="notfound-404">
   <h1>:(</h1>
   </div>
+{% block h2 %}
   <h2>404 - Page not found</h2>
   <p>The page you are looking for might have been removed had its name changed or is temporarily unavailable.</p>
+{% endblock %}
   <a href='{{url_for("dashboard")}}'>home page</a>
   </div>
   </div>
