@@ -579,12 +579,12 @@ with app.app_context():
         db.session.commit()
 
     if Bank.query.count() == 0:
-        db.session.add(Bank(name="Zenith", balance_bfd=2000000, new_balance=2000000))
+        db.session.add(Bank(name="Zenith", balance_bfd=0, new_balance=0))
         db.session.commit()
 
     if Company.query.count() == 0:
         db.session.add(
-            Company(name="Nigerian Info", balance_bfd=200000, amount_accumulated=200000)
+            Company(name="Nigerian Info", balance_bfd=0, amount_accumulated=0)
         )
         db.session.commit()
 
@@ -595,11 +595,11 @@ with app.app_context():
                 employee_id="ASA123",
                 email="samore@gmail.com",
                 password="password",
-                total_balance=220000,
-                loan_balance=20000,
-                loan_balance_bfd=20000,
+                total_balance=0,
+                loan_balance=0,
+                loan_balance_bfd=0,
                 phone_no=9020920855,
-                balance_bfd=220000,
+                balance_bfd=0,
                 company_id=1,
                 role_id=1,
             )
