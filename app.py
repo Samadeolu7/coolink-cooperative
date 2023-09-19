@@ -1002,7 +1002,7 @@ def trial_balance():
     accounts_payable = query.get_accounts_payable()
 
     total_dr = cash_and_bank + accounts_receivable+ company_receivable+ investments
-    total_cr = net_income+ accounts_payable+ liabilities+ accounts_payable
+    total_cr = net_income+ accounts_payable+ liabilities
     context = {
         "cash_and_bank": cash_and_bank,
         "accounts_receivable": accounts_receivable,
