@@ -28,7 +28,7 @@ Make Withdrawal
             </div>
 
         <div class="form-wrapper" id="long-form">
-            <form action="{{ url_for('withdraw') }}" method="post">
+            <form  method="post">
                 {{ form.hidden_tag() }}
 
                 <h1>Withdrawal Page</h1>
@@ -64,6 +64,14 @@ Make Withdrawal
                 <div class="form-box">
                 {{ form.amount(class_="input") }}
                 <br></div>
+
+                <div class="form-label">
+                    {{ form.bank_id.label(class_='input-label') }} <br>
+                </div>
+
+                <div class="form-box">
+                    {{ form.bank_id(class_="input") }}
+                    <br></div>
 
 
                 <div class="form-label">

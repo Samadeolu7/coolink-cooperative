@@ -30,13 +30,11 @@ Trial Balance
             </tr>
             <tr>
                
-                <td><a href="">Cash</a></td>  <!-- Fetching the person's name -->
-                <td>Cash & banks</td>
+                <td><a href="">Bank</a></td>  <!-- Fetching the person's name -->
+                <td>bank balance</td>
                 <td>{{ cash_and_bank | currency }}</td>
                 <td> _ </td>
             <tr>
- 
-           
                 <td><a href="{{url_for('get_loan')}}">Account Receivables</a></td>  <!-- Fetching the person's name -->
                 <td>Total Recievables from Loans</td>
                 <td>{{ accounts_receivable | currency }}</td>
@@ -53,15 +51,6 @@ Trial Balance
             </tr>
 
             <tr>
-    
-     
-                <td><a href="">Investment </a></td>  <!-- Fetching the person's name -->
-                <td>Treasury bill</td>
-                <td> {{ investments | currency }} </td>
-                <td>_</td>
-            
-            </tr>
-            <tr>
 
          
                 <td><a href="">Deferred Income </a></td>  <!-- Fetching the person's name -->
@@ -71,22 +60,54 @@ Trial Balance
 
             </tr>
 
-      <!--net-income-->
+            <!--assets-->
+            {% for asset in assets %}
             <tr>
-
-            
-                <td><a href="">Net Income </a></td>  <!-- Fetching the person's name -->
+                <td><a href="{{url_for('ledger_report',ledger='asset',ledger_id=asset.id)}}">{{asset.name}}</a></td> 
+                <td>{{asset.description}}</td>
+                <td>{{asset.balance | currency}}</td>
                 <td>_</td>
-                <td> _ </td>
-                <td>{{ net_income | currency }}</td>
-
             </tr>
+            {% endfor %}
+
+            {% for income in incomes %}
+            <tr>
+                <td><a href="{{url_for('ledger_report',ledger='income',ledger_id=income.id)}}">{{ income.name }}</a></td> 
+                <td>{{income.description}}</td>
+                <td>{{income.balance | currency}}</td>
+                <td>_</td>
+            </tr>
+            {% endfor %}
+
+            {% for expense in expenses %}
+            <tr>
+                <td><a href="{{url_for('ledger_report',ledger='expense',ledger_id=expense.id)}}">{{ expense.name }}</a></td>  <!-- Fetching the person's name -->
+                <td>{{expense.description}}</td>
+                <td>_</td>
+                <td>{{expense.balance | currency}}</td>
             <!--total_accounts_payable-->
 
             <tr>
+                {% endfor %}
+                {% for liability in liabilities%}
+                <td><a href="{{url_for('ledger_report',ledger='liability',ledger_id=liability.id)}}">{{ liability.name }}</a></td>  <!-- Fetching the person's name -->
+                <td>{{liability.description}}</td>
+                <td>{{liability.balance | currency}}</td>
+                <td>_</td>
+            </tr>
+            {% endfor %}
+
+            {% for investment in investments%}
+            <tr>
+                <td><a href="{{url_for('ledger_report',ledger='investment',ledger_id=investment.id)}}">{{ investment.name }}</a></td>  <!-- Fetching the person's name -->
+                <td>{{investment.description}}</td>
+                <td>_</td>
+                <td>{{investment.balance | currency}}</td>
+            </tr>   
+            {% endfor %}
   
-                <td><a href="">Accounts Payable </a></td>  <!-- Fetching the person's name -->
-                <td>Members Deposit</td>
+            <td><a href="{{url_for('get_payments')}}">Accounts Payables</a></td>  <!-- Fetching the person's name -->
+            <td>Members Deposit</td>
                 <td> _ </td>
                 <td>{{ accounts_payable | currency }}</td>
 

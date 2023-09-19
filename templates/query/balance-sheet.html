@@ -17,6 +17,23 @@ Sheet {% endblock %} {% block anchor%}
 
         <th >Amount</th>
       </tr>
+
+      <tr>
+        <th colspan="2" class="total">Fixed Assets</th>
+      </tr>
+    
+      <tr>
+        <td>
+          <a
+            href=""
+            > Investment </a
+          >
+        </td>
+        <!-- Fetching the person's name -->
+
+        <td>{{ investments | currency }}</td>
+      </tr>
+
       <tr>
         <th colspan="2" class="total">Current Assets</th>
       </tr>
@@ -52,24 +69,7 @@ Sheet {% endblock %} {% block anchor%}
 
         <th class="total">{{total_assets | currency}}</th>
       </tr>
-      <tr>
-        <th colspan="2" class="total">Fixed Assets</th>
-      </tr>
-    
-      <tr>
-        <td>
-          <a
-            href=""
-            > Investment </a
-          >
-        </td>
-        <!-- Fetching the person's name -->
 
-        <td>{{ investments | currency }}</td>
-      </tr>
-
-
-      
       <tr>
         <th colspan="2" class="total">Liabilities</th>
       </tr>

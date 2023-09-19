@@ -510,11 +510,12 @@ def withdraw():
     # Add logic to retrieve the list of persons from the database
     # Replace `get_all_persons()` with an appropriate function that retrieves the list of persons.
     persons = query.get_persons()
-
+    log_report('get')
     form = WithdrawalForm()
     form.person.choices = [(person.id, person.name) for person in query.get_persons()]
     form.bank_id.choices = [(bank.id, bank.name) for bank in query.get_banks()]
     if request.method == "POST":
+        
         if form.validate_on_submit():
             person_id = form.person.data
             amount = form.amount.data
@@ -524,11 +525,18 @@ def withdraw():
             date = form.date.data
             # Retrieve the selected person from the database
             selected_person = query.get_person(person_id)
-            if query.withdraw(person_id, amount, description, ref_no, bank_id, date):
+            test = query.withdraw(person_id, amount, description, ref_no, bank_id, date)
+            if test == True:
                 flash(
                     f"Withdrawal of {amount} successful for {selected_person.name}. Updated balance: {selected_person.balance_bfd}"
                 )
-                return render_template("dashboard")
+                return redirect("dashboard")
+            
+            elif test :
+                flash(test, "error")
+                return render_template(
+                    "forms/withdraw.html", form=form, persons=persons
+                )
             else:
                 flash(
                     f"Insufficient balance for {selected_person.name} to withdraw {amount}."
@@ -536,6 +544,8 @@ def withdraw():
                 return render_template(
                     "forms/withdraw.html", form=form, persons=persons
                 )
+        else:
+            flash(form.errors, "error")
     return render_template("forms/withdraw.html", form=form, persons=persons)
 
 
@@ -995,22 +1005,34 @@ def trial_balance():
     cash_and_bank = query.get_cash_and_banks()
     accounts_receivable = query.get_accounts_receivable()
     company_receivable = query.get_company_receivables()
-    investments = query.get_total_investment()
+    total_investments = query.get_total_investment()
+    total_liabilities = query.get_total_liabilities()
     net_income = query.get_net_income()
     accounts_payable = query.get_accounts_payable()
-    liabilities = query.get_total_liabilities()
     accounts_payable = query.get_accounts_payable()
 
-    total_dr = cash_and_bank + accounts_receivable+ company_receivable+ investments
-    total_cr = net_income+ accounts_payable+ liabilities
+    fixed_assets = Asset.query.all()
+    liabilities = Liability.query.all()
+    incomes = Income.query.all()
+    expenses = Expense.query.all()
+    investments = Investment.query.all()
+
+    total_fixed_assets = sum(a.balance for a in fixed_assets)
+    total_assets = cash_and_bank + accounts_receivable+ company_receivable+ total_investments+ total_fixed_assets
+
+    total_dr = total_assets
+    total_cr = net_income+ accounts_payable+ total_liabilities
     context = {
+        "assets": fixed_assets,
+        "incomes": incomes,
+        "expenses": expenses,
+        "liabilities": liabilities,
+        "investments": investments,
         "cash_and_bank": cash_and_bank,
         "accounts_receivable": accounts_receivable,
         "company_receivable": company_receivable,
-        "investments": investments,
         "net_income": net_income,
         "accounts_payable": accounts_payable,
-        "liabilities": liabilities,
         "accounts_payable": accounts_payable,
         "total_dr": total_dr,
         "total_cr": total_cr,
@@ -1022,20 +1044,28 @@ def trial_balance():
 @login_required
 @role_required(["Admin", "Secretary", "Sub-Admin"])
 def balance_sheet():
+    fixed_assets = Asset.query.all()
+    total_fixed_assets = sum(a.balance for a in fixed_assets)
+
     cash_and_bank = query.get_cash_and_banks()
     accounts_receivable = query.get_accounts_receivable()
     company_receivable = query.get_company_receivables()
     investments = query.get_total_investment()
-    total_assets = cash_and_bank + accounts_receivable+ company_receivable+ investments
+    total_current_assets = cash_and_bank + accounts_receivable+ company_receivable+ investments
+    
+    total_assets = total_current_assets + total_fixed_assets
+
     net_income = query.get_net_income()
     accounts_payable = query.get_accounts_payable()
     liabilities = Liability.query.all()
     total_liabilities = query.get_total_liabilities()
+    
     accounts_payable = query.get_accounts_payable()
     total_equity = accounts_payable + net_income
     total_liabilities_and_equity = total_liabilities + total_equity
 
     context = {
+        "assets": fixed_assets,
         "cash_and_bank": cash_and_bank,
         "accounts_receivable": accounts_receivable,
         "company_receivable": company_receivable,

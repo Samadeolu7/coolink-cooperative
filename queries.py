@@ -428,7 +428,7 @@ class Queries:
             if person:
                 person.total_balance -= float(amount)
                 saving_payment = SavingPayment(
-                    amount=amount,
+                    amount=-amount,
                     date=date,
                     person_id=person.id,
                     exact_date=datetime.utcnow(),
@@ -445,10 +445,8 @@ class Queries:
                         amount=-1 * amount,
                         date=date,
                         person_id=person.id,
-                        loan=True,
                         exact_date=datetime.utcnow(),
                         description=description,
-                        balance=person.loan_balance,
                         bank_balance=bank.new_balance,
                         bank_id=bank.id,
                     )
@@ -556,7 +554,7 @@ class Queries:
                 income_description = f"Interest on loan given to {person.employee_id}"
                 income = Income.query.filter_by(name=name).first()
                 self.add_income(
-                     income.id, interest_amount, start_date, ref_no, bank_id, description
+                     income.id, interest_amount, start_date, ref_no, bank_id, income_description
                 )
                 self.db.session.commit()
 

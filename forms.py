@@ -143,12 +143,12 @@ class IncomeForm(FlaskForm):
 
 class WithdrawalForm(FlaskForm):
     person = SelectField("Select Person", coerce=int, validators=[DataRequired()])
-    balance = FloatField("Available Balance", render_kw={"readonly": True})
+    balance = StringField("Available Balance", render_kw={"readonly": True})
     description = StringField("Description")
     ref_no = StringField("Ref Number", validators=[DataRequired()])
     date = DateField("Date", validators=[DataRequired()])
-    amount = FloatField(
-        "Withdraw Amount", validators=[DataRequired(), NumberRange(min=0.01)]
+    amount = IntegerField(
+        "Withdraw Amount", validators=[DataRequired()]
     )
     bank_id = SelectField("Select Person", coerce=int, validators=[DataRequired()])
     submit = SubmitField("Withdraw")
