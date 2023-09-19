@@ -22,15 +22,34 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
-    background-color: #483d8b;
+    min-height: 90vh;
+    background-color: #fff;
     background-size: cover;
     background-position: center;
     /* background: url('static\images\darkslate.jpg') no-repeat; */
 }
 
+.wrapper img{
+    max-width: 50%;
+    padding-bottom: 10px;
+    height: 100px;
+}
+
+.wrapper .imgl{
+    border: #000;
+    border-bottom: 2px solid #000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-direction: row-reverse;
+}
+
+.wrapper .imgl h1{
+    float: left;
+    margin-top: 30px;
+}
 .login .wrapper {
-    width:420px;
+    /* width:600px; */
     background: transparent;
     /* color: white; */
     border-radius: 10px;
@@ -74,17 +93,29 @@
 }
 
 .login .wrapper .btn {
-    width: 100%;
+    width: 40%;
     height: 45px;
-    background: #fff;
+    background: #80808059;
     border: none;
     outline: none;
-    border-radius: 40px;
+    border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, .1);
     cursor: pointer;
     font-size: 16px;
     color: #333;
     font-weight: 600;
+    margin: 0 0 0 29%;
+}
+
+.login .wrapper .btn:hover{
+    box-shadow: 0 0 10px rgba(0,0,0,.2);
+    background: #8080801a;
+}
+
+.login .wrapper .message{
+    margin-top: 15px;
+    padding: 1px;
+    color: #333;
 }
 
 /* Login page end */
@@ -339,7 +370,7 @@
 }
 
 .special-dash .logo {
-    height: 80px;
+    height: 50px;
     padding: 16px;
 }
 
@@ -413,7 +444,7 @@
 
 .special-dash .section-2 .all-cards-wrap {
     background: #fff;
-    height: 76vh;
+    height: 100%;
     margin: 20px;
     padding: 20px;
     border-radius: 10px;
