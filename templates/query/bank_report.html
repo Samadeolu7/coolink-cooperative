@@ -13,6 +13,7 @@ Bank Report
 {% endblock  %}
 
 {%block content%}
+<body id="person">
     <h1>Bank Report</h1>
 
     <h2>Bank Details</h2>
@@ -22,7 +23,7 @@ Bank Report
     <p>Balance: {{ bank.new_balance | currency}}</p>
 
     <h2>Payments Received</h2>
-    <table>
+    <table class="tab-content">
         <thead>
             <tr>
                 <th>Payment ID</th>
@@ -48,6 +49,8 @@ Bank Report
             {% endfor %}
         </tbody>
     </table>
+
+    </body>
 
     <p>Total Amount Received: {{ total_amount | currency }}</p>
     <h2>Download Excel Report</h2>

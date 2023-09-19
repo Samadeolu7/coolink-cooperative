@@ -513,8 +513,7 @@ class Queries:
     ):
         try:
             person = Person.query.filter_by(employee_id=employee_id).first()
-            log_report(person.employee_id)
-            log_report(employee_id)
+            
             if not person:
                 raise ValueError("Person not found.")
             if person:
@@ -554,9 +553,10 @@ class Queries:
 
                 self.db.session.add(interest_payment)
                 name = "Interest"
+                income_description = f"Interest on loan given to {person.employee_id}"
                 income = Income.query.filter_by(name=name).first()
                 self.add_income(
-                     income.id, amount, start_date, ref_no, bank_id, description
+                     income.id, interest_amount, start_date, ref_no, bank_id, description
                 )
                 self.db.session.commit()
 
@@ -569,9 +569,10 @@ class Queries:
                         date=start_date,
                         person_id=person.id,
                         exact_date=datetime.utcnow(),
-                        description=f"loan given to {person.name}",
+                        description=f"loan given to {person.employee_id}",
                         bank_balance=bank.new_balance,
                         bank_id=bank.id,
+                        ref_no=ref_no,
                     )
                     self.db.session.add(bank_payment)
                     self.delete_registered(person.employee_id)
