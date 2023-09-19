@@ -864,3 +864,38 @@ class Queries:
     def get_expenses(self):
         expence = Expense.query.all()
         return expence
+
+    def get_cash_and_banks(self):
+        bank = Bank.query.all()
+        total = sum([b.new_balance for b in bank if b.new_balance])
+        return total
+    
+    def get_accounts_receivable(self):
+        persons = Person.query.all()
+        total = sum([p.loan_balance for p in persons if p.loan_balance])
+        return total
+    
+    def get_accounts_payable(self):
+        persons = Person.query.all()
+        total = sum([p.total_balance for p in persons if p.total_balance])
+        return total
+    
+    def get_total_investment(self):
+        investment = Investment.query.all()
+        total = sum([i.balance for i in investment if i.balance])
+        return total
+    
+    def get_company_receivables(self):
+        company = Company.query.all()
+        total = sum([c.amount_accumulated for c in company if c.amount_accumulated])
+        return total
+    
+    def get_fixed_assets(self):
+        asset = Asset.query.all()
+        total = sum([a.balance for a in asset if a.balance])
+        return total
+    
+    def get_total_liabilities(self):
+        liability = Liability.query.all()
+        total = sum(l.balance for l in liability if l.balance)
+        return total

@@ -1,0 +1,118 @@
+{%extends 'base.html' %}
+
+{%block title%}
+Ledger Report
+{% endblock %}
+
+{% block header%}
+Trial Balance
+{% endblock  %}
+
+{% block anchor%}
+<a href="{{ url_for('queries') }}" id='arrow'><i class="fa-solid fa-arrow-left"></i></a>
+{% endblock  %}
+
+{%block content%}
+
+<body id="person">
+    <table class="tab-content">
+        <tbody>
+            <tr>
+
+                <th>Name</th>
+                <th>Description</th>
+                <th>Debit</th>
+                <th>Credit</th>
+               
+            </tr>
+            <tr>
+                <th colspan="5" class="total">Assets</th>
+            </tr>
+            <tr>
+               
+                <td><a href="">Cash</a></td>  <!-- Fetching the person's name -->
+                <td>Cash & banks</td>
+                <td>{{ cash_and_bank | currency }}</td>
+                <td> _ </td>
+            <tr>
+ 
+           
+                <td><a href="{{url_for('get_loan')}}">Account Receivables</a></td>  <!-- Fetching the person's name -->
+                <td>Total Recievables from Loans</td>
+                <td>{{ accounts_receivable | currency }}</td>
+                <td>_</td>
+                
+            </tr>
+            <tr>
+      
+                <td><a href="{{url_for('companies_report')}}">Company Receivables</a></td>  <!-- Fetching the person's name -->
+                <td>Total Recievables from Companies</td>
+                <td> {{ company_receivable | currency }} </td>
+                <td>_</td>
+                
+            </tr>
+
+            <tr>
+    
+     
+                <td><a href="">Investment </a></td>  <!-- Fetching the person's name -->
+                <td>Treasury bill</td>
+                <td> {{ investments | currency }} </td>
+                <td>_</td>
+            
+            </tr>
+            <tr>
+
+         
+                <td><a href="">Deferred Income </a></td>  <!-- Fetching the person's name -->
+                <td>_</td>
+                <td> _ </td>
+                <td>{{ deferred_income | currency }}</td>
+
+            </tr>
+
+      <!--net-income-->
+            <tr>
+
+            
+                <td><a href="">Net Income </a></td>  <!-- Fetching the person's name -->
+                <td>_</td>
+                <td> _ </td>
+                <td>{{ net_income | currency }}</td>
+
+            </tr>
+            <!--total_accounts_payable-->
+
+            <tr>
+  
+                <td><a href="">Accounts Payable </a></td>  <!-- Fetching the person's name -->
+                <td>Members Deposit</td>
+                <td> _ </td>
+                <td>{{ accounts_payable | currency }}</td>
+
+            </tr>
+
+            <!--deficit-->
+            <tr>
+                
+                <td><a href="">Deficit </a></td>  <!-- Fetching the person's name -->
+                <td>Retained earnings</td>
+                <td> _ </td>
+                <td>{{ deficit | currency }}</td>
+
+            </tr>
+
+            <tr>
+              
+                <th colspan="2" class="total">Total</th>
+                
+                <th colspan="1" class="total">{{total_dr | currency}}</th>
+                <th colspan="1" class="total">{{total_cr | currency}}</th>
+                
+            </tr>
+
+        </tbody>
+    </table>
+
+
+{%endblock%}

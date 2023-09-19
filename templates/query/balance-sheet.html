@@ -18,19 +18,19 @@ Sheet {% endblock %} {% block anchor%}
         <th >Amount</th>
       </tr>
       <tr>
-        <th colspan="2" class="total">Assets</th>
+        <th colspan="2" class="total">Current Assets</th>
       </tr>
       <tr>
         <td ><a href="{{url_for('bank_report')}}">Cash and Banks</a></td>
     
 
-        <td >{{ balance_sheet_data.total_cash_and_equivalents| currency }}</td>
+        <td >{{ cash_and_bank | currency }}</td>
       </tr>
       <tr>
         <td><a href="{{url_for('get_loan')}}">Account Receivables</a></td>
         <!-- Fetching the person's name -->
 
-        <td >{{ balance_sheet_data.total_accounts_receivable| currency }}</td>
+        <td >{{ accounts_receivable| currency }}</td>
       </tr>
       <tr>
         <td>
@@ -38,67 +38,51 @@ Sheet {% endblock %} {% block anchor%}
         </td>
         <!-- Fetching the person's name -->
 
-        <td >{{ company| currency }}</td>
+        <td >{{ company_receivable| currency }}</td>
       </tr>
       <tr>
         <td >
           <a href="{{url_for('companies_report')}}">Investments-Treasury bill</a>
         </td>
+        <td>{{ treasury_bill | currency }}</td>
         <!-- Fetching the person's name -->
       </tr>
       <tr>
-        <th colspan="2" class="total">Investments</th>
+        <th class="total">Total Current Assets</th>
+
+        <th class="total">{{total_assets | currency}}</th>
       </tr>
+      <tr>
+        <th colspan="2" class="total">Fixed Assets</th>
       </tr>
-     {% for investment in balance_sheet_data.investments %}
+    
       <tr>
         <td>
           <a
-            href="{{url_for('ledger_report',ledger='investment',ledger_id=investment.id)}}"
-            >{{ investment.name }}</a
+            href=""
+            > Investment </a
           >
         </td>
         <!-- Fetching the person's name -->
 
-        <td>{{ investment.balance | currency }}</td>
+        <td>{{ investments | currency }}</td>
       </tr>
 
-      {% endfor %}
-      <tr>
-        <th class="total">Equity</th>
 
-        <th class="total">{{balance_sheet_data.total_equity | currency}}</th>
-      </tr>
-      <tr>
-        <th class="total">Total</th>
-
-        <th class="total">{{balance_sheet_data.total_assets | currency}}</th>
-      </tr>
+      
       <tr>
         <th colspan="2" class="total">Liabilities</th>
       </tr>
-      {% for expense in balance_sheet_data.expenses %}
-      <tr>
-        <td>
-          <a
-            href="{{url_for('ledger_report',ledger='expense',ledger_id=expense.id)}}"
-            >{{ expense.name }}</a
-          >
-        </td>
-        <!-- Fetching the person's name -->
-
-        <td>{{ expense.balance | currency }}</td>
-      </tr>
-      {% endfor %}
+  
 
       <tr>
-        <td><a href="{{url_for('get_payments')}}">Accounts Payables</a></td>
+        <td><a href="{{url_for('get_payments')}}">Amount Payable</a></td>
         <!-- Fetching the person's name -->
 
-        <td>{{ balance_sheet_data.total_accounts_payable | currency }}</td>
+        <td>{{ amount_payable | currency }}</td>
       </tr>
 
-      {% for liability in balance_sheet_data.liabilities %}
+      {% for liability in liabilities %}
       <tr>
    
         <td>
@@ -112,11 +96,46 @@ Sheet {% endblock %} {% block anchor%}
       </tr>
       {% endfor %}
       <tr>
-        <th class="total">Total</th>
+        <th class="total">Total Liability </th>
 
-        <th class="total">{{balance_sheet_data.total_liabilities | currency}}</th>
+        <th class="total">{{total_liabilities | currency}}</th>
       </tr>
-      <tr></tr>
+      <tr>
+        <th colspan="2" class="total">Member Equity</th>
+      </tr>
+      <tr>
+        <td>
+          <a href="">Net Income</a>
+        </td>
+        <!-- Fetching the person's name -->
+
+        <td>{{ net_income | currency }}</td>
+        </tr>
+
+        <tr>
+        <td>
+          <a href="">Member Deposit</a>
+        </td>
+        <td>{{ accounts_payable | currency }}</td>
+        </tr>
+
+        <tr>
+        <td>
+          <a href="">Deficit</a>
+        </td>
+        <td>{{ deficit | currency }}</td>
+        </tr>
+
+        <tr>
+        <th class="total">Total Equity </th>
+
+        <th class="total">{{total_equity | currency}}</th>
+      </tr>
+
+        <tr>
+            <th class="total">Total Liabilities and Equity </th>
+    
+            <th class="total">{{total_liabilities_and_equity | currency}}</th>
 
       <tr></tr>
     </tbody>

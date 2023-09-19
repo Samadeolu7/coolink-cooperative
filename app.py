@@ -913,128 +913,193 @@ def individual_bank_report(bank_id):
     )
 
 
+# @app.route("/trial_balance")
+# @login_required
+# @role_required(["Admin", "Secretary", "Sub-Admin"])
+# def trial_balance():
+#     # Retrieve data from the database
+#     companies = Company.query.all()
+#     banks = Bank.query.all()
+#     persons = Person.query.all()
+#     assets = Asset.query.all()
+#     liabilities = Liability.query.all()
+#     incomes = Income.query.all()
+#     expenses = Expense.query.all()
+#     investments = Investment.query.all()
+#     # Calculate total cash and equivalents
+#     total_company_receivable = sum(company.amount_accumulated for company in companies)
+#     total_cash_and_equivalents = total_company_receivable + sum(
+#         bank.new_balance for bank in banks
+#     )
+
+#     # Calculate total accounts receivable
+#     total_accounts_receivable = sum(person.loan_balance for person in persons)
+
+#     total_investments = sum(
+#         investment.balance for investment in investments if investment.balance
+#     )
+#     # Calculate total income
+#     total_incomes = sum(income.balance for income in incomes if income.balance)
+
+#     # Calculate total expenses
+#     total_expenses = sum(expense.balance for expense in expenses if expense.balance)
+
+#     # Calculate total assets
+#     total_assets = (
+#         total_cash_and_equivalents
+#         + total_accounts_receivable
+#         + sum(asset.balance for asset in assets if asset.balance)
+#         + total_incomes
+#         + total_investments
+#     )
+
+#     # Calculate total accounts payable
+#     total_accounts_payable = sum(person.total_balance for person in persons)
+
+#     # Calculate total liabilities
+#     total_liabilities = (
+#         total_accounts_payable
+#         + sum(liability.balance for liability in liabilities if liability.balance)
+#         + total_expenses
+#     )
+
+#     # Calculate total equity and liabilities & equity
+#     total_equity = total_assets - total_liabilities
+#     total_liabilities_and_equity = total_liabilities + total_equity
+
+#     return render_template(
+#         "query/trial_balance.html",
+#         assets=assets,
+#         total_expenses=total_expenses,
+#         expenses=expenses,
+#         incomes=incomes,
+#         banks=banks,
+#         total_cash_and_equivalents=total_cash_and_equivalents,
+#         company=total_company_receivable,
+#         total_accounts_receivable=total_accounts_receivable,
+#         total_incomes=total_incomes,
+#         total_assets=total_assets,
+#         investments=investments,
+#         liabilities=liabilities,
+#         total_accounts_payable=total_accounts_payable,
+#         total_liabilities=total_liabilities,
+#         total_equity=total_equity,
+#         total_liabilities_and_equity=total_liabilities_and_equity,
+#     )
+
 @app.route("/trial_balance")
 @login_required
 @role_required(["Admin", "Secretary", "Sub-Admin"])
 def trial_balance():
-    # Retrieve data from the database
-    companies = Company.query.all()
-    banks = Bank.query.all()
-    persons = Person.query.all()
-    assets = Asset.query.all()
-    liabilities = Liability.query.all()
-    incomes = Income.query.all()
-    expenses = Expense.query.all()
-    investments = Investment.query.all()
-    # Calculate total cash and equivalents
-    total_company_receivable = sum(company.amount_accumulated for company in companies)
-    total_cash_and_equivalents = total_company_receivable + sum(
-        bank.new_balance for bank in banks
-    )
 
-    # Calculate total accounts receivable
-    total_accounts_receivable = sum(person.loan_balance for person in persons)
+    cash_and_bank = query.get_cash_and_banks()
+    accounts_receivable = query.get_accounts_receivable()
+    company_receivable = query.get_company_receivables()
+    investments = query.get_total_investment()
+    net_income = query.get_net_income()
+    accounts_payable = query.get_accounts_payable()
+    liabilities = query.get_total_liabilities()
+    accounts_payable = query.get_accounts_payable()
 
-    total_investments = sum(
-        investment.balance for investment in investments if investment.balance
-    )
-    # Calculate total income
-    total_incomes = sum(income.balance for income in incomes if income.balance)
-
-    # Calculate total expenses
-    total_expenses = sum(expense.balance for expense in expenses if expense.balance)
-
-    # Calculate total assets
-    total_assets = (
-        total_cash_and_equivalents
-        + total_accounts_receivable
-        + sum(asset.balance for asset in assets if asset.balance)
-        + total_incomes
-        + total_investments
-    )
-
-    # Calculate total accounts payable
-    total_accounts_payable = sum(person.total_balance for person in persons)
-
-    # Calculate total liabilities
-    total_liabilities = (
-        total_accounts_payable
-        + sum(liability.balance for liability in liabilities if liability.balance)
-        + total_expenses
-    )
-
-    # Calculate total equity and liabilities & equity
-    total_equity = total_assets - total_liabilities
-    total_liabilities_and_equity = total_liabilities + total_equity
-
-    return render_template(
-        "query/trial_balance.html",
-        assets=assets,
-        total_expenses=total_expenses,
-        expenses=expenses,
-        incomes=incomes,
-        banks=banks,
-        total_cash_and_equivalents=total_cash_and_equivalents,
-        company=total_company_receivable,
-        total_accounts_receivable=total_accounts_receivable,
-        total_incomes=total_incomes,
-        total_assets=total_assets,
-        investments=investments,
-        liabilities=liabilities,
-        total_accounts_payable=total_accounts_payable,
-        total_liabilities=total_liabilities,
-        total_equity=total_equity,
-        total_liabilities_and_equity=total_liabilities_and_equity,
-    )
+    total_dr = cash_and_bank + accounts_receivable+ company_receivable+ investments
+    total_cr = net_income+ accounts_payable+ liabilities+ accounts_payable
+    context = {
+        "cash_and_bank": cash_and_bank,
+        "accounts_receivable": accounts_receivable,
+        "company_receivable": company_receivable,
+        "investments": investments,
+        "net_income": net_income,
+        "accounts_payable": accounts_payable,
+        "liabilities": liabilities,
+        "accounts_payable": accounts_payable,
+        "total_dr": total_dr,
+        "total_cr": total_cr,
+    }
+    return render_template("query/trial-balance.html", **context)
 
 
 @app.route("/balance_sheet")
 @login_required
 @role_required(["Admin", "Secretary", "Sub-Admin"])
 def balance_sheet():
-    # Retrieve data from the database
-    companies = Company.query.all()
-    banks = Bank.query.all()
-    assets = Asset.query.all()
-    investments = Investment.query.all()
-    expenses = Expense.query.all()
+    cash_and_bank = query.get_cash_and_banks()
+    accounts_receivable = query.get_accounts_receivable()
+    company_receivable = query.get_company_receivables()
+    investments = query.get_total_investment()
+    total_assets = cash_and_bank + accounts_receivable+ company_receivable+ investments
+    net_income = query.get_net_income()
+    accounts_payable = query.get_accounts_payable()
     liabilities = Liability.query.all()
-
-    total_cash_and_equivalents = sum(
-        company.amount_accumulated for company in companies
-    ) + sum(bank.new_balance for bank in banks)
-
-    persons = Person.query.all()
-    total_accounts_receivable = sum(person.loan_balance for person in persons)
-    # Calculate the total assets
-    total_assets = total_cash_and_equivalents + total_accounts_receivable
-
-    total_accounts_payable = sum(person.total_balance for person in persons)
-
-    # Calculate the total liabilities
-    total_liabilities = total_accounts_payable
-
-    # Calculate the total equity and liabilities & equity
-    total_equity = total_assets - total_liabilities
+    total_liabilities = query.get_total_liabilities()
+    accounts_payable = query.get_accounts_payable()
+    total_equity = accounts_payable + net_income
     total_liabilities_and_equity = total_liabilities + total_equity
-    balance_sheet_data = {
-        "total_cash_and_equivalents": total_cash_and_equivalents,
-        "total_accounts_receivable": total_accounts_receivable,
+
+    context = {
+        "cash_and_bank": cash_and_bank,
+        "accounts_receivable": accounts_receivable,
+        "company_receivable": company_receivable,
+        "investments": investments,
         "total_assets": total_assets,
-        "total_accounts_payable": total_accounts_payable,
+        "net_income": net_income,
+        "accounts_payable": accounts_payable,
+        "liabilities": liabilities,
+        "accounts_payable": accounts_payable,
         "total_liabilities": total_liabilities,
         "total_equity": total_equity,
         "total_liabilities_and_equity": total_liabilities_and_equity,
-        "assets": assets,
-        "expenses": expenses,
-        "investments": investments,
-        "liabilities": liabilities,
     }
+    return render_template("query/balance-sheet.html", **context)
 
-    return render_template(
-        "query/balance_sheet.html",
-        balance_sheet_data=balance_sheet_data,
-    )
+
+
+# @app.route("/balance_sheet")
+# @login_required
+# @role_required(["Admin", "Secretary", "Sub-Admin"])
+# def balance_sheet():
+#     # Retrieve data from the database
+#     companies = Company.query.all()
+#     banks = Bank.query.all()
+#     assets = Asset.query.all()
+#     investments = Investment.query.all()
+#     expenses = Expense.query.all()
+#     liabilities = Liability.query.all()
+
+#     total_cash_and_equivalents = sum(
+#         company.amount_accumulated for company in companies
+#     ) + sum(bank.new_balance for bank in banks)
+
+#     persons = Person.query.all()
+#     total_accounts_receivable = sum(person.loan_balance for person in persons)
+#     # Calculate the total assets
+#     total_assets = total_cash_and_equivalents + total_accounts_receivable
+
+#     total_accounts_payable = sum(person.total_balance for person in persons)
+
+#     # Calculate the total liabilities
+#     total_liabilities = total_accounts_payable
+
+#     # Calculate the total equity and liabilities & equity
+#     total_equity = total_assets - total_liabilities
+#     total_liabilities_and_equity = total_liabilities + total_equity
+#     balance_sheet_data = {
+#         "total_cash_and_equivalents": total_cash_and_equivalents,
+#         "total_accounts_receivable": total_accounts_receivable,
+#         "total_assets": total_assets,
+#         "total_accounts_payable": total_accounts_payable,
+#         "total_liabilities": total_liabilities,
+#         "total_equity": total_equity,
+#         "total_liabilities_and_equity": total_liabilities_and_equity,
+#         "assets": assets,
+#         "expenses": expenses,
+#         "investments": investments,
+#         "liabilities": liabilities,
+#     }
+
+#     return render_template(
+#         "query/balance_sheet.html",
+#         balance_sheet_data=balance_sheet_data,
+#     )
 
 
 # uploads
@@ -1155,10 +1220,9 @@ def internal_server_error(error):
     return render_template('errorpage/error500.html'), 500
 
 
-
 @app.route('/error')
 def error():
     return render_template('errorpage/errorbase.html')
 
 if __name__ == "__main__":
-    app.run(host='127.0.0.1', port=443)
+    app.run(host='127.0.0.1', port=8443)
