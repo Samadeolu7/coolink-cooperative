@@ -1225,4 +1225,4 @@ def error():
     return render_template('errorpage/errorbase.html')
 
 if __name__ == "__main__":
-    app.run(host='127.0.0.1', port=8443)
+    app.run(host='127.0.0.1', port=8080)
