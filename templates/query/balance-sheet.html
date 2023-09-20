@@ -105,7 +105,7 @@ Sheet {% endblock %} {% block anchor%}
       </tr>
       <tr>
         <td>
-          <a href="">Net Income</a>
+          <a href="{{ url_for('income_statement')}}">Net Income</a>
         </td>
         <!-- Fetching the person's name -->
 
@@ -114,7 +114,7 @@ Sheet {% endblock %} {% block anchor%}
 
         <tr>
         <td>
-          <a href="">Member Deposit</a>
+          <a href="{{url_for('get_payments')}}">Member Deposit</a>
         </td>
         <td>{{ accounts_payable | currency }}</td>
         </tr>

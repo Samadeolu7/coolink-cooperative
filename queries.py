@@ -553,10 +553,21 @@ class Queries:
                 name = "Interest"
                 income_description = f"Interest on loan given to {person.employee_id}"
                 income = Income.query.filter_by(name=name).first()
-                self.add_income(
-                     income.id, interest_amount, start_date, ref_no, bank_id, income_description
+
+                income.balance += float(amount)
+                income_payment = IncomePayment(
+                amount=float(interest_amount),
+                date=date,
+                exact_date=datetime.utcnow(),
+                description=income_description,
+                ref_no=ref_no,
+                balance=income.balance,
+                bank_id=bank.id,
+                income_id=id,
                 )
-                self.db.session.commit()
+
+                self.db.session.add(income_payment)
+                
 
                 bank = Bank.query.filter_by(id=bank_id).first()
 
