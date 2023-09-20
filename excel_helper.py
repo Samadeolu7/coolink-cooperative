@@ -575,10 +575,14 @@ def create_all_loans_excel():
     # Add payments made rows
     for payment in query.get_loans():
         payment_row = [
-            payment.date.strftime("%Y-%m-%d"),
-            payment.ref_no,
-            payment.description,
+            payment.id,
+            payment.person.name,
             format_currency(payment.amount),
+            payment.interest_rate,
+            payment.person.loan_balance,
+            payment.start_date,
+            payment.end_date,
+            payment.is_paid,
         ]
         sheet.append(payment_row)
 
@@ -612,7 +616,7 @@ def create_banks_excel(bank):
         cell.alignment = Alignment(horizontal="center", vertical="center")
 
     # Add payments made rows
-    for payment in query.get_bank(bank.id):
+    for payment in query.get_bank(bank.id).payments:
         payment_row = [
             payment.date.strftime("%Y-%m-%d"),
             payment.ref_no,
