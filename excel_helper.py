@@ -99,19 +99,20 @@ def start_up(filename):
     return zip_filename
 
 
-def send_upload_to_savings(filename, description, date):
+def send_upload_to_savings(filename,bank_id, description, date):
     df = process_excel(filename)
     for index, row in df.iterrows():
         query.save_amount_company(
-            row["COY"], row["Amount"], date, row["Ref No"], description
+            row["COY"],bank_id, row["Amount"], date, row["Ref No"], description
         )
 
 
-def send_upload_to_loan_repayment(filename, description, date):
+def send_upload_to_loan_repayment(filename,bank_id, description, date):
     df = process_excel(filename)
     for index, row in df.iterrows():
         query.repay_loan_company(
             row["COY"],
+            bank_id,
             row["Amount"],
             date,
             row["Ref No"],

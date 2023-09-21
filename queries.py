@@ -457,7 +457,7 @@ class Queries:
             self.db.session.rollback()
             return str(e)
 
-    def save_amount_company(self, employee_id, amount, date, ref_no, description=None):
+    def save_amount_company(self, employee_id,bank_id, amount, date, ref_no, description=None):
         try:
             person = Person.query.filter_by(employee_id=employee_id).first()
             if not person:
@@ -489,6 +489,22 @@ class Queries:
                     company_id=company.id,
                     balance=company.amount_accumulated,
                 )
+
+                bank = Bank.query.filter_by(id=bank_id).first()
+                if bank:
+                    bank.new_balance += float(amount)
+                    bank_payment = BankPayment(
+                        amount=float(amount),
+                        date=date,
+                        company_id=company.id,
+                        exact_date=datetime.utcnow(),
+                        description=description,
+                        bank_balance=bank.new_balance,
+                        bank_id=bank.id,
+                    )
+                    self.db.session.add(bank_payment)
+                else:
+                    raise ValueError("Bank not found.")
 
                 self.db.session.add(company_payment)
 
@@ -557,13 +573,12 @@ class Queries:
                 income.balance += float(amount)
                 income_payment = IncomePayment(
                 amount=float(interest_amount),
-                date=date,
-                exact_date=datetime.utcnow(),
+                date=start_date,
                 description=income_description,
                 ref_no=ref_no,
                 balance=income.balance,
-                bank_id=bank.id,
-                income_id=id,
+                bank_id=bank_id,
+                income_id=income.id,
                 )
 
                 self.db.session.add(income_payment)
@@ -577,7 +592,6 @@ class Queries:
                         amount=-1 * amount,
                         date=start_date,
                         person_id=person.id,
-                        exact_date=datetime.utcnow(),
                         description=f"loan given to {person.employee_id}",
                         bank_balance=bank.new_balance,
                         bank_id=bank.id,
@@ -597,6 +611,7 @@ class Queries:
             if not person:
                 raise ValueError("Person not found.")
             if person:
+
                 bank = Bank.query.filter_by(id=bank_id).first()
 
                 person.loan_balance -= float(amount)
@@ -703,7 +718,7 @@ class Queries:
             self.db.session.rollback()
             return str(e)
 
-    def repay_loan_company(self, id, amount, date, ref_no, description=None):
+    def repay_loan_company(self, id,bank_id, amount, date, ref_no, description=None):
         try:
             person = Person.query.filter_by(employee_id=id).first()
             if not person:
@@ -735,10 +750,27 @@ class Queries:
                     balance=company.amount_accumulated,
                 )
 
-                self.db.session.add(company_payment)
-                return True
+                bank = Bank.query.filter_by(id=bank_id).first()
+                if bank:
+                    bank.new_balance += float(amount)
+                    bank_payment = BankPayment(
+                        amount=amount,
+                        company_id=company.id,
+                        date=date,
+                        exact_date=datetime.utcnow(),
+                        description=description,
+                        ref_no=ref_no,
+                        bank_balance=bank.new_balance,
+                        bank_id=bank.id,
+                    )
+                    self.db.session.add(bank_payment)
+                else:
+                    raise ValueError("Bank not found.")
 
+                self.db.session.add(company_payment)
                 self.db.session.commit()
+                
+                return True
         except Exception as e:
             self.db.session.rollback()
             return str(e)
@@ -825,7 +857,6 @@ class Queries:
     
     def delete_registered(self,employee_id):
         person = FormPayment.query.filter_by(employee_id=employee_id).first()
-        log_report(employee_id)
         db.session.delete(person)
         db.session.commit()
     

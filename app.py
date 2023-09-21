@@ -519,7 +519,6 @@ def withdraw():
     # Add logic to retrieve the list of persons from the database
     # Replace `get_all_persons()` with an appropriate function that retrieves the list of persons.
     persons = query.get_persons()
-    log_report('get')
     form = WithdrawalForm()
     form.person.choices = [(person.id, person.name) for person in query.get_persons()]
     form.bank_id.choices = [(bank.id, bank.name) for bank in query.get_banks()]
@@ -665,15 +664,15 @@ def edit_profile():
 def upload_savings():
     form = UploadForm()
     form.date.data = pd.to_datetime("today")
+    form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
     if request.method == "POST" and form.validate_on_submit():
         file = request.files["file"]
-        log_report("validated_file")
         if file:
             log_report("found_file")
             # Save the uploaded file
             file.save(file.filename)
             # Process the uploaded file
-            send_upload_to_savings(file, form.description.data, form.date.data)
+            send_upload_to_savings(file,form.bank.data, form.description.data, form.date.data)
             flash("Savings updated successfully!", "success")
 
             return redirect(url_for("get_payments"))
@@ -688,14 +687,15 @@ def upload_savings():
 def upload_loan():
     form = UploadForm()
     form.date.data = pd.to_datetime("today")
-    if request.method == "POST":
+    form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
+    if request.method == "POST" and form.validate_on_submit():
         file = request.files["file"]
         if file:
             # Save the uploaded file
             file.save(file.filename)
             # Process the uploaded file
             send_upload_to_loan_repayment(
-                file.filename, form.description.data, form.date.data
+                file.filename,form.bank.data , form.description.data, form.date.data
             )
             flash("Savings updated successfully!", "success")
 
@@ -709,9 +709,9 @@ def upload_loan():
 def startup():
     if request.method == "POST":
         file = request.files["file"]
-        log_report("validated_file")
+
         if file:
-            log_report("found_file")
+
             # Save the uploaded file
             file.save(file.filename)
             # Process the uploaded file
@@ -1252,13 +1252,13 @@ def get_balance(person_id):
 
 @app.errorhandler(404)
 def page_not_found(eror):
-    log_report(eror)
+
     return render_template('errorpage/errorbase.html'), 404
 
 
 @app.errorhandler(500)
 def internal_server_error(error):
-    log_report(error)
+
     return render_template('errorpage/error500.html'), 500
 
 
