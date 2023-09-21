@@ -332,6 +332,7 @@ def make_payment():
         (person.id, (f"{person.name} ({person.employee_id})"))
         for person in query.get_persons()
     ]
+    form.date.data = pd.to_datetime("today")
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
     if request.method == "POST":
         if form.validate_on_submit():
@@ -378,6 +379,7 @@ def payment():
         (person.id, (f"{person.name} ({person.employee_id})"))
         for person in query.get_persons()
     ]
+    form.date.data = pd.to_datetime("today")
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
     if request.method == "POST":
         if form.validate_on_submit():
@@ -406,13 +408,17 @@ def payment():
 
 @app.route("/forms/register", methods=["GET", "POST"])
 @login_required
-@role_required(["Admin", "Secretary"])
 def register_loan():
     form = RegisterLoanForm()
-    form.name.choices = [
-        (person.id, (f"{person.name} ({person.employee_id})"))
-        for person in query.get_persons()
-    ]
+    if current_user.role.name == "User":
+        form.name.choices = [ (current_user.id, (f"{current_user.name} ({current_user.employee_id})"))]
+        form.description.data = f"Loan Application for {current_user.employee_id}"
+    else:
+        form.name.choices = [
+            (person.id, (f"{person.name} ({person.employee_id})"))
+            for person in query.get_persons()
+        ]
+    form.date.data = pd.to_datetime("today")
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
     if request.method == "POST":
         if form.validate_on_submit():
@@ -444,6 +450,7 @@ def make_income():
     form = IncomeForm()
     form.name.choices = [(income.id, income.name) for income in query.get_income()]
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
+    form.date.data = pd.to_datetime("today")
     if request.method == "POST":
         if form.validate_on_submit():
             id = form.name.data
@@ -475,6 +482,7 @@ def create_expense():
     form = ExpenseForm()
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
     assets = [(asset.id, asset.name) for asset in Asset.query.all()]
+    
     expenses = [(expense.id, expense.name) for expense in Expense.query.all()]
     liabilities = [
         (liability.id, liability.name) for liability in Liability.query.all()
@@ -483,6 +491,7 @@ def create_expense():
         (investment.id, investment.name) for investment in Investment.query.all()
     ]
     form.sub_account.choices = assets + expenses + investments + liabilities
+    form.date.data = pd.to_datetime("today")
     if request.method == "POST":
         if form.validate_on_submit():
             # Handle existing expense selection
@@ -514,6 +523,7 @@ def withdraw():
     form = WithdrawalForm()
     form.person.choices = [(person.id, person.name) for person in query.get_persons()]
     form.bank_id.choices = [(bank.id, bank.name) for bank in query.get_banks()]
+    form.date.data = pd.to_datetime("today")
     if request.method == "POST":
         
         if form.validate_on_submit():
@@ -558,13 +568,13 @@ def create_loan():
         (person.id, (f"{person.name} ({person.employee_id})"))
         for person in query.get_registered()
     ]
+    form.start_date.data = pd.to_datetime("today")
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
     if request.method == "POST":
         if form.validate_on_submit():
             employee = query.get_registered_person(form.name.data)
             employee_id = employee.employee_id
             person = Person.query.filter_by(employee_id=employee_id).first()
-            log_report(person.employee_id)
             test = query.make_loan(
                 employee_id=person.employee_id,
                 amount=form.amount.data,
@@ -654,6 +664,7 @@ def edit_profile():
 @role_required(["Admin", "Secretary"])
 def upload_savings():
     form = UploadForm()
+    form.date.data = pd.to_datetime("today")
     if request.method == "POST" and form.validate_on_submit():
         file = request.files["file"]
         log_report("validated_file")
@@ -676,6 +687,7 @@ def upload_savings():
 @role_required(["Admin", "Secretary"])
 def upload_loan():
     form = UploadForm()
+    form.date.data = pd.to_datetime("today")
     if request.method == "POST":
         file = request.files["file"]
         if file:
