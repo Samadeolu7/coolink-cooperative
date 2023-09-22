@@ -92,13 +92,13 @@ class PaymentForm(FlaskForm):
 class LoanForm(FlaskForm):
     name = SelectField("Select Person", coerce=int, validators=[DataRequired()])
     amount = IntegerField("Amount", validators=[DataRequired()])
+    start_date = DateField("Start Date", validators=[DataRequired()])
+    duration = SelectField("Loan Duration", choices=[(6, "6 MONTHS"), (12, "1 YEAR"),(24,"2 Years")])
     interest_rate = SelectField(
         "Interest Rate",
         choices=[(5, "5%"), (10, "10%"), (15, "15%")],
         validators=[DataRequired()],
     )
-    start_date = DateField("Start Date", validators=[DataRequired()])
-    end_date = DateField("End Date", validators=[DataRequired()])
     description = StringField("Description")
     ref_no = StringField("Ref Number", validators=[DataRequired()])
     bank = SelectField("Bank", coerce=int, validators=[DataRequired()])

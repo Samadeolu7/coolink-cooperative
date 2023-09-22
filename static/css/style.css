@@ -883,3 +883,45 @@
     text-decoration: underline;
 }
 /* error pages end */
+
+
+/* Add this CSS in your stylesheet or within a <style> tag in your HTML */
+
+.loan-approval-list {
+    margin-top: 20px;
+}
+
+.loan-approval-item {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #f9f9f9;
+}
+
+.loan-id {
+    font-weight: bold;
+}
+
+.loan-recipient {
+    text-decoration: none;
+    color: #007bff;
+}
+
+.loan-amount,
+.loan-term,
+.loan-interest {
+    margin: 5px 0;
+}
+
+.approve-button {
+    display: inline-block;
+    background-color: #28a745;
+    color: #fff;
+    padding: 5px 10px;
+    text-decoration: none;
+    border-radius: 3px;
+}
+
+.approve-button:hover {
+    background-color: #218838;
+}

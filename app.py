@@ -26,7 +26,7 @@ from excel_helper import (
 from pdf_helper import create_pdf,create_income_pdf
 from queries import Queries
 import pandas as pd, json, csv
-from filters import format_currency
+from filters import format_currency, calculate_duration_in_months
 from flask_login import (
     LoginManager,
     login_user,
@@ -159,6 +159,9 @@ def currency(value):
     modified_value = format_currency(value)  # Modify the value as needed
     return modified_value
 
+@app.template_filter("calculate_duration")
+def calculate_duration(start_date, end_date):
+    return calculate_duration_in_months(start_date, end_date)
 
 # creating data
 @app.route("/company/create", methods=["GET", "POST"])
@@ -478,19 +481,60 @@ def create_expense():
     return render_template("forms/expense_form.html", form=form)
 
 
+# @app.route("/withdraw", methods=["GET", "POST"])
+# @login_required
+# @role_required(["Admin", "Secretary"])
+# def withdraw():
+#     # Add logic to retrieve the list of persons from the database
+#     # Replace `get_all_persons()` with an appropriate function that retrieves the list of persons.
+#     persons = query.get_persons()
+#     form = WithdrawalForm()
+#     form.person.choices = [(person.id, person.name) for person in query.get_persons()]
+#     form.bank_id.choices = [(bank.id, bank.name) for bank in query.get_banks()]
+#     form.date.data = pd.to_datetime("today")
+#     if request.method == "POST":
+        
+#         if form.validate_on_submit():
+#             person_id = form.person.data
+#             amount = form.amount.data
+#             description = form.description.data
+#             ref_no = form.ref_no.data
+#             bank_id = form.bank_id.data
+#             date = form.date.data
+#             # Retrieve the selected person from the database
+#             selected_person = query.get_person(person_id)
+#             test = query.withdraw(person_id, amount, description, ref_no, bank_id, date)
+#             if test == True:
+#                 flash(
+#                     f"Withdrawal of {amount} successful for {selected_person.name}. Updated balance: {selected_person.balance_bfd}"
+#                 )
+#                 return redirect("dashboard")
+            
+#             elif test :
+#                 flash(test, "error")
+#                 return render_template(
+#                     "forms/withdraw.html", form=form, persons=persons
+#                 )
+#             else:
+#                 flash(
+#                     f"Insufficient balance for {selected_person.name} to withdraw {amount}."
+#                 )
+#                 return render_template(
+#                     "forms/withdraw.html", form=form, persons=persons
+#                 )
+#         else:
+#             flash(form.errors, "error")
+#     return render_template("forms/withdraw.html", form=form, persons=persons)
 @app.route("/withdraw", methods=["GET", "POST"])
 @login_required
 @role_required(["Admin", "Secretary"])
-def withdraw():
-    # Add logic to retrieve the list of persons from the database
-    # Replace `get_all_persons()` with an appropriate function that retrieves the list of persons.
-    persons = query.get_persons()
+def request_withdrawal():
     form = WithdrawalForm()
     form.person.choices = [(person.id, person.name) for person in query.get_persons()]
     form.bank_id.choices = [(bank.id, bank.name) for bank in query.get_banks()]
     form.date.data = pd.to_datetime("today")
+
     if request.method == "POST":
-        
         if form.validate_on_submit():
             person_id = form.person.data
             amount = form.amount.data
@@ -498,84 +542,58 @@ def withdraw():
             ref_no = form.ref_no.data
             bank_id = form.bank_id.data
             date = form.date.data
-            # Retrieve the selected person from the database
-            selected_person = query.get_person(person_id)
-            test = query.withdraw(person_id, amount, description, ref_no, bank_id, date)
-            if test == True:
-                flash(
-                    f"Withdrawal of {amount} successful for {selected_person.name}. Updated balance: {selected_person.balance_bfd}"
-                )
-                return redirect("dashboard")
-            
-            elif test :
-                flash(test, "error")
-                return render_template(
-                    "forms/withdraw.html", form=form, persons=persons
-                )
-            else:
-                flash(
-                    f"Insufficient balance for {selected_person.name} to withdraw {amount}."
-                )
-                return render_template(
-                    "forms/withdraw.html", form=form, persons=persons
-                )
+
+            person = query.get_person(person_id)
+
+            withdrawal_request = WithdrawalRequest(
+                person=person,
+                amount=amount,
+                description=description,
+                ref_no=ref_no,
+                bank_id=bank_id,
+                date=date,
+            )
+
+            db.session.add(withdrawal_request)
+            db.session.commit()
+
+            flash("Withdrawal sent for approval.", "success")
+
+            return redirect(url_for("dashboard"))
+
         else:
             flash(form.errors, "error")
-    return render_template("forms/withdraw.html", form=form, persons=persons)
 
+    return render_template("forms/withdraw.html", form=form)
 
-# @app.route("/loan/create", methods=["GET", "POST"])
-# @login_required
-# @role_required(["Admin", "Secretary"])
-# def create_loan():
-#     form = LoanForm()
-#     form.name.choices = [
-#         (person.id, (f"{person.name} ({person.employee_id})"))
-#         for person in query.get_registered()
-#     ]
-#     form.start_date.data = pd.to_datetime("today")
-#     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
-#     if request.method == "POST":
-#         if form.validate_on_submit():
-#             employee = query.get_registered_person(form.name.data)
-#             employee_id = employee.employee_id
-#             person = Person.query.filter_by(employee_id=employee_id).first()
-#             test = query.make_loan(
-#                 employee_id=person.employee_id,
-#                 amount=form.amount.data,
-#                 interest_rate=form.interest_rate.data,
-#                 start_date=form.start_date.data,
-#                 end_date=form.end_date.data,
-#                 description=form.description.data,
-#                 ref_no=form.ref_no.data,
-#                 bank_id=form.bank.data,
-#             )
-#             if test == True:
-#                 person_id = person.employee_id
-#                 amount = form.amount.data
-#                 interest_rate = form.interest_rate.data
-#                 start_date = pd.to_datetime(form.start_date.data)
-#                 end_date = pd.to_datetime(form.end_date.data)
+@app.route("/withdraw/approve/<int:request_id>", methods=["GET"])
+@login_required
+@role_required(["Admin"])
+def approve_withdrawal(request_id):
 
-#                 # Generate the repayment schedule
-#                 repayment_schedule = generate_repayment_schedule(
-#                     person_id, amount, interest_rate, start_date, end_date
-#                 )
+    wr= WithdrawalRequest.query.get(request_id)
 
-#                 # Export the repayment schedule to Excel
-#                 file_path = export_repayment_schedule_to_excel(
-#                     repayment_schedule, person_id
-#                 )
+    if not wr:
+        flash("Withdrawal request not found.", "error")
+    elif not wr.is_approved:
+        test = query.withdraw(wr.person.id, wr.amount, wr.description, wr.ref_no, wr.bank_id, wr.date)
+        if test == True:
+            flash(
+                f"Withdrawal of {wr.amount} successful for {wr.person.name}. Updated balance: {wr.person.total_balance}"
+            )
+        
+        elif test :
+            flash(test, "error")
+            
+        wr.is_approved = True
+        wr.approved_by = current_user.id
 
-#                 # Return the file path for download
-#                 flash("Loan created successfully.", "success")
+        db.session.commit()
+        flash("Withdrawal request approved successfully.", "success")
+    else:
+        flash("Withdrawal request is already approved.", "error")
 
-#                 return redirect(f"/download/{file_path}")
-#             flash(test, "error")
-#             log_report(test)
-#         flash(form.errors, "error")
-
-#     return render_template("forms/loan_form.html", form=form)
+    return redirect(url_for("approval"))
 
 
 @app.route("/loan/request", methods=["GET", "POST"])
@@ -590,33 +608,50 @@ def request_loan():
     form.start_date.data = pd.to_datetime("today")
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
 
+    from dateutil.relativedelta import relativedelta
+
     if request.method == "POST":
         if form.validate_on_submit():
             employee = query.get_registered_person(form.name.data)
             employee_id = employee.employee_id
             person = Person.query.filter_by(employee_id=employee_id).first()
+            duration = int(form.duration.data)
+            end_date = form.start_date.data + relativedelta(months=duration)
             test = query.make_loan_request(
                 bank_id=form.bank.data,
                 employee_id=person.employee_id,
                 amount=form.amount.data,
                 interest_rate=form.interest_rate.data,
                 start_date=form.start_date.data,
-                end_date=form.end_date.data,
+                end_date=end_date,
                 description=form.description.data,
                 ref_no=form.ref_no.data,
             )
             if test == True:
                 flash("Loan sent for approval.", "success")
+                return redirect(url_for("dashboard"))
             else:
                 flash(test, "error")
                 log_report(test)
 
-    return render_template("forms/loan_request_form.html", form=form)
+    return render_template("forms/loan_form.html", form=form)
 
 
-@app.route("/loan/approve/<int:loan_id>", methods=["POST"])
+@app.route("/approval", methods=["GET", "POST"])
 @login_required
-@role_required(["Admin", "Secretary"])
+@role_required(["Admin"])
+def approval():
+    loans = query.get_loans()
+    
+    withdrawals = WithdrawalRequest.query.filter_by(is_approved=False).all()
+
+    return render_template("admin/approval.html", loans=loans, withdrawals=withdrawals)
+
+     
+
+@app.route("/loan/approve/<int:loan_id>", methods=["GET"])
+@login_required
+@role_required(["Admin"])
 def approve_loan(loan_id):
 
     test = query.approve_loan(loan_id)
@@ -625,6 +660,8 @@ def approve_loan(loan_id):
 
             # Generate the repayment schedule
         loan = Loan.query.get(loan_id)
+        loan.approved_by = current_user.id
+        db.session.commit()
         repayment_schedule = generate_repayment_schedule(
             loan.person_id, loan.amount, loan.interest_rate, loan.start_date, loan.end_date
         )
@@ -642,12 +679,8 @@ def approve_loan(loan_id):
         flash(test, "error")
         log_report(test)
 
-    return render_template("forms/loan_form.html")
-        
-    
+    return render_template("admin/approval.html")
 
-
-    return redirect("/dashboard")  # Redirect to the dashboard or another appropriate page
 
 
 @app.route("/change_password", methods=["GET", "POST"])

@@ -77,7 +77,7 @@ class Person(db.Model, UserMixin):
     total_balance = db.Column(db.Float, default=0.0)
     loan_balance = db.Column(db.Float, default=0.0)
     loan_balance_bfd = db.Column(db.Float, default=0.0)
-    loans = db.relationship("Loan", backref="person")
+    loans = db.relationship("Loan", backref="person",foreign_keys="[Loan.person_id]")
     bank_payments_made = db.relationship("BankPayment", backref="payer", lazy=True)
     payments_made = db.relationship("SavingPayment", backref="payer", lazy=True)
     loan_payments_made = db.relationship("LoanPayment", backref="payer", lazy=True)
@@ -109,6 +109,32 @@ class Role(db.Model):
     name = db.Column(db.String(50), unique=True)
     person = db.relationship("Person", backref="role")
 
+class WithdrawalRequest(db.Model):
+    __tablename__ = "withdrawal_requests"
+
+    id = db.Column(db.Integer, primary_key=True)
+    person = db.relationship("Person", backref="withdrawal_requests")
+    amount = db.Column(db.Float, nullable=False)
+    description = db.Column(db.String, nullable=True)
+    ref_no = db.Column(db.String)
+    bank_id = db.Column(
+        db.Integer, db.ForeignKey("banks.id"), nullable=False, index=True
+    )
+    date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
+    is_approved = db.Column(db.Boolean, default=False)
+    approved_by = db.Column(db.Integer, db.ForeignKey("persons.id"), nullable=True)
+
+    def to_json(self):
+        return {
+            "id": self.id,
+            "person_id": self.person_id,
+            "amount": self.amount,
+            "description": self.description,
+            "ref_no": self.ref_no,
+            "bank_id": self.bank_id,
+            "date": self.date,
+            "is_approved": self.is_approved,
+        }
 
 class SavingPayment(db.Model):
     __tablename__ = "savings_payments"

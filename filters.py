@@ -20,14 +20,28 @@ def format_currency(
     return formatted_value
 
 
-# def render_template_with_currency(template_name, **context):
-#     # Create the Jinja2 environment
-#     env = Environment(loader=FileSystemLoader('./templates'))
-#     # Register the custom filter
-#     env.filters['currency'] = format_currency
+from dateutil.relativedelta import relativedelta
 
-#     # Render the template with the provided context
-#     template = env.get_template(template_name)
-#     output = template.render(**context)
+# def calculate_duration_in_months(start_date, end_date):
+#     duration = relativedelta(end_date, start_date)
+#     months = duration.months
+#     years = duration.years
+#     total_months = years * 12 + months
+#     return total_months
 
-#     return output
+from dateutil.relativedelta import relativedelta
+
+def calculate_duration_in_months(start_date, end_date):
+    duration = relativedelta(end_date, start_date)
+    months = duration.months
+    years = duration.years
+
+    if years > 0:
+        if months > 0:
+            return f"{years} years and {months} months"
+        elif years == 1:
+            return f"{years} year"
+        else:
+            return f"{years} years"
+    else:
+        return f"{months} months"
