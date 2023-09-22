@@ -122,8 +122,8 @@ class ExpenseForm(FlaskForm):  # bank voucher payment
 
 
 class UploadForm(FlaskForm):
+    ref_no = StringField("Reference Number")
     description = StringField("Description", validators=[DataRequired()])
-    bank= SelectField("Bank", coerce=int, validators=[DataRequired()])
     date = DateField("Date", validators=[DataRequired()])
     submit = SubmitField("Submit")
 

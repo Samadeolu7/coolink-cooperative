@@ -735,7 +735,6 @@ def edit_profile():
 def upload_savings():
     form = UploadForm()
     form.date.data = pd.to_datetime("today")
-    form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
     if request.method == "POST" and form.validate_on_submit():
         file = request.files["file"]
         if file:
@@ -743,11 +742,15 @@ def upload_savings():
             # Save the uploaded file
             file.save(file.filename)
             # Process the uploaded file
-            send_upload_to_savings(file,form.bank.data, form.description.data, form.date.data)
-            flash("Savings updated successfully!", "success")
+            test = send_upload_to_savings(file,form.ref_no.data, form.description.data, form.date.data)
+            if test==True:
+                flash("Savings updated successfully!", "success")
+            else:
+                flash(test, "error")
 
             return redirect(url_for("get_payments"))
     else:
+        flash(form.errors, "error")
         log_report(form.errors)
     return render_template("forms/upload.html", form=form, route_type="savings")
 
@@ -758,7 +761,6 @@ def upload_savings():
 def upload_loan():
     form = UploadForm()
     form.date.data = pd.to_datetime("today")
-    form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
     if request.method == "POST" and form.validate_on_submit():
         file = request.files["file"]
         if file:
@@ -766,7 +768,7 @@ def upload_loan():
             file.save(file.filename)
             # Process the uploaded file
             send_upload_to_loan_repayment(
-                file.filename,form.bank.data , form.description.data, form.date.data
+                file.filename,form.ref_no.data , form.description.data, form.date.data
             )
             flash("Savings updated successfully!", "success")
 
