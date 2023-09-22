@@ -224,7 +224,7 @@ def create_person():
                 loan_balance=form.loan_balance.data,
                 company_id=form.company_id.data,
             )
-            if file == True:
+            if file:
                 flash("Succesfully created Member", "success")
                 return redirect(f"/download/{file}")
             else:

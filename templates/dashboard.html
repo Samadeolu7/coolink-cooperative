@@ -70,6 +70,11 @@
                     <a class="nav-link" href="{{ url_for('reset_password') }}"><i class="fa-solid fa-lock"></i><span>Reset Password</span></a>
                 </li>
                 {% endif %}
+                {% if person.role.id == 2 or person.role.id == 3 or person.role.id == 4 %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('change_password') }}"><i class="fa-solid fa-lock"></i><span>Change Password</span></a>
+                </li>
+                {% endif %}
 
                 <li class="logout">
                     <a class='nav-link' href="{{url_for('logout')}}"><i class="fa-sharp fa-solid fa-right-from-bracket"></i><span>Logout</span></a>
