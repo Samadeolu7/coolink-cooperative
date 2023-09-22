@@ -64,16 +64,15 @@ def start_up(filename):
 
     for _, row in df.iterrows():
         password = query.generate_password()
-        email = f'test{row["S/N"]}@gmail.com'
         employee_id = row["COY"]
         record = {
             "name": row["Name"],
             "employee_id": employee_id,
-            "email": email,
+            "email": row["Email"],
             "password": password,
             "total_balance": row["BAL B/FWD"],
-            # 'loan_balance': row['Loan Balance'],  # Adjust the column name as needed
-            # 'loan_balance_bfd': row['Loan Balance'],  # Adjust the column name as needed
+            'loan_balance': row['Loan Balance'],  # Adjust the column name as needed
+            'loan_balance_bfd': row['Loan Balance'],  # Adjust the column name as needed
             "phone_no": row["Phone"],
             "balance_bfd": row["BAL B/FWD"],
             "company_id": 1,  # Adjust the company ID as needed
