@@ -65,10 +65,11 @@ def start_up(filename):
     for _, row in df.iterrows():
         password = query.generate_password()
         employee_id = row["COY"]
+        email =row["Email"]
         record = {
             "name": row["Name"],
             "employee_id": employee_id,
-            "email": row["Email"],
+            "email": email,
             "password": password,
             "total_balance": row["BAL B/FWD"],
             'loan_balance': row['Loan Balance'],  # Adjust the column name as needed
