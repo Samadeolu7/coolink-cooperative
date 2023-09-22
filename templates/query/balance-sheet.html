@@ -38,7 +38,7 @@ Sheet {% endblock %} {% block anchor%}
         <th colspan="2" class="total">Current Assets</th>
       </tr>
       <tr>
-        <td ><a href="{{url_for('bank_report')}}">Cash and Banks</a></td>
+        <td ><a href="{{url_for('bank_report')}}">Banks</a></td>
     
 
         <td >{{ cash_and_bank | currency }}</td>
@@ -121,7 +121,7 @@ Sheet {% endblock %} {% block anchor%}
 
         <tr>
         <td>
-          <a href="">Deficit</a>
+          <a href="">Retained</a>
         </td>
         <td>{{ deficit | currency }}</td>
         </tr>
@@ -136,6 +136,7 @@ Sheet {% endblock %} {% block anchor%}
             <th class="total">Total Liabilities and Equity </th>
     
             <th class="total">{{total_liabilities_and_equity | currency}}</th>
+          </tr>
 
       <tr></tr>
     </tbody>

@@ -221,9 +221,11 @@ def create_person():
                 loan_balance=form.loan_balance.data,
                 company_id=form.company_id.data,
             )
-            if file:
+            if file == True:
                 flash("Succesfully created Member", "success")
                 return redirect(f"/download/{file}")
+            else:
+                flash(file, "error")
 
         else:
             flash(f"Error in field {form.errors}", "error")
@@ -366,42 +368,6 @@ def make_payment():
                 flash(f"Error in field {form.errors}", "error")
 
         return redirect(url_for("get_person", person_id=selected_person_id))
-
-    return render_template("forms/payment.html", form=form)
-
-
-@app.route("/payment", methods=["GET", "POST"])
-@login_required
-@role_required(["Admin", "Secretary"])
-def payment():
-    form = PaymentForm()
-    form.person_id.choices = [
-        (person.id, (f"{person.name} ({person.employee_id})"))
-        for person in query.get_persons()
-    ]
-    form.date.data = pd.to_datetime("today")
-    form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
-    if request.method == "POST":
-        if form.validate_on_submit():
-            amount = form.amount.data
-            payment_type = form.payment_type.data
-            description = form.description.data
-            date = form.date.data
-            bank_id = form.bank.data
-            ref_no = form.ref_no.data
-
-            query.make_payment(
-                amount,
-                payment_type,
-                description,
-                date=date,
-                bank_id=bank_id,
-                ref_no=ref_no,
-            )
-            flash("Payment submitted successfully.", "success")
-
-            return redirect(url_for("get_person"))
-        flash(form.errors, "error")
 
     return render_template("forms/payment.html", form=form)
 
@@ -558,10 +524,64 @@ def withdraw():
     return render_template("forms/withdraw.html", form=form, persons=persons)
 
 
-@app.route("/loan/create", methods=["GET", "POST"])
+# @app.route("/loan/create", methods=["GET", "POST"])
+# @login_required
+# @role_required(["Admin", "Secretary"])
+# def create_loan():
+#     form = LoanForm()
+#     form.name.choices = [
+#         (person.id, (f"{person.name} ({person.employee_id})"))
+#         for person in query.get_registered()
+#     ]
+#     form.start_date.data = pd.to_datetime("today")
+#     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
+#     if request.method == "POST":
+#         if form.validate_on_submit():
+#             employee = query.get_registered_person(form.name.data)
+#             employee_id = employee.employee_id
+#             person = Person.query.filter_by(employee_id=employee_id).first()
+#             test = query.make_loan(
+#                 employee_id=person.employee_id,
+#                 amount=form.amount.data,
+#                 interest_rate=form.interest_rate.data,
+#                 start_date=form.start_date.data,
+#                 end_date=form.end_date.data,
+#                 description=form.description.data,
+#                 ref_no=form.ref_no.data,
+#                 bank_id=form.bank.data,
+#             )
+#             if test == True:
+#                 person_id = person.employee_id
+#                 amount = form.amount.data
+#                 interest_rate = form.interest_rate.data
+#                 start_date = pd.to_datetime(form.start_date.data)
+#                 end_date = pd.to_datetime(form.end_date.data)
+
+#                 # Generate the repayment schedule
+#                 repayment_schedule = generate_repayment_schedule(
+#                     person_id, amount, interest_rate, start_date, end_date
+#                 )
+
+#                 # Export the repayment schedule to Excel
+#                 file_path = export_repayment_schedule_to_excel(
+#                     repayment_schedule, person_id
+#                 )
+
+#                 # Return the file path for download
+#                 flash("Loan created successfully.", "success")
+
+#                 return redirect(f"/download/{file_path}")
+#             flash(test, "error")
+#             log_report(test)
+#         flash(form.errors, "error")
+
+#     return render_template("forms/loan_form.html", form=form)
+
+
+@app.route("/loan/request", methods=["GET", "POST"])
 @login_required
 @role_required(["Admin", "Secretary"])
-def create_loan():
+def request_loan():
     form = LoanForm()
     form.name.choices = [
         (person.id, (f"{person.name} ({person.employee_id})"))
@@ -569,12 +589,14 @@ def create_loan():
     ]
     form.start_date.data = pd.to_datetime("today")
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
+
     if request.method == "POST":
         if form.validate_on_submit():
             employee = query.get_registered_person(form.name.data)
             employee_id = employee.employee_id
             person = Person.query.filter_by(employee_id=employee_id).first()
-            test = query.make_loan(
+            test = query.make_loan_request(
+                bank_id=form.bank.data,
                 employee_id=person.employee_id,
                 amount=form.amount.data,
                 interest_rate=form.interest_rate.data,
@@ -582,34 +604,50 @@ def create_loan():
                 end_date=form.end_date.data,
                 description=form.description.data,
                 ref_no=form.ref_no.data,
-                bank_id=form.bank.data,
             )
             if test == True:
-                person_id = person.employee_id
-                amount = form.amount.data
-                interest_rate = form.interest_rate.data
-                start_date = pd.to_datetime(form.start_date.data)
-                end_date = pd.to_datetime(form.end_date.data)
+                flash("Loan sent for approval.", "success")
+            else:
+                flash(test, "error")
+                log_report(test)
 
-                # Generate the repayment schedule
-                repayment_schedule = generate_repayment_schedule(
-                    person_id, amount, interest_rate, start_date, end_date
-                )
+    return render_template("forms/loan_request_form.html", form=form)
 
-                # Export the repayment schedule to Excel
-                file_path = export_repayment_schedule_to_excel(
-                    repayment_schedule, person_id
-                )
 
-                # Return the file path for download
-                flash("Loan created successfully.", "success")
+@app.route("/loan/approve/<int:loan_id>", methods=["POST"])
+@login_required
+@role_required(["Admin", "Secretary"])
+def approve_loan(loan_id):
 
-                return redirect(f"/download/{file_path}")
-            flash(test, "error")
-            log_report(test)
-        flash(form.errors, "error")
+    test = query.approve_loan(loan_id)
+    if test == True:
+        flash("Loan approved successfully.", "success")
 
-    return render_template("forms/loan_form.html", form=form)
+            # Generate the repayment schedule
+        loan = Loan.query.get(loan_id)
+        repayment_schedule = generate_repayment_schedule(
+            loan.person_id, loan.amount, loan.interest_rate, loan.start_date, loan.end_date
+        )
+
+        # Export the repayment schedule to Excel
+        file_path = export_repayment_schedule_to_excel(
+            repayment_schedule, loan.person_id
+        )
+
+        # Return the file path for download
+        flash("Loan created successfully.", "success")
+
+        return redirect(f"/download/{file_path}")
+    else:
+        flash(test, "error")
+        log_report(test)
+
+    return render_template("forms/loan_form.html")
+        
+    
+
+
+    return redirect("/dashboard")  # Redirect to the dashboard or another appropriate page
 
 
 @app.route("/change_password", methods=["GET", "POST"])

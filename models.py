@@ -78,6 +78,7 @@ class Person(db.Model, UserMixin):
     loan_balance = db.Column(db.Float, default=0.0)
     loan_balance_bfd = db.Column(db.Float, default=0.0)
     loans = db.relationship("Loan", backref="person")
+    bank_payments_made = db.relationship("BankPayment", backref="payer", lazy=True)
     payments_made = db.relationship("SavingPayment", backref="payer", lazy=True)
     loan_payments_made = db.relationship("LoanPayment", backref="payer", lazy=True)
 
@@ -151,11 +152,17 @@ class Loan(db.Model):
     person_id = db.Column(
         db.Integer, db.ForeignKey("persons.id"), nullable=False, index=True
     )
+    description = db.Column(db.String, nullable=True)
+    bank_id = db.Column(
+        db.Integer, db.ForeignKey("banks.id"), nullable=True, index=True
+    )
+    ref_no = db.Column(db.String)
     amount = db.Column(db.Integer)
     interest_rate = db.Column(db.Integer)
     start_date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
     end_date = db.Column(db.Date, nullable=False)
-    is_paid = db.Column(db.Boolean, default=False)
+    is_approved = db.Column(db.Boolean, default=False)
+    approved_by = db.Column(db.Integer, db.ForeignKey("persons.id"), nullable=True)
 
     def to_json(self):
         return {
@@ -574,6 +581,15 @@ with app.app_context():
                 Role(name="Sub-Admin"),
                 Role(name="Secretary"),
                 Role(name="User"),
+            ]
+        )
+        db.session.commit()
+
+    if Income.query.count() == 0:
+        db.session.add_all(
+            [
+                Income(name="Loan Application Form", description="Loan application fee", balance_bfd=0, balance=0),
+                Income(name="Interest", description="Interest on loans", balance_bfd=0, balance=0),
             ]
         )
         db.session.commit()

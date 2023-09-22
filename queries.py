@@ -68,7 +68,12 @@ class Queries:
                 writer.writerow([f"{employee_id} or {email}", password])
         except Exception as e:
             db.session.rollback()
-            return str(e)
+            if "UNIQUE constraint failed: person.employee_id" in str(e):
+                return "Employee ID already exists"
+            elif "UNIQUE constraint failed: person.email" in str(e):
+                return "Email already exists"
+            else:
+                return str(e)
 
         return file.name
 
@@ -132,6 +137,7 @@ class Queries:
                 )
             )
             db.session.commit()
+            return True
         except Exception as e:
             db.session.rollback()
             return str(e)
@@ -514,96 +520,214 @@ class Queries:
             self.db.session.rollback()
             return str(e)
 
-    def make_loan(
+
+    def make_loan_request(
         self,
         employee_id,
         amount,
-        bank_id,
         interest_rate,
         start_date,
         end_date,
+        bank_id,
         description,
         ref_no,
     ):
         try:
             person = Person.query.filter_by(employee_id=employee_id).first()
-            
+
             if not person:
                 raise ValueError("Person not found.")
-            if person:
-                person.loan_balance += float(amount)
 
+            if person:
                 loan = Loan(
                     person_id=person.id,
                     amount=amount,
                     interest_rate=interest_rate,
                     start_date=start_date,
                     end_date=end_date,
-                )
-                self.db.session.add(loan)
-
-                loan_payment = LoanPayment(
-                    amount=amount,
-                    exact_date=datetime.utcnow(),
-                    date=start_date,
+                    bank_id=bank_id,
                     description=description,
                     ref_no=ref_no,
+                )
+                self.db.session.add(loan)
+                self.delete_registered(person.employee_id)
+                self.db.session.commit()
+                return True
+        except Exception as e:
+            self.db.session.rollback()
+            return str(e)
+        
+    def approve_loan(self, loan_id):
+        try:
+            loan = Loan.query.get(loan_id)
+
+            if not loan:
+                raise ValueError("Loan not found.")
+
+            if not loan.is_approved:
+                loan.is_approved = True
+
+                # Calculate interest amount based on loan amount and interest rate
+                interest_amount = loan.amount * (loan.interest_rate / 100)
+
+                # Update the person's loan balance by adding the loan amount and interest
+                person = Person.query.get(loan.person_id)
+                person.loan_balance += loan.amount + interest_amount
+
+                # Create a loan payment record for the loan amount
+                loan_payment = LoanPayment(
+                    amount=loan.amount,
+                    exact_date=datetime.utcnow(),
+                    date=loan.start_date,
+                    description=loan.description,
+                    ref_no=loan.ref_no,
                     balance=person.loan_balance,
                     person_id=person.id,
                 )
                 self.db.session.add(loan_payment)
 
-                interest_amount = float(amount) * (float(interest_rate) / 100)
-                person.loan_balance += interest_amount
+                # Create a loan payment record for the interest amount
                 interest_payment = LoanPayment(
                     amount=interest_amount,
                     exact_date=datetime.utcnow(),
-                    date=start_date,
-                    description=description,
-                    ref_no=ref_no,
+                    date=loan.start_date,
+                    description=f"Interest on loan given to {person.employee_id}",
+                    ref_no=loan.ref_no,
                     balance=person.loan_balance,
                     person_id=person.id,
                 )
-
                 self.db.session.add(interest_payment)
                 name = "Interest"
                 income_description = f"Interest on loan given to {person.employee_id}"
                 income = Income.query.filter_by(name=name).first()
 
-                income.balance += float(amount)
+                income.balance += float(interest_amount)
                 income_payment = IncomePayment(
                 amount=float(interest_amount),
-                date=start_date,
+                date=loan.start_date,
                 description=income_description,
-                ref_no=ref_no,
+                ref_no=loan.ref_no,
                 balance=income.balance,
-                bank_id=bank_id,
+                bank_id=loan.bank_id,
                 income_id=income.id,
                 )
 
                 self.db.session.add(income_payment)
-                
+                # Update the bank's balance by deducting the loan amount
+                bank = Bank.query.get(loan.bank_id)
+                bank.new_balance -= loan.amount
 
-                bank = Bank.query.filter_by(id=bank_id).first()
+                # Create a bank payment record for the loan amount
+                bank_payment = BankPayment(
+                    amount=-1 * loan.amount,
+                    date=loan.start_date,
+                    person_id=person.id,
+                    description=f"Loan given to {person.employee_id}",
+                    bank_balance=bank.new_balance,
+                    bank_id=bank.id,
+                    ref_no=loan.ref_no,
+                )
+                self.db.session.add(bank_payment)
 
-                if bank:
-                    bank.new_balance -= float(amount)
-                    bank_payment = BankPayment(
-                        amount=-1 * amount,
-                        date=start_date,
-                        person_id=person.id,
-                        description=f"loan given to {person.employee_id}",
-                        bank_balance=bank.new_balance,
-                        bank_id=bank.id,
-                        ref_no=ref_no,
-                    )
-                    self.db.session.add(bank_payment)
-                    self.delete_registered(person.employee_id)
-                    self.db.session.commit()
-                    return True
+                self.db.session.commit()
+                return True
+            else:
+                raise ValueError("Loan is already approved.")
         except Exception as e:
             self.db.session.rollback()
             return str(e)
+
+
+    # def make_loan(
+    #     self,
+    #     employee_id,
+    #     amount,
+    #     bank_id,
+    #     interest_rate,
+    #     start_date,
+    #     end_date,
+    #     description,
+    #     ref_no,
+    # ):
+    #     try:
+    #         person = Person.query.filter_by(employee_id=employee_id).first()
+            
+    #         if not person:
+    #             raise ValueError("Person not found.")
+    #         if person:
+    #             person.loan_balance += float(amount)
+
+    #             loan = Loan(
+    #                 person_id=person.id,
+    #                 amount=amount,
+    #                 interest_rate=interest_rate,
+    #                 start_date=start_date,
+    #                 end_date=end_date,
+    #             )
+    #             self.db.session.add(loan)
+
+    #             loan_payment = LoanPayment(
+    #                 amount=amount,
+    #                 exact_date=datetime.utcnow(),
+    #                 date=start_date,
+    #                 description=description,
+    #                 ref_no=ref_no,
+    #                 balance=person.loan_balance,
+    #                 person_id=person.id,
+    #             )
+    #             self.db.session.add(loan_payment)
+
+    #             interest_amount = float(amount) * (float(interest_rate) / 100)
+    #             person.loan_balance += interest_amount
+    #             interest_payment = LoanPayment(
+    #                 amount=interest_amount,
+    #                 exact_date=datetime.utcnow(),
+    #                 date=start_date,
+    #                 description=description,
+    #                 ref_no=ref_no,
+    #                 balance=person.loan_balance,
+    #                 person_id=person.id,
+    #             )
+
+    #             self.db.session.add(interest_payment)
+    #             name = "Interest"
+    #             income_description = f"Interest on loan given to {person.employee_id}"
+    #             income = Income.query.filter_by(name=name).first()
+
+    #             income.balance += float(interest_amount)
+    #             income_payment = IncomePayment(
+    #             amount=float(interest_amount),
+    #             date=start_date,
+    #             description=income_description,
+    #             ref_no=ref_no,
+    #             balance=income.balance,
+    #             bank_id=bank_id,
+    #             income_id=income.id,
+    #             )
+
+    #             self.db.session.add(income_payment)
+                
+
+    #             bank = Bank.query.filter_by(id=bank_id).first()
+
+    #             if bank:
+    #                 bank.new_balance -= float(amount)
+    #                 bank_payment = BankPayment(
+    #                     amount=-1 * amount,
+    #                     date=start_date,
+    #                     person_id=person.id,
+    #                     description=f"loan given to {person.employee_id}",
+    #                     bank_balance=bank.new_balance,
+    #                     bank_id=bank.id,
+    #                     ref_no=ref_no,
+    #                 )
+    #                 self.db.session.add(bank_payment)
+    #                 self.delete_registered(person.employee_id)
+    #                 self.db.session.commit()
+    #                 return True
+    #     except Exception as e:
+    #         self.db.session.rollback()
+    #         return str(e)
 
     def repay_loan(self, id, amount, date, bank_id, ref_no, description=None):
         try:
