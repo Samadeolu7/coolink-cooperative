@@ -205,13 +205,13 @@ class Queries:
 
     
     def registeration_payment(
-        self, id, amount, date, ref_no, bank_id, description, loan=False,guarantor=[]
+        self, id, amount, date, ref_no, bank_id, description, loan=False,guarantors=[]
     ):
         try:
             person = Person.query.filter_by(id=id).first()
             if person:
                 
-                form_payment = LoanFormPayment(name=person.name,employee_id=person.employee_id, loan=loan,guarantor=guarantor)
+                form_payment = LoanFormPayment(name=person.name,employee_id=person.employee_id, loan=loan,guarantors=guarantors)
                 self.db.session.add(form_payment)
 
                 if loan:

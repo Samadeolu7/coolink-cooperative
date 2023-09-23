@@ -213,7 +213,7 @@ class RegisterLoanForm(FlaskForm):
     amount = DecimalField("Amount", validators=[DataRequired()])
     remaining_amount = DecimalField("Remaining Amount")
     no_of_guarantors = SelectField(
-        "No of Guarantors", choices=[(0,'0'),(1, "1"), (2, "2")], validators=[DataRequired()]
+        "No of Guarantors", choices=[(0,'0'),(1, "1"), (2, "2")]
     )
     guarantor = SelectField("Select Guarantor")
     guarantor_2 = SelectField("Select Guarantor")

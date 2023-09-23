@@ -391,10 +391,11 @@ def register_loan():
         ]
     form.guarantor.choices = [(None,None)] + [(person.id, f'{person.name},{person.employee_id}') for person in query.get_persons() ]
     form.guarantor_2.choices =[(None,None)] + [(person.id,f'{person.name},{person.employee_id}') for person in query.get_persons() ]
-    form.no_of_guarantors.data= 0
+
     form.date.data = pd.to_datetime("today")
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
     if request.method == "POST":
+ 
         if form.validate_on_submit():
             id = form.name.data
             amount = form.amount.data
@@ -402,19 +403,25 @@ def register_loan():
             date = form.date.data
             bank_id = form.bank.data
             ref_no = form.ref_no.data
+            guarantors= []
             guarantor = form.guarantor.data
-            guarantor_2 = form.guarantor_2.data
-            guarantors= [guarantor,guarantor_2]
+            if guarantor!="None" :
+                guarantor = query.get_person(guarantor)
+                guarantors.append(guarantor)
+            guarantor_2 = form.guarantor_2.data   
+            if guarantor_2 !="None":   
+                guarantor_2 = query.get_person(guarantor_2)
+                guarantors.append(guarantor_2)
+            log_report(guarantors)
             test = query.registeration_payment(
                 id, amount, date, ref_no, bank_id, description, loan=True, guarantors=guarantors
             )
             if test == True:
                 flash("Registration submitted successfully.", "success")
-
             
             else:
                 log_report(test)
-                flash("something went wrong.", "error")
+                flash(f"something went wrong.{test}", "error")
                 return redirect(url_for("register_loan"))
             return redirect(url_for("dashboard"))
         flash(form.errors, "error")
