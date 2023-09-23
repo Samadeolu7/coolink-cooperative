@@ -152,10 +152,37 @@
 
                 </div>
             </div>
+            {% for consent in consents %}
+            <div class="card" id="consent">
+                <div class="container">
+                    <div class='content-con'>
+                    <a href="{{url_for('consent',person_id=person.id)}}">
+                        
+                        <div>
+                        <p><strong>Consent:</strong></p>
+                        </div>
 
+                        <div>
+                        <p><strong>{{ consent.status }}</strong></p>
+                        </div>
+                    
+                    </a>
+                    </div>
+                    <div class='content-con'>
+                        <a href="{{url_for('consent',person_id=person.id)}}">
+                            <div>
+                            <p><strong>View Consent</strong></p>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="icon-con" id='landmark'><i class="fa-solid fa-landmark"></i></div>
+
+                </div>
         </div>
 
         </div>
+        {% endfor %}
 
         </div>
     </div>

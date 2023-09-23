@@ -74,6 +74,7 @@ class Person(db.Model, UserMixin):
     employee_id = db.Column(db.String, nullable=False, unique=True)
     phone_no = db.Column(db.String, unique=True)
     balance_bfd = db.Column(db.Float, default=0.0)
+    balance_witheld = db.Column(db.Float, default=0.0) 
     total_balance = db.Column(db.Float, default=0.0)
     loan_balance = db.Column(db.Float, default=0.0)
     loan_balance_bfd = db.Column(db.Float, default=0.0)
@@ -100,6 +101,10 @@ class Person(db.Model, UserMixin):
                 payment.to_json() for payment in self.loan_payments_made
             ],
         }
+    
+    def get_guaranteed_payments(self):
+        # Query LoanFormPayment instances where this Person is a guarantor
+        return LoanFormPayment.query.filter(LoanFormPayment.guarantors.any(id=self.id)).all()
 
 
 # Define the Role data-model
@@ -187,6 +192,11 @@ class Loan(db.Model):
     interest_rate = db.Column(db.Integer)
     start_date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
     end_date = db.Column(db.Date, nullable=False)
+    guarantor = db.relationship("Person", backref="guarantor",foreign_keys="[Loan.guarantor_id]", lazy=True)
+    guarantor_id = db.Column(
+        db.Integer, db.ForeignKey("persons.id"), nullable=True, index=True
+    )
+    is_paid = db.Column(db.Boolean, default=False)
     is_approved = db.Column(db.Boolean, default=False)
     approved_by = db.Column(db.Integer, db.ForeignKey("persons.id"), nullable=True)
 
@@ -588,12 +598,28 @@ class EquityPayment(db.Model):
             "balance": self.balance,
             "bank_id": self.bank_id,
         }
-    
-class FormPayment(db.Model):
+
+loan_payment_guarantor_association = db.Table(
+    'loan_payment_guarantor_association',
+    db.Column('loan_payment_id', db.Integer, db.ForeignKey('loan_form_payment.id')),
+    db.Column('guarantor_id', db.Integer, db.ForeignKey('persons.id')))
+ 
+class LoanFormPayment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
     employee_id = db.Column(db.String, nullable=False)
     loan = db.Column(db.Boolean,default = False)
+    loan_amount = db.Column(db.Float, default=0.0)
+    guarantors = db.relationship("Person", secondary=loan_payment_guarantor_association)
+    guarantor_amount = db.Column(db.Float, default=0.0)
+    is_approved = db.Column(db.Boolean, default=False)
+
+    
+
+class MemberFormPayment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
+    employee_id = db.Column(db.String, nullable=False)
 
 
 

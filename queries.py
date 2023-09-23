@@ -205,19 +205,17 @@ class Queries:
 
     
     def registeration_payment(
-        self, id, amount, date, ref_no, bank_id, description, loan=False
+        self, id, amount, date, ref_no, bank_id, description, loan=False,guarantor=[]
     ):
         try:
             person = Person.query.filter_by(id=id).first()
             if person:
                 
-                form_payment = FormPayment(name=person.name,employee_id=person.employee_id, loan=loan)
+                form_payment = LoanFormPayment(name=person.name,employee_id=person.employee_id, loan=loan,guarantor=guarantor)
                 self.db.session.add(form_payment)
 
                 if loan:
                     name = "Loan Application Form"
-                else:
-                    name = "Registration Form"
 
                 income = Income.query.filter_by(name=name).first()
                 self.add_income(
@@ -940,14 +938,14 @@ class Queries:
     
     def get_registered(self):
 
-        return FormPayment.query.all()
+        return LoanFormPayment.query.all()
     
     def get_registered_person(self,id):
 
-        return FormPayment.query.filter_by(id=id).first()
+        return LoanFormPayment.query.filter_by(id=id).first()
     
     def delete_registered(self,employee_id):
-        person = FormPayment.query.filter_by(employee_id=employee_id).first()
+        person = LoanFormPayment.query.filter_by(employee_id=employee_id).first()
         db.session.delete(person)
         db.session.commit()
     

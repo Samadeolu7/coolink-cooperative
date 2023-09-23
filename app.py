@@ -114,7 +114,9 @@ def login():
 def dashboard():
     person = current_user
     form = SearchForm()
-    return render_template("dashboard.html", person=person, form=form)
+    pre_guarantor = person.get_guaranteed_payments()
+    
+    return render_template("dashboard.html", person=person, form=form,consents=pre_guarantor)
 
 
 @app.route("/forms")
@@ -387,6 +389,9 @@ def register_loan():
             (person.id, (f"{person.name} ({person.employee_id})"))
             for person in query.get_persons()
         ]
+    form.guarantor.choices = [(None,None)] + [(person.id, f'{person.name},{person.employee_id}') for person in query.get_persons() ]
+    form.guarantor_2.choices =[(None,None)] + [(person.id,f'{person.name},{person.employee_id}') for person in query.get_persons() ]
+    form.no_of_guarantors.data= 0
     form.date.data = pd.to_datetime("today")
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
     if request.method == "POST":
@@ -397,11 +402,16 @@ def register_loan():
             date = form.date.data
             bank_id = form.bank.data
             ref_no = form.ref_no.data
+            guarantor = form.guarantor.data
+            guarantor_2 = form.guarantor_2.data
+            guarantors= [guarantor,guarantor_2]
             test = query.registeration_payment(
-                id, amount, date, ref_no, bank_id, description, loan=True
+                id, amount, date, ref_no, bank_id, description, loan=True, guarantors=guarantors
             )
             if test == True:
                 flash("Registration submitted successfully.", "success")
+
+            
             else:
                 log_report(test)
                 flash("something went wrong.", "error")
@@ -410,6 +420,7 @@ def register_loan():
         flash(form.errors, "error")
 
     return render_template("forms/register_loan.html", form=form)
+
 
 
 @app.route("/make_income", methods=["GET", "POST"])
@@ -740,7 +751,7 @@ def upload_savings():
         if file:
             log_report("found_file")
             # Save the uploaded file
-            file.save(file.filename)
+            file.save(f'upload/{file.filename}')
             # Process the uploaded file
             test = send_upload_to_savings(file,form.ref_no.data, form.description.data, form.date.data)
             if test==True:
@@ -765,7 +776,7 @@ def upload_loan():
         file = request.files["file"]
         if file:
             # Save the uploaded file
-            file.save(file.filename)
+            file.save(f'upload/{file.filename}')
             # Process the uploaded file
             send_upload_to_loan_repayment(
                 file.filename,form.ref_no.data , form.description.data, form.date.data
@@ -786,7 +797,7 @@ def startup():
         if file:
 
             # Save the uploaded file
-            file.save(file.filename)
+            file.save(f'upload/{file.filename}')
             # Process the uploaded file
             file = start_up(file)
             flash("Savings updated successfully!", "success")
@@ -1279,6 +1290,12 @@ def forgot_password():
 def get_person_info(person_id):
     person = query.get_person(person_id)
     return person.to_json()
+
+# @app.route("/get_person_balance/<person_id>")
+# def get_person_info(person_id):
+#     person = query.get_person(person_id)
+
+#     return person.to_json()
 
 
 @app.route("/search_suggestions", methods=["GET"])
