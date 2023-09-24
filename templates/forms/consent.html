@@ -1,0 +1,67 @@
+{%extends 'base.html' %}
+
+{%block title%}
+Edit Person
+{% endblock %}
+
+{% block header%}
+Edit Person
+{% endblock %}
+
+{% block anchor%}
+<a href="{{ url_for('dashboard') }}" id='arrow'><i class="fa-solid fa-arrow-left"></i></a>
+{% endblock %}
+
+{%block content%}
+
+<body id="form">
+    <div class = "flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul class="flash-messages">
+                {% for message in messages %}
+                    <li class="fade-out {{message[0]}}">{{message[1]}}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        {% endwith %}
+        </div>
+    <div class="full-form-content">
+        <!-- Your HTML content here -->
+
+        <div class="form-wrapper" id="long-form">
+
+            <form id="edit-profile-form" method="POST" >
+                {{ form.hidden_tag() }}
+
+                <h1>Consent</h1>
+
+                <p> {{ loan.person.name}} is requesting to borrow {{ loan.loan_amount }} and has picked you as a guarantor. Please confirm that you consent to this.</p>
+
+                <div class="form-label">
+                    <label for="person" class_='input-label'>Consent</label>
+                </div>
+
+                <div class="form-box">
+                    {{ form.consent(class_="input") }}
+                </div>
+
+                <p> Enter the amount you are willing to consent to.</p>
+
+                <div class="form-label">
+                    <label for="amount" class_='input-label'>Amount:</label>
+                </div>
+                <p>Note that the amount consented be withheld from your total balance.</p>
+                <div class="form-box">
+                    {{ form.amount(class_="input") }}
+                </div>
+
+                <div class="button-wrapper">
+                    {{ form.submit(class_="button") }}
+                </div>
+            </form>
+        </div>
+    </div>
+
+</body>
+{%endblock%}

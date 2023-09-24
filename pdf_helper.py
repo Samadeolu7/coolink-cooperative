@@ -78,7 +78,7 @@ def create_persons_pdf():
                 person.name,
                 person.email,
                 person.phone_no,
-                format_currency(person.total_balance),
+                format_currency(person.available_balance),
                 format_currency(person.loan_balance),
                 person.company.name,
             ]
@@ -89,7 +89,7 @@ def create_persons_pdf():
         "-",
         "-",
         "-",
-        format_currency(sum(person.total_balance for person in query.get_persons())),
+        format_currency(sum(person.available_balance for person in query.get_persons())),
         format_currency(sum(person.loan_balance for person in query.get_persons())),
     ]
     table_data.append(total_row)

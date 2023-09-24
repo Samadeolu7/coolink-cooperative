@@ -74,8 +74,8 @@ class Person(db.Model, UserMixin):
     employee_id = db.Column(db.String, nullable=False, unique=True)
     phone_no = db.Column(db.String, unique=True)
     balance_bfd = db.Column(db.Float, default=0.0)
-    balance_witheld = db.Column(db.Float, default=0.0) 
-    total_balance = db.Column(db.Float, default=0.0)
+    balance_withheld = db.Column(db.Float, default=0.0) 
+    available_balance = db.Column(db.Float, default=0.0)
     loan_balance = db.Column(db.Float, default=0.0)
     loan_balance_bfd = db.Column(db.Float, default=0.0)
     loans = db.relationship("Loan", backref="person",foreign_keys="[Loan.person_id]")
@@ -92,7 +92,7 @@ class Person(db.Model, UserMixin):
             "email": self.email,
             "phone_no": self.phone_no,
             "balance_bfd": self.balance_bfd,
-            "total_balance": self.total_balance,
+            "available_balance": self.available_balance,
             "loan_balance": self.loan_balance,
             "loan_balance_bfd": self.loan_balance_bfd,
             "loans": [loan.to_json() for loan in self.loans],
@@ -105,6 +105,10 @@ class Person(db.Model, UserMixin):
     def get_guaranteed_payments(self):
         # Query LoanFormPayment instances where this Person is a guarantor
         return LoanFormPayment.query.filter(LoanFormPayment.guarantors.any(id=self.id)).all()
+    
+    @property
+    def total_balance(self):
+        return self.available_balance + self.balance_withheld
 
 
 # Define the Role data-model
@@ -607,19 +611,48 @@ loan_payment_guarantor_association = db.Table(
 class LoanFormPayment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
-    employee_id = db.Column(db.String, nullable=False)
+    person=db.relationship("Person", backref="loan_form_payment")
+    person_id = db.Column(db.Integer, db.ForeignKey('persons.id'))
     loan = db.Column(db.Boolean,default = False)
+    failed = db.Column(db.Boolean,default = False)
     loan_amount = db.Column(db.Float, default=0.0)
     guarantors = db.relationship("Person", secondary=loan_payment_guarantor_association)
     guarantor_amount = db.Column(db.Float, default=0.0)
     is_approved = db.Column(db.Boolean, default=False)
+    consent =db.Column(db.Integer,nullable=True,default=0)
 
-    
+    def approve(self):
+        self.is_approved = True
+        db.session.commit()
 
-class MemberFormPayment(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    employee_id = db.Column(db.String, nullable=False)
+    def move_to_loan(self):
+        if self.consent==self.guarantors.count():
+            if self.guarantor_amount+self.person_id.available_balance >= self.loan_amount:
+                self.approve()
+                self.loan = True
+                db.session.commit()
+                return True
+            else:
+                self.failed = True
+                db.session.commit()
+                return False
+            
+    def failed(self):
+        self.failed = True
+        db.session.commit()
+
+
+from sqlalchemy import event
+
+def on_loan_payment_update(target,*args, **kwargs):
+    target.move_to_loan()
+
+# Attach the event listener to the LoanFormPayment class
+event.listen(LoanFormPayment, 'after_update', on_loan_payment_update)
+
+@event.listens_for(LoanFormPayment.guarantors, "remove")
+def guarantors_changed(target,*args, **kwargs):
+    target.failed() 
 
 
 
@@ -663,7 +696,7 @@ with app.app_context():
                 employee_id="ASA123",
                 email="samore@gmail.com",
                 password="password",
-                total_balance=0,
+                available_balance=0,
                 loan_balance=0,
                 loan_balance_bfd=0,
                 phone_no=9020920855,

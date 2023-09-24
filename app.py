@@ -222,7 +222,7 @@ def create_person():
                 name=form.name.data,
                 email=form.email.data,
                 phone_no=form.phone_no.data,
-                balance=form.total_balance.data,
+                balance=form.available_balance.data,
                 loan_balance=form.loan_balance.data,
                 company_id=form.company_id.data,
             )
@@ -399,6 +399,7 @@ def register_loan():
         if form.validate_on_submit():
             id = form.name.data
             amount = form.amount.data
+            log_report(amount)
             description = form.description.data
             date = form.date.data
             bank_id = form.bank.data
@@ -428,6 +429,40 @@ def register_loan():
 
     return render_template("forms/register_loan.html", form=form)
 
+
+@app.route("/give_consent/<loan_id>", methods=["GET", "POST"])
+@login_required
+def give_consent(loan_id):
+    form = ConsentForm()
+    loan = LoanFormPayment.query.get(loan_id)
+    form.consent.choices = [(None, None), (True, "Yes"), (False, "No")]
+    if loan:
+        if current_user in loan.guarantors:
+            if request.method == "POST":
+                if form.validate_on_submit():
+                    consent = form.consent.data
+                    if consent == "True":
+                        test = query.give_consent(loan, current_user,form.amount.data)
+                        if test == True:
+                            flash("Consent submitted successfully.", "success")
+                            return redirect(url_for("dashboard"))
+                        else:
+                            flash(test, "error")
+                            log_report(test)
+                    else:
+                        loan.guarantors.remove(current_user.id)
+                        db.session.commit()
+                        flash("Consent not given.", "error")
+                        return redirect(url_for("dashboard"))
+                else:
+                    flash(form.errors, "error")
+            return render_template("forms/consent.html", form=form, loan=loan)
+        else:
+            flash("You are not a guarantor for this loan.", "error")
+            return redirect(url_for("dashboard"))
+    else:
+        flash("Loan not found.", "error")
+        return redirect(url_for("dashboard"))    
 
 
 @app.route("/make_income", methods=["GET", "POST"])
@@ -597,7 +632,7 @@ def approve_withdrawal(request_id):
         test = query.withdraw(wr.person.id, wr.amount, wr.description, wr.ref_no, wr.bank_id, wr.date)
         if test == True:
             flash(
-                f"Withdrawal of {wr.amount} successful for {wr.person.name}. Updated balance: {wr.person.total_balance}"
+                f"Withdrawal of {wr.amount} successful for {wr.person.name}. Updated balance: {wr.person.available_balance}"
             )
         
         elif test :
@@ -822,7 +857,7 @@ def startup():
 def get_persons():
     persons = query.get_persons()
     total_loan = sum(person.loan_balance for person in persons)
-    total_savings = sum(person.total_balance for person in persons)
+    total_savings = sum(person.available_balance for person in persons)
     return render_template(
         "query/person.html",
         persons=persons,
@@ -1067,7 +1102,7 @@ def individual_bank_report(bank_id):
 #     )
 
 #     # Calculate total accounts payable
-#     total_accounts_payable = sum(person.total_balance for person in persons)
+#     total_accounts_payable = sum(person.available_balance for person in persons)
 
 #     # Calculate total liabilities
 #     total_liabilities = (
@@ -1207,7 +1242,7 @@ def balance_sheet():
 #     # Calculate the total assets
 #     total_assets = total_cash_and_equivalents + total_accounts_receivable
 
-#     total_accounts_payable = sum(person.total_balance for person in persons)
+#     total_accounts_payable = sum(person.available_balance for person in persons)
 
 #     # Calculate the total liabilities
 #     total_liabilities = total_accounts_payable
@@ -1339,7 +1374,7 @@ def get_sub_accounts(main_account_id):
 def get_balance(person_id):
     selected_person = Person.query.get(person_id)
     if selected_person:
-        return format_currency(selected_person.total_balance)
+        return format_currency(selected_person.available_balance)
     else:
         return jsonify(error="Person not found"), 404
 

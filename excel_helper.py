@@ -71,7 +71,7 @@ def start_up(filename):
             "employee_id": employee_id,
             "email": email,
             "password": password,
-            "total_balance": row["BAL B/FWD"],
+            "available_balance": row["BAL B/FWD"],
             'loan_balance': 0,  # Adjust the column name as needed
             'loan_balance_bfd': 0,  # Adjust the column name as needed
             "phone_no": row["Phone"],
@@ -200,7 +200,7 @@ def create_individual_report(employee_id):
                 person.email,
                 person.phone_no,
                 person.savings,
-                person.total_balance,
+                person.available_balance,
                 person.loan_balance,
                 person.monthly_payment_amount,
                 person.company_id,
@@ -258,7 +258,7 @@ def create_full_report():
                 person.email,
                 person.phone_no,
                 person.savings,
-                person.total_balance,
+                person.available_balance,
                 person.loan_balance,
                 person.monthly_payment_amount,
                 person.company_id,
@@ -382,7 +382,7 @@ def create_persons_excel():
             person.name,
             person.email,
             person.phone_no,
-            format_currency(person.total_balance),
+            format_currency(person.available_balance),
             format_currency(person.loan_balance),
             person.company.name,
         ]
@@ -441,14 +441,14 @@ def create_payments_excel(person):
         sheet.append(payment_row)
 
     # Add total balance row
-    total_balance_row = [
+    available_balance_row = [
         "None",
         "None",
         "None",
         "None",
-        format_currency(person.total_balance),
+        format_currency(person.available_balance),
     ]
-    sheet.append(total_balance_row)
+    sheet.append(available_balance_row)
 
     # Save the workbook
     file_path = "excel/person_payments.xlsx"
@@ -503,14 +503,14 @@ def create_loan_excel(person):
         sheet.append(payment_row)
 
     # Add total balance row
-    total_balance_row = [
+    available_balance_row = [
         "None",
         "None",
         "None",
         "None",
         format_currency(person.loan_balance),
     ]
-    sheet.append(total_balance_row)
+    sheet.append(available_balance_row)
 
     # Save the workbook
     file_path = f"excel/{person.name}_payments.xlsx"

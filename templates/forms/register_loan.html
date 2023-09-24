@@ -176,7 +176,7 @@ Register for Loan
 
               // Make an AJAX request to your endpoint to get the total balance.
               $.get("/get_person_info/" + personId, function (data) {
-                  var totalBalance = parseFloat(data.total_balance);
+                  var totalBalance = parseFloat(data.available_balance);
 
                   toggleNoOfGuarantorsField(totalBalance);
                   toggleGuarantorFields();

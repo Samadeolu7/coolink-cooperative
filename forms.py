@@ -58,7 +58,7 @@ class PersonForm(FlaskForm):
     name = StringField("Name", validators=[DataRequired()])
     email = StringField("Email", validators=[Email()])
     phone_no = StringField("Phone No", validators=[DataRequired()])
-    total_balance = FloatField("Balance B/FWD")
+    available_balance = FloatField("Balance B/FWD")
     loan_balance = FloatField("Loan Balance")
     company_id = IntegerField("Company ID", validators=[DataRequired()])
     submit = SubmitField("Submit")
@@ -221,4 +221,9 @@ class RegisterLoanForm(FlaskForm):
     bank = SelectField("Bank", coerce=int, validators=[DataRequired()])
     description = StringField("Description")
     ref_no = StringField("Ref Number", validators=[DataRequired()])
+    submit = SubmitField("Submit")
+
+class ConsentForm(FlaskForm):
+    consent = SelectField("Consent")
+    amount = DecimalField("Amount", validators=[DataRequired()])
     submit = SubmitField("Submit")

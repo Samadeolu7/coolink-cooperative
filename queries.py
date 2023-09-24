@@ -49,7 +49,7 @@ class Queries:
                     employee_id=employee_id,
                     email=email,
                     password=hashed_password,
-                    total_balance=balance,
+                    available_balance=balance,
                     loan_balance=loan_balance,
                     loan_balance_bfd=loan_balance,
                     phone_no=phone_no,
@@ -158,7 +158,7 @@ class Queries:
             person = Person.query.filter_by(id=employee_id).first()
             bank = Bank.query.filter_by(id=bank_id).first()
             if person:
-                person.total_balance += float(amount)
+                person.available_balance += float(amount)
 
                 saving_payment = SavingPayment(
                     amount=amount,
@@ -167,7 +167,7 @@ class Queries:
                     exact_date=datetime.utcnow(),
                     description=description,
                     ref_no=ref_no,
-                    balance=person.total_balance,
+                    balance=person.available_balance,
                     bank_id=bank.id,
                 )
 
@@ -210,8 +210,8 @@ class Queries:
         try:
             person = Person.query.filter_by(id=id).first()
             if person:
-                
-                form_payment = LoanFormPayment(name=person.name,employee_id=person.employee_id, loan=loan,guarantors=guarantors)
+    
+                form_payment = LoanFormPayment(name=person.name,loan_amount=amount,person_id=person.id, loan=loan,guarantors=guarantors)
                 self.db.session.add(form_payment)
 
                 if loan:
@@ -226,6 +226,20 @@ class Queries:
         except Exception as e:
             self.db.session.rollback()
             return str(e)
+        
+        
+    def give_consent(self,loan,person,amount):
+        try:
+            loan.guarantor_amount += float(amount)
+            loan.consent += 1
+            person.available_balance -= float(amount)
+            person.balance_withheld += float(amount)
+            db.session.commit()
+            return True
+        except Exception as e:
+            db.session.rollback()
+            return str(e)
+            
 
     def add_income(self, id, amount, date, ref_no, bank_id, description):
         bank = Bank.query.filter_by(id=bank_id).first()
@@ -430,7 +444,7 @@ class Queries:
                 raise ValueError("Person not found.")
 
             if person:
-                person.total_balance -= float(amount)
+                person.available_balance -= float(amount)
                 saving_payment = SavingPayment(
                     amount=-amount,
                     date=date,
@@ -438,7 +452,7 @@ class Queries:
                     exact_date=datetime.utcnow(),
                     description=description,
                     ref_no=ref_no,
-                    balance=person.total_balance,
+                    balance=person.available_balance,
                 )
                 self.db.session.add(saving_payment)
                 bank = Bank.query.filter_by(id=bank_id).first()
@@ -468,7 +482,7 @@ class Queries:
                 raise ValueError("Person not found.")
             if person:
                 company = person.company
-                person.total_balance += float(amount)
+                person.available_balance += float(amount)
 
                 saving_payment = SavingPayment(
                     amount=float(amount),
@@ -478,7 +492,7 @@ class Queries:
                     description=description,
                     ref_no=ref_no,
                     company_id=company.id,
-                    balance=person.total_balance,
+                    balance=person.available_balance,
                 )
 
                 self.db.session.add(saving_payment)
@@ -763,7 +777,7 @@ class Queries:
             if person:
                 bank = Bank.query.filter_by(id=bank_id).first()
 
-                person.total_balance -= float(amount)
+                person.available_balance -= float(amount)
                 savings_payment = SavingPayment(
                     amount=-amount,
                     date=date,
@@ -771,7 +785,7 @@ class Queries:
                     exact_date=datetime.utcnow(),
                     description=description,
                     ref_no=ref_no,
-                    balance=person.total_balance,
+                    balance=person.available_balance,
                     bank_id=bank.id,
                 )
                 self.db.session.add(savings_payment)
@@ -1007,7 +1021,7 @@ class Queries:
     
     def get_accounts_payable(self):
         persons = Person.query.all()
-        total = sum([p.total_balance for p in persons if p.total_balance])
+        total = sum([p.available_balance for p in persons if p.available_balance])
         return total
     
     def get_total_investment(self):
