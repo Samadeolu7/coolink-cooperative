@@ -628,7 +628,7 @@ class Queries:
             if not loan:
                 raise ValueError("Loan not found.")
 
-            if not loan.is_approved:
+            if not loan.admin_approved:
                 loan.is_approved = True
                 loan.admin_approved = True
 
