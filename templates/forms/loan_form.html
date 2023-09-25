@@ -37,7 +37,7 @@ Create Loan
             </div>    
 
             <div class="form-box">
-                {{ form.name(class_="input") }} <br>
+                {{ form.name(class_="input",id='person-name-select') }} <br>
                 
             </div>
 
@@ -46,7 +46,7 @@ Create Loan
             </div>
 
             <div class="form-box">
-                {{ form.amount(class_="input") }} <br>
+                {{ form.amount(class_="input",id='amount-input') }} <br>
                 
             
             <div class="form-label">
@@ -107,6 +107,40 @@ Create Loan
         </form>
 
     </div>
+
+    <script>
+        const selectPerson = document.getElementById("person-name-select");
+        const balanceField = document.getElementById("amount-input"); // Update the ID to match your HTML form
+    
+        function updateBalance() {
+            const selectedPersonId = selectPerson.value;
+    
+            // Make an AJAX request to the server to get the balance of the selected person
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', `/get_loan_data/${selectedPersonId}`, true);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        // Update the balance field with the retrieved balance
+                        balanceField.value = xhr.responseText;
+                    } else {
+                        // Handle errors here (e.g., server error, person not found)
+                        balanceField.value = '';
+                    }
+                }
+            };
+            xhr.send();
+        }
+    
+        // Add event listener to update balance field when person selection changes
+        selectPerson.addEventListener("change", updateBalance);
+    
+        // Call the function initially to set the initial balance value
+        updateBalance();
+    </script>
+    
+    </div>
+
 </body>
 
 {%endblock%}

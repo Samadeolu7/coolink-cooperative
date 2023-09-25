@@ -114,9 +114,15 @@ def login():
 def dashboard():
     person = current_user
     form = SearchForm()
+    failed_loan = None
     pre_guarantor = person.get_guaranteed_payments()
-    
-    return render_template("dashboard.html", person=person, form=form,consents=pre_guarantor)
+    failed_loan = None
+    for payment in person.loan_form_payment:
+        if payment.failed:
+            failed_loan = payment
+            break  # Exit the loop if a failed loan is found
+ 
+    return render_template("dashboard.html", person=person, form=form,consents=pre_guarantor,failed_loan=failed_loan)
 
 
 @app.route("/forms")
@@ -419,6 +425,15 @@ def register_loan():
             )
             if test == True:
                 flash("Registration submitted successfully.", "success")
+                name='Loan Application Form'
+                income_id= Income.query.filter_by(name=name).first()
+                test_2 = query.add_income(income_id,form.fee.data,date,ref_no,bank_id,description)
+                if test_2 == True:
+                    flash("Income submitted successfully.", "success")
+                    return redirect(url_for("dashboard"))
+                else:
+                    flash(test, "error")
+                    log_report(test)
             
             else:
                 log_report(test)
@@ -427,6 +442,71 @@ def register_loan():
             return redirect(url_for("dashboard"))
         flash(form.errors, "error")
 
+    return render_template("forms/register_loan.html", form=form)
+
+
+@app.route("/forms/update_loan/<int:loan_id>", methods=["GET", "POST"])
+@login_required
+def update_loan(loan_id):
+    form = RegisterLoanForm()
+    loan = LoanFormPayment(loan_id)  # Replace with your logic to fetch the existing loan data
+    
+    if current_user.role.name == "User":
+        form.name.choices = [(current_user.id, f"{current_user.name} ({current_user.employee_id}))")]
+    else:
+        form.name.choices = [
+            (person.id, f"{person.name} ({person.employee_id})")
+            for person in query.get_persons()
+        ]
+
+    form.guarantor.choices = [(None, None)] + [(person.id, f'{person.name}, {person.employee_id}') for person in query.get_persons()]
+    form.guarantor_2.choices = [(None, None)] + [(person.id, f'{person.name}, {person.employee_id}') for person in query.get_persons()]
+
+    if request.method == "POST":
+        if form.validate_on_submit():
+            # Update the loan data
+            loan.amount = form.amount.data
+            loan.description = form.description.data
+            loan.date = form.date.data
+            loan.bank_id = form.bank.data
+            loan.ref_no = form.ref_no.data
+            guarantors = []
+            
+            guarantor = form.guarantor.data
+            if guarantor != "None":
+                guarantor = query.get_person(guarantor)
+                guarantors.append(guarantor)
+            
+            guarantor_2 = form.guarantor_2.data
+            if guarantor_2 != "None":
+                guarantor_2 = query.get_person(guarantor_2)
+                guarantors.append(guarantor_2)
+            
+            # Update the loan record in the database
+            test = query.update_loan(loan.id,loan.amount,loan.datedate,loan.ref_no,loan.bank_id,loan.description,guarantors=guarantors)  # Replace with your logic to update the loan
+            if test:
+                flash("Loan updated successfully.", "success")
+                return redirect(url_for("dashboard"))
+            else:
+                flash("Something went wrong during the update.", "error")
+        
+        else:
+            flash(form.errors, "error")
+    
+    # Prepopulate the form fields with existing loan data
+    form.name.data = loan.person  # Replace with your logic to retrieve user_id
+    form.amount.data = loan.amount
+    form.description.data = loan.description
+    form.date.data = loan.date
+    form.bank.data = loan.bank_id
+    form.ref_no.data = loan.ref_no
+    form.guarantor.data = loan.guarantor_id  # Replace with your logic to retrieve guarantor_id
+    form.guarantor_2.data = loan.guarantor_2_id  # Replace with your logic to retrieve guarantor_2_id
+
+    form.ref_no.render_kw = {'readonly': True}
+    form.fee.render_kw = {'readonly': True}
+    form.description.render_kw = {'readonly': True}
+    
     return render_template("forms/register_loan.html", form=form)
 
 
@@ -482,8 +562,10 @@ def make_income():
             bank_id = form.bank.data
             ref_no = form.ref_no.data
 
+            income = Income.query.get(id=id)
+
             query.add_income(
-                id,
+                income,
                 amount,
                 date,
                 ref_no,
@@ -655,25 +737,27 @@ def approve_withdrawal(request_id):
 def request_loan():
     form = LoanForm()
     form.name.choices = [
-        (person.id, (f"{person.name} ({person.employee_id})"))
-        for person in query.get_registered()
+        (person.id, (f"{person.name} ({person.person.employee_id})"))
+        for person in query.get_registered() if person.loan == True and person.is_approved==False
     ]
     form.start_date.data = pd.to_datetime("today")
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
+    form.amount.render_kw = {'readonly': True}
 
     from dateutil.relativedelta import relativedelta
 
     if request.method == "POST":
         if form.validate_on_submit():
             employee = query.get_registered_person(form.name.data)
-            employee_id = employee.employee_id
-            person = Person.query.filter_by(employee_id=employee_id).first()
+            employee_id = employee.person_id
+            person = Person.query.filter_by(id=employee_id).first()
+            pre_loan = person.loan_form_payment[0]
             duration = int(form.duration.data)
             end_date = form.start_date.data + relativedelta(months=duration)
             test = query.make_loan_request(
+                pre_loan=pre_loan,
                 bank_id=form.bank.data,
-                employee_id=person.employee_id,
-                amount=form.amount.data,
+                id=person.id,
                 interest_rate=form.interest_rate.data,
                 start_date=form.start_date.data,
                 end_date=end_date,
@@ -695,12 +779,24 @@ def request_loan():
 @role_required(["Admin"])
 def approval():
     loans = query.get_loans()
+    loans= [loan for loan in loans if loan.is_approved==True and Loan.admin_approval==False]
     
     withdrawals = WithdrawalRequest.query.filter_by(is_approved=False).all()
 
     return render_template("admin/approval.html", loans=loans, withdrawals=withdrawals)
 
-     
+@app.route("/loan/reject/<int>:loan_id")     
+@login_required
+@role_required(["Admin"])
+def reject_loan(loan_id):
+    test = query.reject_loan(loan_id)
+    if test == True:
+        flash("Loan rejected successfully.", "success")
+    else:
+        flash(test, "error")
+        log_report(test)
+
+    return redirect(url_for("approval"))
 
 @app.route("/loan/approve/<int:loan_id>", methods=["GET"])
 @login_required
@@ -1328,16 +1424,33 @@ def forgot_password():
 
 
 # API endpoints
+
+from flask import jsonify
+
+@app.route("/get_loan_data/<int:person_id>")
+@login_required
+@role_required(["Admin", "Secretary"])
+def get_loan_data(person_id):
+    
+    person = query.get_person(person_id)
+    payment = person.loan_form_payment
+    amount = payment[0].loan_amount
+    return format_currency(amount)
+
+@app.route("/get_balance/<int:person_id>")
+@login_required
+def get_balance(person_id):
+    selected_person = Person.query.get(person_id)
+    if selected_person:
+        return format_currency(selected_person.available_balance)
+    else:
+        return jsonify(error="Person not found"), 404
+
 @app.route("/get_person_info/<person_id>")
+@login_required
 def get_person_info(person_id):
     person = query.get_person(person_id)
     return person.to_json()
-
-# @app.route("/get_person_balance/<person_id>")
-# def get_person_info(person_id):
-#     person = query.get_person(person_id)
-
-#     return person.to_json()
 
 
 @app.route("/search_suggestions", methods=["GET"])
@@ -1368,15 +1481,6 @@ def get_sub_accounts(main_account_id):
     ]
 
     return jsonify(sub_account_options)
-
-
-@app.route("/get_balance/<int:person_id>")
-def get_balance(person_id):
-    selected_person = Person.query.get(person_id)
-    if selected_person:
-        return format_currency(selected_person.available_balance)
-    else:
-        return jsonify(error="Person not found"), 404
 
 
 # errorhandlers

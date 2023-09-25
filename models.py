@@ -104,7 +104,9 @@ class Person(db.Model, UserMixin):
     
     def get_guaranteed_payments(self):
         # Query LoanFormPayment instances where this Person is a guarantor
-        return LoanFormPayment.query.filter(LoanFormPayment.guarantors.any(id=self.id)).all()
+        loan = LoanFormPayment.query.filter(LoanFormPayment.guarantors.any(id=self.id)).all()
+        ret = [l for l in loan if not l.loan]
+        return ret
     
     @property
     def total_balance(self):
@@ -202,6 +204,7 @@ class Loan(db.Model):
     )
     is_paid = db.Column(db.Boolean, default=False)
     is_approved = db.Column(db.Boolean, default=False)
+    admin_approved = db.Column(db.Boolean, default=False)
     approved_by = db.Column(db.Integer, db.ForeignKey("persons.id"), nullable=True)
 
     def to_json(self):
@@ -607,54 +610,69 @@ loan_payment_guarantor_association = db.Table(
     'loan_payment_guarantor_association',
     db.Column('loan_payment_id', db.Integer, db.ForeignKey('loan_form_payment.id')),
     db.Column('guarantor_id', db.Integer, db.ForeignKey('persons.id')))
- 
+class GuarantorContribution(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    loan_form_payment_id = db.Column(db.Integer, db.ForeignKey('loan_form_payment.id', ondelete='SET NULL'))
+    guarantor_id = db.Column(db.Integer, db.ForeignKey('persons.id'))
+    contribution_amount = db.Column(db.Float, default=0.0)
+    
+    # Make the loan_id relationship nullable
+    loan_id = db.Column(db.Integer, db.ForeignKey('loans.id'), nullable=True)
+    
+    # Define a relationship with Person to access the guarantor
+    guarantor = db.relationship("Person", foreign_keys=[guarantor_id], backref="guarantor_contributions")
+    
+    # Define a relationship with Loan, making it nullable
+    loan = db.relationship("Loan", foreign_keys=[loan_id], backref="guarantor_contributions")
+
 class LoanFormPayment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
-    person=db.relationship("Person", backref="loan_form_payment")
-    person_id = db.Column(db.Integer, db.ForeignKey('persons.id'))
-    loan = db.Column(db.Boolean,default = False)
-    failed = db.Column(db.Boolean,default = False)
+    person_id = db.Column(db.Integer, db.ForeignKey('persons.id'), unique=True)
+    loan = db.Column(db.Boolean, default=False)
+    failed = db.Column(db.Boolean, default=False)
     loan_amount = db.Column(db.Float, default=0.0)
+    
+    # Define a relationship with Person to access the person associated with this loan
+    person = db.relationship("Person", backref="loan_form_payment")
+    
     guarantors = db.relationship("Person", secondary=loan_payment_guarantor_association)
     guarantor_amount = db.Column(db.Float, default=0.0)
     is_approved = db.Column(db.Boolean, default=False)
-    consent =db.Column(db.Integer,nullable=True,default=0)
+    consent = db.Column(db.Integer, nullable=True, default=0)
+    
+    # Define a relationship with GuarantorContribution to access contributions for this loan
+    guarantor_contributions = db.relationship("GuarantorContribution", backref="loan_form_payment",cascade="all, delete-orphan")
 
-    def approve(self):
-        self.is_approved = True
-        db.session.commit()
+
 
     def move_to_loan(self):
-        if self.consent==self.guarantors.count():
-            if self.guarantor_amount+self.person_id.available_balance >= self.loan_amount:
-                self.approve()
+        log_report(self.consent)
+        log_report(len(self.guarantors))
+        if self.consent==len(self.guarantors):
+            log_report(self.consent)
+            log_report(len(self.guarantors))
+            if self.guarantor_amount+self.person.available_balance >= self.loan_amount:
+                log_report(self.guarantor_amount+self.person.available_balance)
+                log_report(self.loan_amount)
                 self.loan = True
-                db.session.commit()
                 return True
             else:
                 self.failed = True
-                db.session.commit()
                 return False
-            
-    def failed(self):
+        else:
+            return False
+    
+    def loan_failed(self):
         self.failed = True
-        db.session.commit()
+    
 
 
 from sqlalchemy import event
 
-def on_loan_payment_update(target,*args, **kwargs):
-    target.move_to_loan()
-
-# Attach the event listener to the LoanFormPayment class
-event.listen(LoanFormPayment, 'after_update', on_loan_payment_update)
-
-@event.listens_for(LoanFormPayment.guarantors, "remove")
-def guarantors_changed(target,*args, **kwargs):
-    target.failed() 
-
-
+def log_report(target):
+    with open('report.txt', 'a') as f:
+        f.write(f'Loan Payment {target} was updated at {datetime.now()}\n')
 
 with app.app_context():
     db.create_all()

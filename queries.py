@@ -211,7 +211,7 @@ class Queries:
             person = Person.query.filter_by(id=id).first()
             if person:
     
-                form_payment = LoanFormPayment(name=person.name,loan_amount=amount,person_id=person.id, loan=loan,guarantors=guarantors)
+                form_payment = LoanFormPayment(name=person.name,loan_amount=amount,person_id=person.id,guarantors=guarantors)
                 self.db.session.add(form_payment)
 
                 if loan:
@@ -219,7 +219,7 @@ class Queries:
 
                 income = Income.query.filter_by(name=name).first()
                 self.add_income(
-                     income.id, amount, date, ref_no, bank_id, description
+                     income, amount, date, ref_no, bank_id, description
                 )
                 self.db.session.commit()
                 return True
@@ -227,24 +227,66 @@ class Queries:
             self.db.session.rollback()
             return str(e)
         
-        
-    def give_consent(self,loan,person,amount):
+    def update_loan(self, loan_id, amount, date, ref_no, bank_id, description, guarantors=[]):
         try:
-            loan.guarantor_amount += float(amount)
-            loan.consent += 1
-            person.available_balance -= float(amount)
-            person.balance_withheld += float(amount)
-            db.session.commit()
-            return True
+            loan = LoanFormPayment.query.get(loan_id)
+
+            if loan:
+                # Update the loan record with the new values
+                loan.loan_amount = amount
+                loan.date = date
+                loan.ref_no = ref_no
+                loan.bank_id = bank_id
+                loan.description = description
+
+                # Clear existing guarantors and add new ones
+                loan.guarantors.clear()
+                for guarantor in guarantors:
+                    loan.guarantors.append(guarantor)
+
+                self.db.session.commit()
+                return True
+            else:
+                return False  # Loan record with the given loan_id not found
+        except Exception as e:
+            self.db.session.rollback()
+            return str(e)
+        
+        
+    def give_consent(self, loan, person, amount):
+        try:
+            existing_contributions = GuarantorContribution.query.filter_by(
+            loan_form_payment_id=loan.id,
+            guarantor_id=person.id
+            ).first()
+
+            if existing_contributions is None:
+                loan.consent += 1
+                # Update the guarantor_amount
+                loan.guarantor_amount += float(amount)
+                loan.move_to_loan()
+
+                # Create a new GuarantorContribution record to track the contribution
+                contribution = GuarantorContribution(loan_form_payment=loan, guarantor=person, contribution_amount=float(amount))
+                db.session.add(contribution)
+
+                person.available_balance -= float(amount)
+                person.balance_withheld += float(amount)
+                db.session.commit()
+                log_report(loan.loan)
+                return True
+            else:
+                return "You have already given consent"
         except Exception as e:
             db.session.rollback()
             return str(e)
+
             
 
     def add_income(self, id, amount, date, ref_no, bank_id, description):
         bank = Bank.query.filter_by(id=bank_id).first()
         if bank:
-            income = Income.query.filter_by(id=id).first()
+            income = id
             income.balance += float(amount)
             income_payment = IncomePayment(
                 amount=float(amount),
@@ -254,7 +296,7 @@ class Queries:
                 ref_no=ref_no,
                 balance=income.balance,
                 bank_id=bank.id,
-                income_id=id,
+                income_id=income.id,
             )
 
             self.db.session.add(income_payment)
@@ -519,8 +561,8 @@ class Queries:
 
     def make_loan_request(
         self,
-        employee_id,
-        amount,
+        id,
+        pre_loan,
         interest_rate,
         start_date,
         end_date,
@@ -529,7 +571,7 @@ class Queries:
         ref_no,
     ):
         try:
-            person = Person.query.filter_by(employee_id=employee_id).first()
+            person = Person.query.filter_by(id=id).first()
 
             if not person:
                 raise ValueError("Person not found.")
@@ -537,7 +579,7 @@ class Queries:
             if person:
                 loan = Loan(
                     person_id=person.id,
-                    amount=amount,
+                    amount=pre_loan.loan_amount,
                     interest_rate=interest_rate,
                     start_date=start_date,
                     end_date=end_date,
@@ -545,8 +587,30 @@ class Queries:
                     description=description,
                     ref_no=ref_no,
                 )
+                loan.is_approved=True
                 self.db.session.add(loan)
-                self.delete_registered(person.employee_id)
+                self.db.session.commit()
+                log_report('how e take reach here')
+                for contribution in pre_loan.guarantor_contributions:
+                    contribution.loan_id = loan.id
+                pre_loan.is_approved = True
+                self.db.session.commit()
+                return True
+        except Exception as e:
+            self.db.session.rollback()
+            return str(e)
+        
+    def reject_loan(self, loan_id):
+        try:
+            loan = LoanFormPayment.query.get(loan_id)
+            pre_loan=self.get_registered(pre_loan.person_id)
+
+            if not pre_loan:
+                raise ValueError("Loan not found.")
+
+            if pre_loan:
+                pre_loan.is_approved = False
+                pre_loan.admin_approved = False
                 self.db.session.commit()
                 return True
         except Exception as e:
@@ -562,6 +626,7 @@ class Queries:
 
             if not loan.is_approved:
                 loan.is_approved = True
+                loan.admin_approved = True
 
                 # Calculate interest amount based on loan amount and interest rate
                 interest_amount = loan.amount * (loan.interest_rate / 100)
@@ -569,7 +634,7 @@ class Queries:
                 # Update the person's loan balance by adding the loan amount and interest
                 person = Person.query.get(loan.person_id)
                 person.loan_balance += loan.amount + interest_amount
-
+                self.delete_registered(person.id)
                 # Create a loan payment record for the loan amount
                 loan_payment = LoanPayment(
                     amount=loan.amount,
@@ -632,98 +697,6 @@ class Queries:
         except Exception as e:
             self.db.session.rollback()
             return str(e)
-
-
-    # def make_loan(
-    #     self,
-    #     employee_id,
-    #     amount,
-    #     bank_id,
-    #     interest_rate,
-    #     start_date,
-    #     end_date,
-    #     description,
-    #     ref_no,
-    # ):
-    #     try:
-    #         person = Person.query.filter_by(employee_id=employee_id).first()
-            
-    #         if not person:
-    #             raise ValueError("Person not found.")
-    #         if person:
-    #             person.loan_balance += float(amount)
-
-    #             loan = Loan(
-    #                 person_id=person.id,
-    #                 amount=amount,
-    #                 interest_rate=interest_rate,
-    #                 start_date=start_date,
-    #                 end_date=end_date,
-    #             )
-    #             self.db.session.add(loan)
-
-    #             loan_payment = LoanPayment(
-    #                 amount=amount,
-    #                 exact_date=datetime.utcnow(),
-    #                 date=start_date,
-    #                 description=description,
-    #                 ref_no=ref_no,
-    #                 balance=person.loan_balance,
-    #                 person_id=person.id,
-    #             )
-    #             self.db.session.add(loan_payment)
-
-    #             interest_amount = float(amount) * (float(interest_rate) / 100)
-    #             person.loan_balance += interest_amount
-    #             interest_payment = LoanPayment(
-    #                 amount=interest_amount,
-    #                 exact_date=datetime.utcnow(),
-    #                 date=start_date,
-    #                 description=description,
-    #                 ref_no=ref_no,
-    #                 balance=person.loan_balance,
-    #                 person_id=person.id,
-    #             )
-
-    #             self.db.session.add(interest_payment)
-    #             name = "Interest"
-    #             income_description = f"Interest on loan given to {person.employee_id}"
-    #             income = Income.query.filter_by(name=name).first()
-
-    #             income.balance += float(interest_amount)
-    #             income_payment = IncomePayment(
-    #             amount=float(interest_amount),
-    #             date=start_date,
-    #             description=income_description,
-    #             ref_no=ref_no,
-    #             balance=income.balance,
-    #             bank_id=bank_id,
-    #             income_id=income.id,
-    #             )
-
-    #             self.db.session.add(income_payment)
-                
-
-    #             bank = Bank.query.filter_by(id=bank_id).first()
-
-    #             if bank:
-    #                 bank.new_balance -= float(amount)
-    #                 bank_payment = BankPayment(
-    #                     amount=-1 * amount,
-    #                     date=start_date,
-    #                     person_id=person.id,
-    #                     description=f"loan given to {person.employee_id}",
-    #                     bank_balance=bank.new_balance,
-    #                     bank_id=bank.id,
-    #                     ref_no=ref_no,
-    #                 )
-    #                 self.db.session.add(bank_payment)
-    #                 self.delete_registered(person.employee_id)
-    #                 self.db.session.commit()
-    #                 return True
-    #     except Exception as e:
-    #         self.db.session.rollback()
-    #         return str(e)
 
     def repay_loan(self, id, amount, date, bank_id, ref_no, description=None):
         try:
@@ -958,10 +931,10 @@ class Queries:
 
         return LoanFormPayment.query.filter_by(id=id).first()
     
-    def delete_registered(self,employee_id):
-        person = LoanFormPayment.query.filter_by(employee_id=employee_id).first()
+    def delete_registered(self,id):
+        person = LoanFormPayment.query.filter_by(id=id).first()
         db.session.delete(person)
-        db.session.commit()
+        
     
     def get_person(self, person_id):
         person = Person.query.filter_by(id=person_id).first()
