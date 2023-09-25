@@ -586,8 +586,8 @@ class Queries:
                     bank_id=bank_id,
                     description=description,
                     ref_no=ref_no,
+                    is_approved=True
                 )
-                loan.is_approved=True
                 self.db.session.add(loan)
                 self.db.session.commit()
                 log_report('how e take reach here')
@@ -602,8 +602,8 @@ class Queries:
         
     def reject_loan(self, loan_id):
         try:
-            loan = LoanFormPayment.query.get(loan_id)
-            pre_loan=self.get_registered(pre_loan.person_id)
+            loan = Loan.query.get(loan_id)
+            pre_loan=self.get_registered_person(loan.person_id)
 
             if not pre_loan:
                 raise ValueError("Loan not found.")
@@ -612,7 +612,11 @@ class Queries:
                 pre_loan.is_approved = False
                 pre_loan.admin_approved = False
                 self.db.session.commit()
-                return True
+            #delete loan
+            self.db.session.delete(loan)
+            self.db.session.commit()
+            return True
+            
         except Exception as e:
             self.db.session.rollback()
             return str(e)

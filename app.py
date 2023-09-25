@@ -701,6 +701,22 @@ def request_withdrawal():
 
     return render_template("forms/withdraw.html", form=form)
 
+@app.route("/withdraw/reject/<int:request_id>")
+@login_required
+@role_required(["Admin"])
+def reject_withdrawal(request_id):
+    wr= WithdrawalRequest.query.get(request_id)
+    if not wr:
+        flash("Withdrawal request not found.", "error")
+    elif wr.is_approved:
+        flash("Withdrawal request is already approved.", "error")
+    else:
+        #delete the withdrawal request
+        db.session.delete(wr)
+        db.session.commit()
+        flash("Withdrawal request rejected successfully.", "success")
+        return redirect(url_for("approval"))
+
 @app.route("/withdraw/approve/<int:request_id>", methods=["GET"])
 @login_required
 @role_required(["Admin"])
@@ -779,13 +795,13 @@ def request_loan():
 @role_required(["Admin"])
 def approval():
     loans = query.get_loans()
-    loans= [loan for loan in loans if loan.is_approved==True and Loan.admin_approval==False]
+    loans= [loan for loan in loans if loan.is_approved==True and loan.admin_approved==False]
     
     withdrawals = WithdrawalRequest.query.filter_by(is_approved=False).all()
 
     return render_template("admin/approval.html", loans=loans, withdrawals=withdrawals)
 
-@app.route("/loan/reject/<int>:loan_id")     
+@app.route("/loan/reject/<int:loan_id>")     
 @login_required
 @role_required(["Admin"])
 def reject_loan(loan_id):

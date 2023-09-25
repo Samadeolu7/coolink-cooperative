@@ -925,3 +925,16 @@
 .approve-button:hover {
     background-color: #218838;
 }
+
+.reject-button {
+    display: inline-block;
+    background-color: #dc3545;
+    color: #fff;
+    padding: 5px 10px;
+    text-decoration: none;
+    border-radius: 3px;
+}
+
+.reject-button:hover {
+    background-color: #c82333;
+}
