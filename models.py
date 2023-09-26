@@ -1,9 +1,10 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime, date
+from datetime import datetime
 from flask_login import UserMixin
 from dotenv import load_dotenv
-#import event
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import validates
 from sqlalchemy import event
 import os
 
@@ -110,7 +111,13 @@ class Person(db.Model, UserMixin):
         ret = [l for l in loan if not l.loan]
         return ret
     
-    @property
+    @validates("balance_bfd", "balance_withheld", "available_balance", "loan_balance", "loan_balance_bfd")
+    def validate_non_negative(self, key, value):
+        if value < 0:
+            raise ValueError(f"{key} cannot be negative")
+        return value
+    
+    @hybrid_property
     def total_balance(self):
         return self.available_balance + self.balance_withheld
 
