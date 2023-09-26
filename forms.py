@@ -209,7 +209,7 @@ class EditProfileForm(FlaskForm):
 class RegisterLoanForm(FlaskForm):
 
     name = SelectField("Select Person", validators=[DataRequired()])
-    fee= DecimalField("Loan Registration Fee", validators=[DataRequired()])
+    fee= IntegerField("Loan Registration Fee")
     amount = DecimalField("Amount", validators=[DataRequired()])
     remaining_amount = DecimalField("Remaining Amount")
     no_of_guarantors = SelectField(
@@ -220,7 +220,7 @@ class RegisterLoanForm(FlaskForm):
     date = DateField("Date", validators=[DataRequired()])
     bank = SelectField("Bank", coerce=int, validators=[DataRequired()])
     description = StringField("Description")
-    ref_no = StringField("Ref Number", validators=[DataRequired()])
+    ref_no = StringField("Ref Number")
     submit = SubmitField("Submit")
 
 class ConsentForm(FlaskForm):

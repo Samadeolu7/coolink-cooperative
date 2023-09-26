@@ -3,6 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, date
 from flask_login import UserMixin
 from dotenv import load_dotenv
+#import event
+from sqlalchemy import event
 import os
 
 load_dotenv()
@@ -658,14 +660,33 @@ class LoanFormPayment(db.Model):
                 self.loan = True
                 return True
             else:
-                self.failed = True
+                self.loan_failed()
                 return False
         else:
             return False
-    
+        
     def loan_failed(self):
+        self.consent = 0
+        self.guarantor_amount = 0
+        self.is_approved = False
+        self.guarantors = []
+
+        # Delete associated GuarantorContribution records
+        for contribution in self.guarantor_contributions:
+            db.session.delete(contribution)
+
+        self.guarantor_contributions = []
+
         self.failed = True
+        db.session.commit()
     
+@event.listens_for(LoanFormPayment, 'after_delete')
+def delete_orphaned_guarantor_contributions(mapper, connection, target):
+    for contribution in target.guarantor_contributions:
+        db.session.delete(contribution)
+
+
+
 
 
 from sqlalchemy import event

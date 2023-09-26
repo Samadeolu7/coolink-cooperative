@@ -227,19 +227,16 @@ class Queries:
             self.db.session.rollback()
             return str(e)
         
-    def update_loan(self, loan_id, amount, date, ref_no, bank_id, description, guarantors=[]):
+    def update_loan(self, loan_id, amount,guarantors=[]):
         try:
             loan = LoanFormPayment.query.get(loan_id)
 
             if loan:
                 # Update the loan record with the new values
                 loan.loan_amount = amount
-                loan.date = date
-                loan.ref_no = ref_no
-                loan.bank_id = bank_id
-                loan.description = description
 
                 # Clear existing guarantors and add new ones
+                loan.failed = False
                 loan.guarantors.clear()
                 for guarantor in guarantors:
                     loan.guarantors.append(guarantor)

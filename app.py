@@ -449,7 +449,7 @@ def register_loan():
 @login_required
 def update_loan(loan_id):
     form = RegisterLoanForm()
-    loan = LoanFormPayment(loan_id)  # Replace with your logic to fetch the existing loan data
+    loan = LoanFormPayment.query.get(loan_id)  # Replace with your logic to fetch the existing loan data
     
     if current_user.role.name == "User":
         form.name.choices = [(current_user.id, f"{current_user.name} ({current_user.employee_id}))")]
@@ -458,6 +458,7 @@ def update_loan(loan_id):
             (person.id, f"{person.name} ({person.employee_id})")
             for person in query.get_persons()
         ]
+    form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
 
     form.guarantor.choices = [(None, None)] + [(person.id, f'{person.name}, {person.employee_id}') for person in query.get_persons()]
     form.guarantor_2.choices = [(None, None)] + [(person.id, f'{person.name}, {person.employee_id}') for person in query.get_persons()]
@@ -483,7 +484,7 @@ def update_loan(loan_id):
                 guarantors.append(guarantor_2)
             
             # Update the loan record in the database
-            test = query.update_loan(loan.id,loan.amount,loan.datedate,loan.ref_no,loan.bank_id,loan.description,guarantors=guarantors)  # Replace with your logic to update the loan
+            test = query.update_loan(loan.id,loan.amount,guarantors=guarantors)  # Replace with your logic to update the loan
             if test:
                 flash("Loan updated successfully.", "success")
                 return redirect(url_for("dashboard"))
@@ -495,17 +496,17 @@ def update_loan(loan_id):
     
     # Prepopulate the form fields with existing loan data
     form.name.data = loan.person  # Replace with your logic to retrieve user_id
-    form.amount.data = loan.amount
-    form.description.data = loan.description
-    form.date.data = loan.date
-    form.bank.data = loan.bank_id
-    form.ref_no.data = loan.ref_no
-    form.guarantor.data = loan.guarantor_id  # Replace with your logic to retrieve guarantor_id
-    form.guarantor_2.data = loan.guarantor_2_id  # Replace with your logic to retrieve guarantor_2_id
+    form.amount.data = loan.loan_amount
+    if loan.guarantors:
+
+        form.guarantor.data = loan.guarantors[0] # Replace with your logic to retrieve guarantor_id
+        if len(loan.guarantors) == 2:
+            form.guarantor_2.data = loan.guarantor[1] # Replace with your logic to retrieve guarantor_2_id
 
     form.ref_no.render_kw = {'readonly': True}
     form.fee.render_kw = {'readonly': True}
-    form.description.render_kw = {'readonly': True}
+    form.fee.data = 2000
+
     
     return render_template("forms/register_loan.html", form=form)
 
@@ -515,13 +516,13 @@ def update_loan(loan_id):
 def give_consent(loan_id):
     form = ConsentForm()
     loan = LoanFormPayment.query.get(loan_id)
-    form.consent.choices = [(None, None), (True, "Yes"), (False, "No")]
+    form.consent.choices = [(3, "None"), (1, "Yes"), (2, "No")]
     if loan:
         if current_user in loan.guarantors:
             if request.method == "POST":
                 if form.validate_on_submit():
                     consent = form.consent.data
-                    if consent == "True":
+                    if consent == "1" :
                         test = query.give_consent(loan, current_user,form.amount.data)
                         if test == True:
                             flash("Consent submitted successfully.", "success")
@@ -530,8 +531,14 @@ def give_consent(loan_id):
                             flash(test, "error")
                             log_report(test)
                     else:
-                        loan.guarantors.remove(current_user.id)
-                        db.session.commit()
+                        try:
+                            loan.loan_failed()
+                            db.session.commit()
+                        except Exception as e:
+                            db.session.rollback()
+                            log_report(e)
+                            flash(f"Something went wrong. {e}", "error")
+                            return redirect(url_for("dashboard"))
                         flash("Consent not given.", "error")
                         return redirect(url_for("dashboard"))
                 else:
