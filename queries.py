@@ -203,6 +203,15 @@ class Queries:
             self.add_liability(sub_id, amount, date, ref_no, bank_id, description)
 
 
+    def add_journal_transaction(self, id, sub_id, amount, date, ref_no, bank_id, description):
+        if id == "savings":
+            self.save_amount(sub_id, amount, date, ref_no, bank_id, description)
+        elif id == "loan":
+            self.repay_loan(sub_id, amount, date, bank_id, ref_no, description)
+        elif id == "company":
+            self.company_payment(
+                sub_id, amount, date, description,ref_no, bank_id)
+            
     
     def registeration_payment(
         self, id, amount, date, ref_no, bank_id, description, loan=False,guarantors=[]
@@ -258,17 +267,18 @@ class Queries:
             ).first()
 
             if existing_contributions is None:
-                loan.consent += 1
+                
+                contribution = GuarantorContribution(loan_form_payment=loan, guarantor=person, contribution_amount=float(amount))
+                db.session.add(contribution)
+                person.available_balance -= float(amount)
+                person.balance_withheld += float(amount)
                 # Update the guarantor_amount
                 loan.guarantor_amount += float(amount)
+                loan.consent += 1
                 loan.move_to_loan()
 
                 # Create a new GuarantorContribution record to track the contribution
-                contribution = GuarantorContribution(loan_form_payment=loan, guarantor=person, contribution_amount=float(amount))
-                db.session.add(contribution)
-
-                person.available_balance -= float(amount)
-                person.balance_withheld += float(amount)
+                
                 db.session.commit()
                 log_report(loan.loan)
                 return True
@@ -861,7 +871,7 @@ class Queries:
                 company.amount_acumulated -= float(amount)
                 company_payment = CompanyPayment(
                     amount=-amount,
-                    date=date,
+                    date=datetime.utcnow(),
                     exact_date=datetime.utcnow(),
                     description=description,
                     ref_no=ref_no,
@@ -875,7 +885,7 @@ class Queries:
                 bank.balance += float(amount)
                 bank_payment = BankPayment(
                     amount=amount,
-                    date=date,
+                    date=datetime.utcnow(),
                     exact_date=datetime.utcnow(),
                     description=description,
                     ref_no=ref_no,
@@ -907,6 +917,16 @@ class Queries:
         elif ledger == 3:
             sub_accounts = Investment.query.all()
             return sub_accounts
+        
+    def sub_journal(self, journal):
+        if journal == "savings":
+            return self.get_persons()
+        elif journal == "loan":
+            loan = self.get_loans()
+            persons = [l.person for l in loan]
+            return persons
+        elif journal == "company":
+            return self.get_companies()
 
     # queries
     def get_companies(self):

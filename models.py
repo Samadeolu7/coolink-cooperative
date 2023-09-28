@@ -226,6 +226,16 @@ class Loan(db.Model):
             "end_date": self.end_date,
             "is_paid": self.is_paid,
         }
+    
+    def payment_complete(self):
+        if self.person.loan_balance == 0:
+            self.is_paid = True
+            for contribution in self.guarantor_contributions:
+                contribution.guarantor.available_balance += contribution.contribution_amount
+                contribution.guarantor.balance_withheld -= contribution.contribution_amount
+                db.session.delete(contribution)
+            self.guarantor_contributions = []
+            db.session.commit()
 
 
 class LoanPayment(db.Model):
@@ -656,14 +666,9 @@ class LoanFormPayment(db.Model):
 
 
     def move_to_loan(self):
-        log_report(self.consent)
-        log_report(len(self.guarantors))
         if self.consent==len(self.guarantors):
-            log_report(self.consent)
-            log_report(len(self.guarantors))
+
             if self.guarantor_amount+self.person.available_balance >= self.loan_amount:
-                log_report(self.guarantor_amount+self.person.available_balance)
-                log_report(self.loan_amount)
                 self.loan = True
                 return True
             else:
@@ -676,13 +681,26 @@ class LoanFormPayment(db.Model):
         self.consent = 0
         self.guarantor_amount = 0
         self.is_approved = False
-        self.guarantors = []
+
+        log_report("guarantor contributions")
+
+        log_report(self.guarantor_contributions)
+        log_report(GuarantorContribution.query.all())
 
         # Delete associated GuarantorContribution records
-        for contribution in self.guarantor_contributions:
+        for contribution in GuarantorContribution.query.filter_by(loan_form_payment_id=self.id).all():
+            contribution.guarantor.available_balance += contribution.contribution_amount
+            log_report("available balance")
+            log_report(contribution.guarantor.available_balance)
+            contribution.guarantor.balance_withheld -= contribution.contribution_amount
+            id = contribution.id
+            log_report('id')
+            log_report(id)
+            contribution=GuarantorContribution.query.get(id)
             db.session.delete(contribution)
 
         self.guarantor_contributions = []
+        self.guarantors = []
 
         self.failed = True
         db.session.commit()
@@ -694,13 +712,11 @@ def delete_orphaned_guarantor_contributions(mapper, connection, target):
 
 
 
-
-
 from sqlalchemy import event
 
 def log_report(target):
     with open('report.txt', 'a') as f:
-        f.write(f'Loan Payment {target} was updated at {datetime.now()}\n')
+        f.write(f'{target}\n')
 
 with app.app_context():
     db.create_all()
@@ -752,3 +768,4 @@ with app.app_context():
             )
         )
         db.session.commit()
+    log_report(GuarantorContribution.query.all())

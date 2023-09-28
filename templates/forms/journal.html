@@ -1,0 +1,124 @@
+{%extends 'base.html' %}
+
+{%block title%}
+Bank Payment Voucher
+{% endblock %}
+
+{% block header%}
+Bank Payment Voucher
+{% endblock  %}
+
+{% block anchor%}
+<a href="{{ url_for('forms') }}" id='arrow'><i class="fa-solid fa-arrow-left"></i></a>
+{% endblock  %}
+
+{%block content%}
+<body id="form">
+        <div class = "flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flash-messages">
+                    {% for message in messages %}
+                        <li class="fade-out {{message[0]}}">{{message[1]}}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            {% endwith %}
+            </div>
+    <div class="full-form-content">
+
+        <div class="form-wrapper" id="long-form">
+
+            <form method="POST" id="expenseForm">
+                {{ form.hidden_tag() }}
+
+                <h1>Bank Payment Voucher</h1>
+
+                <div class="form-label">
+                {{ form.main_account.label (class_='input-label') }} <br></div>
+                
+                <div class="form-box">
+                {{ form.main_account(id="main_account", class_="input") }}
+                <br></div>
+
+                <div class="form-label">
+                {{ form.sub_account.label (class_='input-label')  }} <br></div>
+                
+                <div class="form-box">
+                {{ form.sub_account(id="sub_account", class_="input") }}<br></div>
+
+                <div class="form-label">
+                {{ form.amount.label(class_='input-label') }} <br>
+                </div>
+        
+                <div class="form-box">
+                {{ form.amount(class_="input") }}
+                <br></div>
+
+                <div class="form-label">
+                {{ form.bank.label(class_='input-label') }} <br>
+                </div>
+        
+                <div class="form-box">
+                {{ form.bank(class_="input") }}
+                <br></div>
+
+                <div class="form-label">
+                {{ form.date.label (class_='input-label')}} <br>
+                </div>
+        
+                <div class="form-box">
+                {{ form.date(class_="input") }}
+                <br></div>
+
+                <div class="form-label">
+                {{ form.description.label(class_='input-label') }} <br>
+                </div>
+        
+                <div class="form-box">
+                {{ form.description(class_="input") }}
+                <br></div>
+
+                <div class="form-label">
+                {{ form.ref_no.label(class_='input-label') }} <br>
+                </div>
+        
+                <div class="form-box">
+                {{ form.ref_no(class_="input") }} <br></div>
+
+                <div class="button-wrapper">
+                <input type="submit" value="Submit" class="button"></div>
+            </form>
+        </div>
+        <script>
+            const mainAccountDropdown = document.getElementById('main_account');
+            const subAccountDropdown = document.getElementById('sub_account');
+    
+            // Function to fetch sub-account choices and update the dropdown
+            async function fetchAndPopulateSubAccounts() {
+                const selectedMainAccount = mainAccountDropdown.value;
+                const response = await fetch(`/get_sub_journals/${selectedMainAccount}`);
+                const subAccountChoices = await response.json();
+    
+                // Clear and update sub-account dropdown
+                subAccountDropdown.innerHTML = '';
+                subAccountChoices.forEach(choice => {
+                    const option = new Option(choice.name, choice.id);
+                    subAccountDropdown.appendChild(option);
+                });
+            }
+    
+            // Call the function initially to populate sub-accounts
+            fetchAndPopulateSubAccounts();
+    
+            mainAccountDropdown.addEventListener('change', async (event) => {
+                const selectedMainAccount = event.target.value;
+    
+                // Call the function to update sub-account choices
+                fetchAndPopulateSubAccounts();
+            });
+        </script>
+    </div>
+</body>
+
+{%endblock%}

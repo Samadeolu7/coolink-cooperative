@@ -133,65 +133,68 @@ Register for Loan
   
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script>
-      $(document).ready(function () {
-          // Function to show/hide the "No of Guarantors" field based on total balance.
-          function toggleNoOfGuarantorsField(totalBalance) {
-              var amount = parseFloat($("#amount").val());
+    $(document).ready(function () {
+        // Function to show/hide the "No of Guarantors" field based on total balance.
+        function toggleNoOfGuarantorsField(totalBalance) {
+            var amount = parseFloat($("#amount").val());
 
-              if (amount > totalBalance) {
-                  $("#no_of_guarantors_label").show();
-                  $("#no_of_guarantors_box").show();
-              } else {
-                  $("#no_of_guarantors_label").hide();
-                  $("#no_of_guarantors_box").hide();
-              }
-          }
+            if (amount > totalBalance) {
+                $("#no_of_guarantors_label").show();
+                $("#no_of_guarantors_box").show();
+            } else {
+                $("#no_of_guarantors_label").hide();
+                $("#no_of_guarantors_box").hide();
+            }
+        }
 
-          // Function to show/hide guarantor fields based on the number of guarantors selected.
-          function toggleGuarantorFields() {
-              var numGuarantors = parseInt($("#no_of_guarantors").val());
+        // Function to show/hide guarantor fields based on the number of guarantors selected.
+        function toggleGuarantorFields() {
+            var numGuarantors = parseInt($("#no_of_guarantors").val());
 
-              if (numGuarantors === 1) {
-                  $("#guarantor-label").show();
-                  $("#guarantor-box").show();
-                  $("#guarantor-2-label").hide();
-                  $("#guarantor-2-box").hide();
-              } else if (numGuarantors === 2) {
-                  $("#guarantor-label").show();
-                  $("#guarantor-box").show();
-                  $("#guarantor-2-label").show();
-                  $("#guarantor-2-box").show();
-              } else {
-                  $("#guarantor-label").hide();
-                  $("#guarantor-box").hide();
-                  $("#guarantor-2-label").hide();
-                  $("#guarantor-2-box").hide();
-              }
-          }
+            if (numGuarantors === 1) {
+                $("#guarantor-label").show();
+                $("#guarantor-box").show();
+                $("#guarantor-2-label").hide();
+                $("#guarantor-2-box").hide();
+            } else if (numGuarantors === 2) {
+                $("#guarantor-label").show();
+                $("#guarantor-box").show();
+                $("#guarantor-2-label").show();
+                $("#guarantor-2-box").show();
+            } else {
+                $("#guarantor-label").hide();
+                $("#guarantor-box").hide();
+                $("#guarantor-2-label").hide();
+                $("#guarantor-2-box").hide();
+            }
+        }
 
-          // Listen for changes in the amount field.
-          $("#amount").on("input", function () {
-              var amount = parseFloat($(this).val());
-              var personId = $("#name").val(); // Assuming you have a "name" field in your form.
+        // Initialize with a default total balance of 0.
+        toggleNoOfGuarantorsField(0);
 
-              // Make an AJAX request to your endpoint to get the total balance.
-              $.get("/get_person_info/" + personId, function (data) {
-                  var totalBalance = parseFloat(data.available_balance);
+        // Listen for changes in the amount field.
+        $("#amount").on("input", function () {
+            var amount = parseFloat($(this).val());
+            var personId = $("#name").val(); // Assuming you have a "name" field in your form.
 
-                  toggleNoOfGuarantorsField(totalBalance);
-                  toggleGuarantorFields();
-              });
-          });
+            // Make an AJAX request to your endpoint to get the total balance.
+            $.get("/get_person_info/" + personId, function (data) {
+                var totalBalance = parseFloat(data.available_balance);
 
-          // Listen for changes in the "No of Guarantors" field.
-          $("#no_of_guarantors").on("change", function () {
-              toggleGuarantorFields();
-          });
+                toggleNoOfGuarantorsField(totalBalance);
+                toggleGuarantorFields();
+            });
+        });
 
-          // Initial toggle based on the default values of the amount and "No of Guarantors" fields.
-          toggleGuarantorFields();
-          toggleNoOfGuarantorsField(); // Initialize with a default total balance of 0.
-      });
-  </script>
+        // Listen for changes in the "No of Guarantors" field.
+        $("#no_of_guarantors").on("change", function () {
+            toggleGuarantorFields();
+        });
+
+        // Initial toggle based on the default values of the amount and "No of Guarantors" fields.
+        toggleGuarantorFields();
+    });
+</script>
+  
 </body>
 {% endblock %}

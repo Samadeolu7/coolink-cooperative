@@ -622,51 +622,41 @@ def create_expense():
 
     return render_template("forms/expense_form.html", form=form)
 
+@app.route("/journal", methods=["GET", "POST"])
+@login_required
+@role_required(["Admin", "Secretary"])
+def journal():
+    form = JournalForm()
+    form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
+    loans = [(loan.id, loan.person.name) for loan in query.get_loans()]
+    
+    savings = [(person.id, person.name) for person in query.get_persons()]
+    companies = [
+        (company.id, company.name) for company in query.get_companies()
+    ]
+   
+    form.sub_account.choices = loans + savings + companies
+    form.date.data = pd.to_datetime("today")
+    if request.method == "POST":
+        if form.validate_on_submit():
+            # Handle existing expense selection
+            query.add_journal_transaction(
+                form.main_account.data,
+                form.sub_account.data,
+                form.amount.data,
+                form.date.data,
+                form.ref_no.data,
+                form.bank.data,
+                form.description.data,
+            )
+            flash("Transaction submitted successfully.", "success")
+            return redirect(url_for("dashboard"))
+        else:
+            flash(form.errors, "error")
 
-# @app.route("/withdraw", methods=["GET", "POST"])
-# @login_required
-# @role_required(["Admin", "Secretary"])
-# def withdraw():
-#     # Add logic to retrieve the list of persons from the database
-#     # Replace `get_all_persons()` with an appropriate function that retrieves the list of persons.
-#     persons = query.get_persons()
-#     form = WithdrawalForm()
-#     form.person.choices = [(person.id, person.name) for person in query.get_persons()]
-#     form.bank_id.choices = [(bank.id, bank.name) for bank in query.get_banks()]
-#     form.date.data = pd.to_datetime("today")
-#     if request.method == "POST":
-        
-#         if form.validate_on_submit():
-#             person_id = form.person.data
-#             amount = form.amount.data
-#             description = form.description.data
-#             ref_no = form.ref_no.data
-#             bank_id = form.bank_id.data
-#             date = form.date.data
-#             # Retrieve the selected person from the database
-#             selected_person = query.get_person(person_id)
-#             test = query.withdraw(person_id, amount, description, ref_no, bank_id, date)
-#             if test == True:
-#                 flash(
-#                     f"Withdrawal of {amount} successful for {selected_person.name}. Updated balance: {selected_person.balance_bfd}"
-#                 )
-#                 return redirect("dashboard")
-            
-#             elif test :
-#                 flash(test, "error")
-#                 return render_template(
-#                     "forms/withdraw.html", form=form, persons=persons
-#                 )
-#             else:
-#                 flash(
-#                     f"Insufficient balance for {selected_person.name} to withdraw {amount}."
-#                 )
-#                 return render_template(
-#                     "forms/withdraw.html", form=form, persons=persons
-#                 )
-#         else:
-#             flash(form.errors, "error")
-#     return render_template("forms/withdraw.html", form=form, persons=persons)
+    return render_template("forms/journal.html", form=form)
+
+
 @app.route("/withdraw", methods=["GET", "POST"])
 @login_required
 @role_required(["Admin", "Secretary"])
@@ -1504,7 +1494,18 @@ def get_sub_accounts(main_account_id):
     ]
 
     return jsonify(sub_account_options)
+@app.route("/get_sub_journals/<journal>/")
+def get_sub_journals(journal):
+    # Fetch sub-account options based on the selected main_account
+    # You need to implement this logic based on your database structure
+    sub_accounts = query.sub_journal(journal)
 
+    # Create a list of dictionaries with 'id' and 'name' keys
+    sub_account_options = [
+        {"id": sub_account.id, "name": sub_account.name} for sub_account in sub_accounts
+    ]
+
+    return jsonify(sub_account_options)
 
 # errorhandlers
 

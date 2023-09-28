@@ -120,6 +120,19 @@ class ExpenseForm(FlaskForm):  # bank voucher payment
     bank = SelectField("Bank", choices=[], coerce=int)
     ref_no = StringField("Reference Number")
 
+class JournalForm(FlaskForm):
+    sub_account = SelectField(
+        "Sub-Select Account", choices=[], coerce=int
+    )  # change name to main account
+    amount = IntegerField("Amount", validators=[DataRequired()])
+    date = DateField("Date", validators=[DataRequired()])
+    description = StringField("Description")
+    main_account = SelectField(
+        "Select Account",
+        choices=[('savings', "Savings"), ('loan', "Loan"), ('company', "Company")],
+    )  # change name to sub-account
+    bank = SelectField("Bank", choices=[], coerce=int)
+    ref_no = StringField("Reference Number")
 
 class UploadForm(FlaskForm):
     ref_no = StringField("Reference Number")
