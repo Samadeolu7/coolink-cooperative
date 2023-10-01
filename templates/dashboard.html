@@ -60,11 +60,12 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('approval') }}"><i class="fa-solid fa-user-plus"></i><span>Approvals</span></a>
+                </li>
                 {% endif %}
                 {% if person.role.id == 1 or person.role.id == 3 %}
 
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('edit_profile') }}"><i class="fa-solid fa-circle-info"></i></i><span>Edit Member Info</span></a>
+                    <a class="nav-link" href="{{ url_for('edit_profile') }}"><i class="fa-solid fa-circle-info"></i><span>Edit Member Info</span></a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('reset_password') }}"><i class="fa-solid fa-lock"></i><span>Reset Password</span></a>
@@ -97,127 +98,139 @@
             </div>
 
         </div>
-       
-        <div class="all-cards-wrap">
-        {%block content%} 
-        <h3>Today's data</h3>
-        <div class="all-cards" id="dash-all-cards"> 
+        
+        
+        <div class="all-cards-wrap-new">
+            {%block content%}     
+        <div class="todays-data">
+            <h3>Today's data</h3>
+        </div>
+        
+        <!-- <div class="all-cards-new" id="dash-all-cards-new">  -->
 
-            <div class="card" id="current-bal"> 
-                <div class="container">
-                    
-                    <div class='content-con'>
-                    <a href="{{url_for('savings_account',person_id=person.id)}}">
-                        
-                        <div>
-                        <p><strong>Current Balance:</strong></p>
-                        </div>
-                        
-                        <div>
-                        <p><strong>{{ person.total_balance | currency}}</strong></p>
-                        </div>
-                    </a>
+            <div class="card-new" id="current-bal-new"> 
+                <div class="container-new">
+                    <div class="icon-con">
+                        <i class="fa-solid fa-coins"></i>
+                    </div> 
+
+                    <div class='content-con-new'>
+                        <a href="{{url_for('savings_account',person_id=person.id)}}">
+                            
+                            <div>
+                            <p><strong>Current Balance:</strong></p>
+                            </div>
+                            
+                            <div>
+                            <p><strong>{{ person.total_balance | currency}}</strong></p>
+                            </div>
+                        </a>
                     </div>
 
-                    <div class="icon-con"><i class="fa-solid fa-coins"></i></div>
+                </div> <!--container new-->
+            </div> <!-- curr bal new   -->
 
-                </div>
-            </div>
-    
-            <div class="card" id="loan-bal">
-                <div class="container">
 
-                    <div class='content-con'>
-                    <a href="{{url_for('loan_account',person_id=person.id)}}">
-                        
-                        <div>
-                        <p><strong>Loan Balance:</strong></p>
-                        </div>
-
-                        <div>
-                        <p><strong>{{ person.loan_balance | currency}}</strong></p>
-                        </div>
-                    
-                    </a>
+            <div class="card-new" id="loan-bal-new"> 
+                <div class="container-new">
+                    <div class="icon-con" id='landmark'>
+                        <i class="fa-solid fa-landmark"></i>
                     </div>
-                    <div class='content-con'>
+
+                    <div class='content-con-new'>
+                        <a href="{{url_for('loan_account',person_id=person.id)}}">
+                        
+                            <div>
+                                <p><strong>Loan Balance:</strong></p>
+                            </div>
+                            
+                            <div>
+                                <p><strong>{{ person.loan_balance | currency}}</strong></p>
+                            </div>
+                        </a>
+
                         <a href="{{url_for('register_loan')}}">
                             <div>
                             <p><strong>Apply for Loan</strong></p>
                             </div>
                         </a>
-                    </div>
 
-                    <div class="icon-con" id='landmark'><i class="fa-solid fa-landmark"></i></div>
-
-                </div>
-            </div>
-            {% for consent in consents %}
-            <div class="card" id="consent">
-                <div class="container">
-                    <div class='content-con'>
-                    <a href="">
-                        
-                        <div>
-                        <p><strong>Consent:</strong></p>
-                        </div>
-
-                        <div>
-                        <p><strong>{{ consent.status }}</strong></p>
-                        </div>
                     
-                    </a>
+                    </div> <!--content-con-new-->
+                </div> <!--container-new-->
+            </div> <!-- loan bal new   -->
+
+            {% for consent in consents %}
+            <div class="card-new" id="consent-bal-new"> 
+                <div class="container-new">
+                    <div class="icon-con" id='landmark-con'>
+                        <i class="fa-solid fa-scroll"></i>
                     </div>
-                    <div class='content-con'>
+
+                    <div class='content-con-new'>
+                        <a href="">
+                        
+                            <div>
+                            <p><strong>Guarantor Approval:</strong></p>
+                            </div>
+    
+                            <div>
+                            <p><strong>{{ consent.status }}</strong></p>
+                            </div>
+                        
+                        </a>
+
                         <a href="{{url_for('give_consent',loan_id=consent.id)}}">
                             <div>
                             <p><strong>View Consent</strong></p>
                             </div>
                         </a>
+                    </div> <!--content-con-new-->
+                </div> <!--container-new-->
+            </div> <!-- consent bal new   -->
+            {% endfor %}
+            
+            {% if failed_loan %}
+            <div class="card-new" id="consent-bal-new"> 
+                <div class="container-new">
+                    <div class="icon-con" id='landmark-con'>
+                        <i class="fa-solid fa-scroll"></i>
                     </div>
 
-                    <div class="icon-con" id='landmark'><i class="fa-solid fa-landmark"></i></div>
+                    <div class='content-con-new'>
+                        <a href="">
+                        
+                            <div>
+                                <p><strong>Guarantor Approval:</strong></p>
+                            </div>
+            
+                            <div>
+                                <p><strong>Your loan application for {{ failed_loan.loan_amount | currency }} failed.</strong></p>
+                            </div>
+                            
+                        </a>
 
-                </div>
-        </div>
+                        <a href="{{url_for('update_loan',loan_id=failed_loan.id)}}">
+                            <div>
+                                <p><strong>View Consent</strong></p>
+                            </div>
+                        </a>
+                    </div> <!--content-con-new-->
+                </div> <!--container-new-->
+            </div> <!-- consent bal new   -->
+            {% endif %}
+            
+            
+        </div>  <!-- all cards wrap new   -->
 
-        </div>
-        {% endfor %}
-        {% if failed_loan %}
-        <div class="card" id="consent">
-            <div class="container">
-                <div class='content-con'>
-                <a href="">
-                    
-                    <div>
-                    <p><strong>Consent:</strong></p>
-                    </div>
+   
+    <!-- </div> all-cards-wrap-new  -->
 
-                    <div>
-                    <p><strong>Your loan application for {{ failed_loan.loan_amount | currency }} has failed </strong></p>
-                    </div>
-                
-                </a>
-                </div>
-                <div class='content-con'>
-                    <a href="{{url_for('update_loan',loan_id=failed_loan.id)}}">
-                        <div>
-                        <p><strong>View Consent</strong></p>
-                        </div>
-                    </a>
-                </div>
+    </div> <!-- section 2  -->
 
-                <div class="icon-con" id='landmark'><i class="fa-solid fa-landmark"></i></div>
+    </div> <!-- all sections -->
 
-            </div>
-    </div>
-    {% endif %}
-
-    </div>
-
-        </div>
-    </div>
-
+    </div> <!-- full form content  -->
     <!-- Add jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- Add selectize.js JavaScript -->
@@ -277,6 +290,6 @@
     </script>
 
 
-
+    
 </body>
 {%endblock%}
