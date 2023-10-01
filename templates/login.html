@@ -39,7 +39,11 @@
                 <!-- <input type="text" placeholder="username" required> -->
 
                 {{form.hidden_tag()}}
-                {{form.identifier(class_="input", placeholder='email')}}
+
+                <div class="form-label">
+                    {{ form.identifier.label(class_='input-label') }}
+                  </div>
+                {{form.identifier(class_="input")}}
 
                 <i class="fa-solid fa-user"></i>
                 <!-- <label class="form-label" for="email">Email</label> -->
@@ -48,8 +52,10 @@
 
             <div class="input-box">
                 <!-- <input type="text" placeholder="password" required> -->
-
-                {{form.password(class_="input", placeholder_='password')}}
+                <div class="form-label">
+                    {{ form.password.label(class_='input-label') }}
+                  </div>
+                {{form.password(class_="input")}}
                 <i class="fa-solid fa-lock"></i>
 
                 <!--<label class="form-label" for="psw">Password</label>-->

@@ -88,7 +88,7 @@
 .login .input-box i{
     position: absolute;
     right: 20px;
-    top: 50%;
+    top: 85%;
     transform: translateY(-50%);
     font-size: 20px;
     color: #000;
@@ -505,9 +505,9 @@
     /* display: flex; */
     border-radius: 10px;
     padding: 30px 40px;
-    border:2px solid rgba(255, 255, 255, .2);
+    /* border:2px solid rgba(255, 255, 255, .2); */
     /* backdrop-filter: blur(30px); */
-    box-shadow: 0 0 10px rgba(0,0,0,.2);
+    /* box-shadow: 0 0 10px rgba(0,0,0,.2); */
     /* text-align: center; */
     /* background-color: #f5f5f5; */
     /* background-color: #9dbdb6; */
@@ -670,7 +670,7 @@
 }
 #form .form-wrapper .form-label {
     text-align: center;
-    width: fit-content;
+    width: max-content;
     margin-bottom: 10px;
 }
 
