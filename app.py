@@ -349,6 +349,7 @@ def make_payment():
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
     if request.method == "POST":
         if form.validate_on_submit():
+            log_report(1)
             amount = form.amount.data
             payment_type = form.payment_type.data
             description = form.description.data
@@ -358,6 +359,7 @@ def make_payment():
             bank_id = form.bank.data
             ref_no = form.ref_no.data
             if selected_person:
+                log_report(2)
                 if payment_type == "savings":
                     query.save_amount(
                         employee_id=selected_person_id,
@@ -369,9 +371,17 @@ def make_payment():
                     )
 
                 elif payment_type == "loan":
-                    query.repay_loan(
+                    log_report(3)
+                    test = query.repay_loan(
                         selected_person.id, amount, date, bank_id, ref_no, description
                     )
+                    if test == True:
+                        flash("Payment submitted successfully.", "success")
+                        return redirect(url_for("dashboard"))
+                    else:
+                        flash(test, "error")
+                        log_report(test)
+                        return redirect(url_for("make_payment"))
 
                 flash("Payment submitted successfully.", "success")
                 return redirect(url_for("dashboard"))
@@ -387,7 +397,7 @@ def make_payment():
 @login_required
 def register_loan():
     form = RegisterLoanForm()
-    if current_user.role.name == "User":
+    if current_user.role.name == "User" or current_user.role.name == "Sub-Admin":
         form.name.choices = [ (current_user.id, (f"{current_user.name} ({current_user.employee_id})"))]
         form.description.data = f"Loan Application for {current_user.employee_id}"
     else:
@@ -415,10 +425,21 @@ def register_loan():
             if guarantor!="None" :
                 guarantor = query.get_person(guarantor)
                 guarantors.append(guarantor)
+
             guarantor_2 = form.guarantor_2.data   
             if guarantor_2 !="None":   
                 guarantor_2 = query.get_person(guarantor_2)
                 guarantors.append(guarantor_2)
+
+            if guarantor=='None' and guarantor_2 == 'None':
+                guarantor = query.get_person(int(form.name.data))
+                guarantors.append(guarantor)
+
+            elif guarantor == guarantor_2:
+                flash('You cant pick the same person twice')
+                return redirect(url_for("register_loan")) 
+
+              
             log_report(guarantors)
             test = query.registeration_payment(
                 id, amount, date, ref_no, bank_id, description, loan=True, guarantors=guarantors
@@ -482,7 +503,14 @@ def update_loan(loan_id):
             if guarantor_2 != "None":
                 guarantor_2 = query.get_person(guarantor_2)
                 guarantors.append(guarantor_2)
-            
+
+            if guarantor == guarantor_2:
+                flash('You cant pick the same person twice')
+                return render_template("forms/register_loan.html", form=form) 
+
+            elif guarantor=='None' and guarantor_2 == 'None':
+                guarantor = query.get_person(form.name.data)  
+
             # Update the loan record in the database
             test = query.update_loan(loan.id,loan.amount,guarantors=guarantors)  # Replace with your logic to update the loan
             if test:
@@ -521,6 +549,18 @@ def give_consent(loan_id):
         if current_user in loan.guarantors:
             if request.method == "POST":
                 if form.validate_on_submit():
+                    if form.amount.data > loan.loan_amount:
+                        flash("Amount cannot be greater than loan amount.", "error")
+                        return redirect(url_for("give_consent", loan_id=loan_id))
+                    elif form.amount.data < 0:
+                        flash("Amount cannot be less than zero.", "error")
+                        return redirect(url_for("give_consent", loan_id=loan_id))
+                    elif form.amount.data == 0:
+                        flash("Amount cannot be zero.", "error")
+                        return redirect(url_for("give_consent", loan_id=loan_id))
+                    elif form.amount.data > current_user.available_balance:
+                        flash("Amount cannot be greater than your available balance.", "error")
+                        return redirect(url_for("give_consent", loan_id=loan_id))
                     consent = form.consent.data
                     if consent == "1" :
                         test = query.give_consent(loan, current_user,form.amount.data)
@@ -659,10 +699,12 @@ def journal():
 
 @app.route("/withdraw", methods=["GET", "POST"])
 @login_required
-@role_required(["Admin", "Secretary"])
 def request_withdrawal():
     form = WithdrawalForm()
-    form.person.choices = [(person.id, person.name) for person in query.get_persons()]
+    if current_user.role.name == "User" or current_user.role.name == "Sub-Admin":
+        form.person.choices = [(current_user.id, current_user.name)]
+    else:
+        form.person.choices = [(person.id, person.name) for person in query.get_persons()]
     form.bank_id.choices = [(bank.id, bank.name) for bank in query.get_banks()]
     form.date.data = pd.to_datetime("today")
 

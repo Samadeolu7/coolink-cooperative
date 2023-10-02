@@ -228,14 +228,18 @@ class Loan(db.Model):
         }
     
     def payment_complete(self):
+        log_report("loan balance")
         if self.person.loan_balance == 0:
+            log_report("loan balance is 0")
             self.is_paid = True
-            for contribution in self.guarantor_contributions:
-                contribution.guarantor.available_balance += contribution.contribution_amount
-                contribution.guarantor.balance_withheld -= contribution.contribution_amount
-                db.session.delete(contribution)
-            self.guarantor_contributions = []
+            for guarantor in self.guarantor:
+                log_report("payment complete")
+                guarantor.available_balance += guarantor.loan_form_payment.contribution_amount
+                guarantor.balance_withheld -= guarantor.loan_form_payment.contribution_amount
+                
             db.session.commit()
+            
+            
 
 
 class LoanPayment(db.Model):
@@ -642,7 +646,7 @@ class GuarantorContribution(db.Model):
     guarantor = db.relationship("Person", foreign_keys=[guarantor_id], backref="guarantor_contributions")
     
     # Define a relationship with Loan, making it nullable
-    loan = db.relationship("Loan", foreign_keys=[loan_id], backref="guarantor_contributions")
+    loan = db.relationship("Loan", backref="guarantor_contributions")
 
 class LoanFormPayment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -661,7 +665,7 @@ class LoanFormPayment(db.Model):
     consent = db.Column(db.Integer, nullable=True, default=0)
     
     # Define a relationship with GuarantorContribution to access contributions for this loan
-    guarantor_contributions = db.relationship("GuarantorContribution", backref="loan_form_payment",cascade="all, delete-orphan")
+    guarantor_contributions = db.relationship("GuarantorContribution", backref="loan_form_payment")
 
 
 
@@ -705,10 +709,6 @@ class LoanFormPayment(db.Model):
         self.failed = True
         db.session.commit()
     
-@event.listens_for(LoanFormPayment, 'after_delete')
-def delete_orphaned_guarantor_contributions(mapper, connection, target):
-    for contribution in target.guarantor_contributions:
-        db.session.delete(contribution)
 
 
 

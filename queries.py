@@ -220,16 +220,9 @@ class Queries:
             person = Person.query.filter_by(id=id).first()
             if person:
     
-                form_payment = LoanFormPayment(name=person.name,loan_amount=amount,person_id=person.id,guarantors=guarantors)
+                form_payment = LoanFormPayment(name=person.name,loan_amount=amount,person=person,guarantors=guarantors)
                 self.db.session.add(form_payment)
 
-                if loan:
-                    name = "Loan Application Form"
-
-                income = Income.query.filter_by(name=name).first()
-                self.add_income(
-                     income, amount, date, ref_no, bank_id, description
-                )
                 self.db.session.commit()
                 return True
         except Exception as e:
@@ -598,8 +591,11 @@ class Queries:
                 self.db.session.add(loan)
                 self.db.session.commit()
                 log_report('how e take reach here')
+                log_report(pre_loan.guarantor_contributions)
                 for contribution in pre_loan.guarantor_contributions:
-                    contribution.loan_id = loan.id
+                    log_report(contribution)
+                    contribution.loan = loan
+                    log_report(contribution.loan)
                 pre_loan.is_approved = True
                 self.db.session.commit()
                 return True
@@ -644,7 +640,7 @@ class Queries:
 
                 # Update the person's loan balance by adding the loan amount and interest
                 person = Person.query.get(loan.person_id)
-                person.loan_balance += loan.amount + interest_amount
+                person.loan_balance += loan.amount 
                 self.delete_registered(person.id)
                 # Create a loan payment record for the loan amount
                 loan_payment = LoanPayment(
@@ -659,6 +655,7 @@ class Queries:
                 self.db.session.add(loan_payment)
 
                 # Create a loan payment record for the interest amount
+                person.loan_balance += interest_amount
                 interest_payment = LoanPayment(
                     amount=interest_amount,
                     exact_date=datetime.utcnow(),
@@ -712,13 +709,23 @@ class Queries:
     def repay_loan(self, id, amount, date, bank_id, ref_no, description=None):
         try:
             person = Person.query.filter_by(id=id).first()
+            log_report(4)
             if not person:
                 raise ValueError("Person not found.")
             if person:
+                log_report(person.loan_balance)
+                log_report(5)
 
                 bank = Bank.query.filter_by(id=bank_id).first()
 
+                log_report(bank.new_balance)
+
                 person.loan_balance -= float(amount)
+                
+                log_report(6)
+                loan = Loan.query.filter_by(person_id=id,is_paid= False).first()
+                log_report(Loan.query.filter_by(person_id=id,is_paid= False).all())
+                log_report(loan)
                 loan_payment = LoanPayment(
                     amount=amount,
                     date=date,
@@ -730,6 +737,7 @@ class Queries:
                     bank_id=bank.id,
                 )
                 self.db.session.add(loan_payment)
+                log_report(person.loan_balance)
 
                 bank.new_balance += float(amount)
 
@@ -743,8 +751,29 @@ class Queries:
                     bank_balance=bank.new_balance,
                     bank_id=bank.id,
                 )
-
                 self.db.session.add(bank_payment)
+                log_report(7)
+                gc = GuarantorContribution.query.filter_by(loan=loan).first()
+                log_report(gc)
+                fk_loan = gc.loan
+                log_report(fk_loan)
+                log_report(fk_loan.guarantor_contributions)
+                log_report(loan)
+                log_report(loan.guarantor_contributions)
+                if person.loan_balance == 0:
+                    loan.is_paid = True
+                    log_report(loan.guarantor_contributions)
+                    for contribution in loan.guarantor_contributions:   
+                        person = contribution.guarantor
+                        log_report(person.name)
+                        person.available_balance += float(contribution.contribution_amount)
+                        log_report(person.available_balance)
+                        person.balance_withheld -= float(contribution.contribution_amount)
+                        log_report(person.balance_withheld)
+                        
+
+                log_report(8)
+
                 self.db.session.commit()
                 return True
         except Exception as e:
