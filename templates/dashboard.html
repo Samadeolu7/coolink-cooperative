@@ -118,6 +118,13 @@
                         </div>
                     </a>
                     </div>
+                    <div class='content-con'>
+                        <a href="{{url_for('request_withdrawal')}}">
+                            <div>
+                            <p><strong>Withdrawal</strong></p>
+                            </div>
+                        </a>
+                    </div>
 
                     <div class="icon-con"><i class="fa-solid fa-coins"></i></div>
 
@@ -128,7 +135,7 @@
                 <div class="container">
 
                     <div class='content-con'>
-                    <a href="{{url_for('loan_account',person_id=person.id)}}">
+                    <a href="{{ url_for('loan_account',person_id=person.id) }}">
                         
                         <div>
                         <p><strong>Loan Balance:</strong></p>

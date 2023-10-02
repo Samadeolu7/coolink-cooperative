@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Approval{% endblock %}
 {% block header %}
-    <h1>Loan Approval</h1>
+    <h1>Approvals</h1>
 {% endblock header %}
 
 {% block content %}
@@ -14,7 +14,7 @@
                     <p class="loan-id">Loan ID: {{ loan.id }}</p>
                     <a href="{{ url_for('savings_account', person_id=loan.person.id) }}" class="loan-recipient" style="color: #007bff;"><strong>Loan Recipient:</strong> {{ loan.person.name }}</a>
                    
-                    <p class="loan-amount">Loan Amount: {{ loan.amount }}</p>
+                    <p class="loan-amount">Loan Amount: {{ loan.amount | currency }}</p>
                     <p class="loan-term">Loan Duration: {{ loan.start_date | calculate_duration(loan.end_date) }}</p>
                     <p class="loan-interest">Loan Interest Rate: {{ loan.interest_rate }}%</p>
                     <a href="{{ url_for('approve_loan', loan_id=loan.id) }}" class="approve-button">Approve</a>
@@ -31,7 +31,7 @@
                 <div class="loan-approval-item">
                     <p class="loan-id">Withdrawal ID: {{ withdrawal.id }}</p>
                     <a href="{{ url_for('savings_account', person_id=withdrawal.person.id) }}" class="loan-recipient" style="color: #007bff;"><strong>Withdrawal Recipient:</strong> {{ withdrawal.person.name }}</a>
-                    <p class="loan-amount">Withdrawal Amount: {{ withdrawal.amount }}</p>
+                    <p class="loan-amount">Withdrawal Amount: {{ withdrawal.amount | currency }}</p>
                     <a href="{{ url_for('approve_withdrawal', request_id=withdrawal.id) }}" class="approve-button">Approve</a>
                     <a href="{{ url_for('reject_withdrawal', request_id=withdrawal.id) }}" class="reject-button">Reject</a>
                 </div>
