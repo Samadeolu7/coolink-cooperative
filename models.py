@@ -50,6 +50,7 @@ class CompanyPayment(db.Model):
     bank_id = db.Column(
         db.Integer, db.ForeignKey("banks.id"), nullable=True, index=True
     )
+    year = db.Column(db.Integer, nullable=False)
 
     def to_json(self):
         return {
@@ -143,6 +144,7 @@ class WithdrawalRequest(db.Model):
     date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
     is_approved = db.Column(db.Boolean, default=False)
     approved_by = db.Column(db.Integer, db.ForeignKey("persons.id"), nullable=True)
+    year = db.Column(db.Integer, nullable=False)
 
     def to_json(self):
         return {
@@ -175,6 +177,7 @@ class SavingPayment(db.Model):
     bank_id = db.Column(
         db.Integer, db.ForeignKey("banks.id"), nullable=True, index=True
     )
+    year = db.Column(db.Integer, nullable=False)
 
     def to_json(self):
         return {
@@ -215,6 +218,7 @@ class Loan(db.Model):
     is_approved = db.Column(db.Boolean, default=False)
     admin_approved = db.Column(db.Boolean, default=False)
     approved_by = db.Column(db.Integer, db.ForeignKey("persons.id"), nullable=True)
+
 
     def to_json(self):
         return {
@@ -261,6 +265,7 @@ class LoanPayment(db.Model):
     company_id = db.Column(
         db.Integer, db.ForeignKey("companies.id"), nullable=True, index=True
     )
+    year = db.Column(db.Integer, nullable=False)
 
     def to_json(self):
         return {
@@ -314,6 +319,7 @@ class BankPayment(db.Model):
     bank_id = db.Column(
         db.Integer, db.ForeignKey("banks.id"), nullable=True, index=True
     )
+    year = db.Column(db.Integer, nullable=False)
 
     def to_json(self):
         return {
@@ -337,7 +343,7 @@ class Expense(db.Model):
     name = db.Column(db.String)
     description = db.Column(db.String, nullable=True)
     balance_bfd = db.Column(db.Float, default=0.0)
-    balance = balance = db.Column(db.Float, default=0.0)
+    balance = db.Column(db.Float, default=0.0)
     payments = db.relationship("ExpensePayment", backref="expense")
 
     def to_json(self):
@@ -365,6 +371,7 @@ class ExpensePayment(db.Model):
     bank_id = db.Column(
         db.Integer, db.ForeignKey("banks.id"), nullable=True, index=True
     )
+    year = db.Column(db.Integer, nullable=False)
 
     def to_json(self):
         return {
@@ -415,6 +422,7 @@ class AssetPayment(db.Model):
     bank_id = db.Column(
         db.Integer, db.ForeignKey("banks.id"), nullable=True, index=True
     )
+    year = db.Column(db.Integer, nullable=False)
 
     def to_json(self):
         return {
@@ -465,6 +473,7 @@ class IncomePayment(db.Model):
     bank_id = db.Column(
         db.Integer, db.ForeignKey("banks.id"), nullable=True, index=True
     )
+    year = db.Column(db.Integer, nullable=False)
 
     def to_json(self):
         return {
@@ -486,7 +495,7 @@ class Investment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
     description = db.Column(db.String, nullable=True)
-    balance = balance = db.Column(db.Float, default=0.0)
+    balance = db.Column(db.Float, default=0.0)
     balance_bfd = db.Column(db.Float, default=0.0)
     payments = db.relationship("InvestmentPayment", backref="investment")
 
@@ -515,6 +524,7 @@ class InvestmentPayment(db.Model):
     bank_id = db.Column(
         db.Integer, db.ForeignKey("banks.id"), nullable=True, index=True
     )
+    year = db.Column(db.Integer, nullable=False)
 
     def to_json(self):
         return {
@@ -536,7 +546,7 @@ class Liability(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
     description = db.Column(db.String, nullable=True)
-    balance = balance = db.Column(db.Float, default=0.0)
+    balance = db.Column(db.Float, default=0.0)
     balance_bfd = db.Column(db.Float, default=0.0)
     payments = db.relationship("LiabilityPayment", backref="liability")
 
@@ -565,6 +575,7 @@ class LiabilityPayment(db.Model):
     bank_id = db.Column(
         db.Integer, db.ForeignKey("banks.id"), nullable=True, index=True
     )
+    year = db.Column(db.Integer, nullable=False)
 
     def to_json(self):
         return {
@@ -586,7 +597,7 @@ class Equity(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
     description = db.Column(db.String, nullable=True)
-    balance = balance = db.Column(db.Float, default=0.0)
+    balance = db.Column(db.Float, default=0.0)
     balance_bfd = db.Column(db.Float, default=0.0)
     payments = db.relationship("EquityPayment", backref="equity")
 
@@ -615,6 +626,7 @@ class EquityPayment(db.Model):
     bank_id = db.Column(
         db.Integer, db.ForeignKey("banks.id"), nullable=True, index=True
     )
+    year = db.Column(db.Integer, nullable=False)
 
     def to_json(self):
         return {
@@ -708,8 +720,29 @@ class LoanFormPayment(db.Model):
 
         self.failed = True
         db.session.commit()
-    
 
+class Constants(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+    current_year = db.Column(db.Integer, nullable=False)
+    loan_application_fee = db.Column(db.Float, nullable=False)
+
+class BalanceSheet(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    fixed_assets = db.Column(db.Float)
+    total_fixed_assets = db.Column(db.Float)
+    cash_and_bank = db.Column(db.Float)
+    accounts_receivable = db.Column(db.Float)
+    company_receivable = db.Column(db.Float)
+    investments = db.Column(db.Float)
+    total_current_assets = db.Column(db.Float)
+    total_assets = db.Column(db.Float)
+    net_income = db.Column(db.Float)
+    accounts_payable = db.Column(db.Float)
+    total_liabilities = db.Column(db.Float)
+    total_equity = db.Column(db.Float)
+    total_liabilities_and_equity = db.Column(db.Float)
+    year = db.Column(db.Integer, nullable=False)
 
 
 from sqlalchemy import event
@@ -768,4 +801,9 @@ with app.app_context():
             )
         )
         db.session.commit()
+
+    if Constants.query.count() == 0:
+        db.session.add(Constants(current_year=datetime.utcnow().year, loan_application_fee=1000))
+        db.session.commit()
+
     log_report(GuarantorContribution.query.all())

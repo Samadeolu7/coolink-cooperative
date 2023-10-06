@@ -1,7 +1,7 @@
 import pandas as pd, os, csv, zipfile
 from flask import Flask
 from models import db, Person
-from queries import Queries
+from queries import query
 from openpyxl import Workbook
 from openpyxl.styles import Alignment
 from filters import format_currency
@@ -10,8 +10,6 @@ from sqlalchemy.orm import Session
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///cooperative.db"
 db.init_app(app)
-
-query = Queries(db)
 
 
 def log_report(report):
@@ -382,7 +380,7 @@ def create_persons_excel():
             person.name,
             person.email,
             person.phone_no,
-            format_currency(person.available_balance),
+            format_currency(person.total_balance),
             format_currency(person.loan_balance),
             person.company.name,
         ]
@@ -446,7 +444,7 @@ def create_payments_excel(person):
         "None",
         "None",
         "None",
-        format_currency(person.available_balance),
+        format_currency(person.total_balance),
     ]
     sheet.append(available_balance_row)
 

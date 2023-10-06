@@ -11,6 +11,7 @@ from flask import (
     jsonify,
     g,
 )
+from sqlalchemy import desc
 from forms import *
 from functools import wraps
 from models import *
@@ -25,7 +26,6 @@ from excel_helper import (
 )
 from pdf_helper import create_pdf,create_income_pdf
 from queries import Queries
-import pandas as pd, json, csv
 from filters import format_currency, calculate_duration_in_months
 from flask_login import (
     LoginManager,
@@ -34,15 +34,16 @@ from flask_login import (
     logout_user,
     current_user,
 )
+from dateutil.relativedelta import relativedelta
 from dotenv import load_dotenv
 import os
+import pandas as pd, json, csv
 
 load_dotenv()
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
-
 
 db.init_app(app)
 query = Queries(db)
@@ -410,6 +411,8 @@ def register_loan():
 
     form.date.data = pd.to_datetime("today")
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
+    form.fee.data = int(query.loan_application_fee)
+    form.fee.render_kw = {'readonly': True}
     if request.method == "POST":
  
         if form.validate_on_submit():
@@ -448,7 +451,7 @@ def register_loan():
                 flash("Registration submitted successfully.", "success")
                 name='Loan Application Form'
                 income_id= Income.query.filter_by(name=name).first()
-                test_2 = query.add_income(income_id,form.fee.data,date,ref_no,bank_id,description)
+                test_2 = query.add_income(income_id,query.loan_application_fee,date,ref_no,bank_id,description)
                 if test_2 == True:
                     flash("Income submitted successfully.", "success")
                     return redirect(url_for("dashboard"))
@@ -533,7 +536,7 @@ def update_loan(loan_id):
 
     form.ref_no.render_kw = {'readonly': True}
     form.fee.render_kw = {'readonly': True}
-    form.fee.data = 2000
+    form.fee.data = int(query.loan_application_fee)
 
     
     return render_template("forms/register_loan.html", form=form)
@@ -726,6 +729,7 @@ def request_withdrawal():
                 ref_no=ref_no,
                 bank_id=bank_id,
                 date=date,
+                year=query.year,
             )
 
             db.session.add(withdrawal_request)
@@ -799,7 +803,7 @@ def request_loan():
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
     form.amount.render_kw = {'readonly': True}
 
-    from dateutil.relativedelta import relativedelta
+
 
     if request.method == "POST":
         if form.validate_on_submit():
@@ -821,7 +825,7 @@ def request_loan():
             )
             if test == True:
                 flash("Loan sent for approval.", "success")
-                return redirect(url_for("dashboard"))
+                return redirect(url_for("get_loan_details", person_id=person.id))
             else:
                 flash(test, "error")
                 log_report(test)
@@ -1008,7 +1012,7 @@ def startup():
 def get_persons():
     persons = query.get_persons()
     total_loan = sum(person.loan_balance for person in persons)
-    total_savings = sum(person.available_balance for person in persons)
+    total_savings = sum(person.total_balance for person in persons)
     return render_template(
         "query/person.html",
         persons=persons,
@@ -1066,6 +1070,20 @@ def get_loan():
     
     filtered_payments = filter_payments(start_date, end_date, loans)
     return render_template("query/loans.html", loans=filtered_payments, form=form)
+
+@app.route("/loan_details/<person_id>", methods=["GET", "POST"])
+@login_required
+@role_required(["Admin", "Secretary", "Sub-Admin"])
+def get_loan_details(person_id):
+    loans = query.get_loan(person_id)
+    form = DateFilterForm(request.args)
+    # Filter payments based on date range
+    start_date = form.start_date.data
+    end_date = form.end_date.data
+    guarantors = [p.guarantor.name for p in loans.guarantor_contributions]
+    
+    filtered_payments = filter_payments(start_date, end_date, loans)
+    return render_template("query/loan_details.html", loan=filtered_payments, form=form,guarantors=guarantors)
 
 
 @app.route("/income", methods=["GET"])
@@ -1212,79 +1230,6 @@ def individual_bank_report(bank_id):
     )
 
 
-# @app.route("/trial_balance")
-# @login_required
-# @role_required(["Admin", "Secretary", "Sub-Admin"])
-# def trial_balance():
-#     # Retrieve data from the database
-#     companies = Company.query.all()
-#     banks = Bank.query.all()
-#     persons = Person.query.all()
-#     assets = Asset.query.all()
-#     liabilities = Liability.query.all()
-#     incomes = Income.query.all()
-#     expenses = Expense.query.all()
-#     investments = Investment.query.all()
-#     # Calculate total cash and equivalents
-#     total_company_receivable = sum(company.amount_accumulated for company in companies)
-#     total_cash_and_equivalents = total_company_receivable + sum(
-#         bank.new_balance for bank in banks
-#     )
-
-#     # Calculate total accounts receivable
-#     total_accounts_receivable = sum(person.loan_balance for person in persons)
-
-#     total_investments = sum(
-#         investment.balance for investment in investments if investment.balance
-#     )
-#     # Calculate total income
-#     total_incomes = sum(income.balance for income in incomes if income.balance)
-
-#     # Calculate total expenses
-#     total_expenses = sum(expense.balance for expense in expenses if expense.balance)
-
-#     # Calculate total assets
-#     total_assets = (
-#         total_cash_and_equivalents
-#         + total_accounts_receivable
-#         + sum(asset.balance for asset in assets if asset.balance)
-#         + total_incomes
-#         + total_investments
-#     )
-
-#     # Calculate total accounts payable
-#     total_accounts_payable = sum(person.available_balance for person in persons)
-
-#     # Calculate total liabilities
-#     total_liabilities = (
-#         total_accounts_payable
-#         + sum(liability.balance for liability in liabilities if liability.balance)
-#         + total_expenses
-#     )
-
-#     # Calculate total equity and liabilities & equity
-#     total_equity = total_assets - total_liabilities
-#     total_liabilities_and_equity = total_liabilities + total_equity
-
-#     return render_template(
-#         "query/trial_balance.html",
-#         assets=assets,
-#         total_expenses=total_expenses,
-#         expenses=expenses,
-#         incomes=incomes,
-#         banks=banks,
-#         total_cash_and_equivalents=total_cash_and_equivalents,
-#         company=total_company_receivable,
-#         total_accounts_receivable=total_accounts_receivable,
-#         total_incomes=total_incomes,
-#         total_assets=total_assets,
-#         investments=investments,
-#         liabilities=liabilities,
-#         total_accounts_payable=total_accounts_payable,
-#         total_liabilities=total_liabilities,
-#         total_equity=total_equity,
-#         total_liabilities_and_equity=total_liabilities_and_equity,
-#     )
 
 @app.route("/trial_balance")
 @login_required
@@ -1297,7 +1242,6 @@ def trial_balance():
     total_investments = query.get_total_investment()
     total_liabilities = query.get_total_liabilities()
     net_income = query.get_net_income()
-    accounts_payable = query.get_accounts_payable()
     accounts_payable = query.get_accounts_payable()
 
     fixed_assets = Asset.query.all()
@@ -1352,6 +1296,9 @@ def balance_sheet():
     accounts_payable = query.get_accounts_payable()
     total_equity = accounts_payable + net_income
     total_liabilities_and_equity = total_liabilities + total_equity
+    current_year = os.getenv("CURRENT_YEAR")
+    query_year = query.year
+    year_range = [year for year in range(int(current_year),int(query_year)-1)]
 
     context = {
         "assets": fixed_assets,
@@ -1367,60 +1314,47 @@ def balance_sheet():
         "total_liabilities": total_liabilities,
         "total_equity": total_equity,
         "total_liabilities_and_equity": total_liabilities_and_equity,
+        "year_range": year_range,
     }
     return render_template("query/balance-sheet.html", **context)
 
+@app.route("/balance_sheet_year/<year>")
+@login_required
+@role_required(["Admin", "Secretary", "Sub-Admin"])
+def balance_sheet_by_year(year):
+    bs = BalanceSheet.query.filter_by(year=year).first()
+    liabilities = query.get_liabilities_per_year(year)
+    current_year = os.getenv("CURRENT_YEAR")
+    query_year = query.year
+    year_range = [year for year in range(int(current_year), int(query_year))]
+    log_report(bs.total_fixed_assets)
+    log_report(bs.cash_and_bank)
+    log_report(bs.accounts_receivable)
+    log_report(bs.company_receivable)  
+    log_report(bs.investments)
+    log_report(bs.total_assets)
+    log_report(bs.net_income)
+    log_report(bs.accounts_payable)
+    log_report(bs.total_liabilities)
+    log_report(bs.total_equity)
+    log_report(bs.total_liabilities_and_equity)
+    context = {
+        "assets": bs.total_fixed_assets,
+        "cash_and_bank": bs.cash_and_bank,
+        "accounts_receivable": bs.accounts_receivable,
+        "company_receivable": bs.company_receivable,
+        "investments": bs.investments,
+        "total_assets": bs.total_assets,
+        "net_income": bs.net_income,
+        "accounts_payable": bs.accounts_payable,
+        "liabilities": liabilities,
+        "total_liabilities": bs.total_liabilities,
+        "total_equity": bs.total_equity,
+        "total_liabilities_and_equity": bs.total_liabilities_and_equity,
+        "year_range": year_range,
+    }
 
-
-# @app.route("/balance_sheet")
-# @login_required
-# @role_required(["Admin", "Secretary", "Sub-Admin"])
-# def balance_sheet():
-#     # Retrieve data from the database
-#     companies = Company.query.all()
-#     banks = Bank.query.all()
-#     assets = Asset.query.all()
-#     investments = Investment.query.all()
-#     expenses = Expense.query.all()
-#     liabilities = Liability.query.all()
-
-#     total_cash_and_equivalents = sum(
-#         company.amount_accumulated for company in companies
-#     ) + sum(bank.new_balance for bank in banks)
-
-#     persons = Person.query.all()
-#     total_accounts_receivable = sum(person.loan_balance for person in persons)
-#     # Calculate the total assets
-#     total_assets = total_cash_and_equivalents + total_accounts_receivable
-
-#     total_accounts_payable = sum(person.available_balance for person in persons)
-
-#     # Calculate the total liabilities
-#     total_liabilities = total_accounts_payable
-
-#     # Calculate the total equity and liabilities & equity
-#     total_equity = total_assets - total_liabilities
-#     total_liabilities_and_equity = total_liabilities + total_equity
-#     balance_sheet_data = {
-#         "total_cash_and_equivalents": total_cash_and_equivalents,
-#         "total_accounts_receivable": total_accounts_receivable,
-#         "total_assets": total_assets,
-#         "total_accounts_payable": total_accounts_payable,
-#         "total_liabilities": total_liabilities,
-#         "total_equity": total_equity,
-#         "total_liabilities_and_equity": total_liabilities_and_equity,
-#         "assets": assets,
-#         "expenses": expenses,
-#         "investments": investments,
-#         "liabilities": liabilities,
-#     }
-
-#     return render_template(
-#         "query/balance_sheet.html",
-#         balance_sheet_data=balance_sheet_data,
-#     )
-
-
+    return render_template("query/balance-sheet.html", **context)
 # uploads
 
 
@@ -1468,6 +1402,29 @@ def download_pdf_income():
 def logout():
     logout_user()
     return redirect(url_for("login"))
+
+@app.route("/close_year", methods=["GET", "POST"])
+@login_required
+@role_required(["Admin"])
+def close_year():
+    form = CloseYearForm()
+    form.current_year.data = query.year
+    form.current_loan_application_fee.data =int(query.loan_application_fee)
+
+    if form.validate_on_submit():
+        test = query.close_year(form.current_year.data, form.new_loan_application_fee.data)
+        if test ==True:
+            flash("Year closed successfully!", "success")
+            return redirect(url_for("dashboard"))
+
+        else:
+            flash("An error occurred while closing the year.", "error")
+            log_report(test)
+            return redirect(url_for("close_year"))
+    else:
+        flash(form.errors, "error")
+        log_report(form.errors)
+    return render_template("forms/close_year.html", form=form)
 
 
 # dynamic lookup
@@ -1548,6 +1505,8 @@ def get_sub_journals(journal):
     ]
 
     return jsonify(sub_account_options)
+
+
 
 # errorhandlers
 

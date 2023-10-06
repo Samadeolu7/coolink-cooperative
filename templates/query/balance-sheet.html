@@ -142,5 +142,10 @@ Sheet {% endblock %} {% block anchor%}
     </tbody>
   </table>
 </div>
-</body>
+
+<div >
+  {% for year in year_range %}
+  <a href="{{url_for('balance_sheet_by_year',year=year)}}"><button id="downloadExcelButton">{{year}}</button></a>
+  {%endfor%}
+  
 {%endblock%}

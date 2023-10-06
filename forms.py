@@ -218,11 +218,10 @@ class EditProfileForm(FlaskForm):
     company_id = SelectField("Bank", choices=[], coerce=int)
     submit = SubmitField("Submit")
 
-
 class RegisterLoanForm(FlaskForm):
 
     name = SelectField("Select Person", validators=[DataRequired()])
-    fee= IntegerField("Loan Registration Fee")
+    fee= StringField("Loan Registration Fee")
     amount = DecimalField("Amount", validators=[DataRequired()])
     remaining_amount = DecimalField("Remaining Amount")
     no_of_guarantors = SelectField(
@@ -240,3 +239,10 @@ class ConsentForm(FlaskForm):
     consent = SelectField("Consent")
     amount = DecimalField("Amount", validators=[DataRequired()])
     submit = SubmitField("Submit")
+
+
+class CloseYearForm(FlaskForm):
+    current_year = IntegerField("Current Year", validators=[DataRequired()], render_kw={"readonly": True})
+    current_loan_application_fee = IntegerField("Current Loan Application Fee", validators=[DataRequired()], render_kw={"readonly": True})
+    new_loan_application_fee = IntegerField("New Loan Application Fee", validators=[DataRequired()])
+    submit = SubmitField("Close Year")

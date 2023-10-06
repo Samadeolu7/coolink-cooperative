@@ -1,4 +1,4 @@
-from sqlalchemy import select, or_
+from sqlalchemy import select, or_,func
 from sqlalchemy.orm import selectinload
 from models import *
 from datetime import datetime
@@ -8,17 +8,34 @@ import bcrypt
 import csv
 
 
-def log_report(report):
-    with open("report.txt", "a", encoding="utf-8") as f:
-        f.write(f"{report}\n")
-
 
 class Queries:
     def __init__(self, db) -> None:
         self.db = db
         self.salt = bcrypt.gensalt()
+        constants = self.get_constants()
+        self.year = constants.current_year
+        self.loan_application_fee = constants.loan_application_fee
 
     # create data
+    def get_constants(self):
+        with app.app_context():
+            constants = Constants.query.order_by(Constants.current_year.desc()).first()
+            return constants if constants else None
+
+    def create_constants(self, current_year, loan_application_fee):
+        try:
+            self.db.session.add(
+                Constants(
+                    current_year=current_year, loan_application_fee=loan_application_fee
+                )
+            )
+            self.db.session.commit()
+            return True
+        except Exception as e:
+            self.db.session.rollback()
+            return str(e)
+
     def generate_password(self, length=12):
         characters = string.ascii_letters + string.digits + string.punctuation
         password = "".join(random.choice(characters) for _ in range(length))
@@ -167,8 +184,9 @@ class Queries:
                     exact_date=datetime.utcnow(),
                     description=description,
                     ref_no=ref_no,
-                    balance=person.available_balance,
+                    balance=person.total_balance,
                     bank_id=bank.id,
+                    year=self.year,
                 )
 
                 self.db.session.add(saving_payment)
@@ -183,6 +201,7 @@ class Queries:
                     ref_no=ref_no,
                     bank_balance=bank.new_balance,
                     bank_id=bank.id,
+                    year=self.year,
                 )
 
                 self.db.session.add(bank_payment)
@@ -202,25 +221,28 @@ class Queries:
         elif id == 4:
             self.add_liability(sub_id, amount, date, ref_no, bank_id, description)
 
-
-    def add_journal_transaction(self, id, sub_id, amount, date, ref_no, bank_id, description):
+    def add_journal_transaction(
+        self, id, sub_id, amount, date, ref_no, bank_id, description
+    ):
         if id == "savings":
             self.save_amount(sub_id, amount, date, ref_no, bank_id, description)
         elif id == "loan":
             self.repay_loan(sub_id, amount, date, bank_id, ref_no, description)
         elif id == "company":
-            self.company_payment(
-                sub_id, amount, date, description,ref_no, bank_id)
-            
-    
+            self.company_payment(sub_id, amount, date, description, ref_no, bank_id)
+
     def registeration_payment(
-        self, id, amount, date, ref_no, bank_id, description, loan=False,guarantors=[]
+        self, id, amount, date, ref_no, bank_id, description, loan=False, guarantors=[]
     ):
         try:
             person = Person.query.filter_by(id=id).first()
             if person:
-    
-                form_payment = LoanFormPayment(name=person.name,loan_amount=amount,person=person,guarantors=guarantors)
+                form_payment = LoanFormPayment(
+                    name=person.name,
+                    loan_amount=amount,
+                    person=person,
+                    guarantors=guarantors,
+                )
                 self.db.session.add(form_payment)
 
                 self.db.session.commit()
@@ -228,8 +250,8 @@ class Queries:
         except Exception as e:
             self.db.session.rollback()
             return str(e)
-        
-    def update_loan(self, loan_id, amount,guarantors=[]):
+
+    def update_loan(self, loan_id, amount, guarantors=[]):
         try:
             loan = LoanFormPayment.query.get(loan_id)
 
@@ -250,18 +272,19 @@ class Queries:
         except Exception as e:
             self.db.session.rollback()
             return str(e)
-        
-        
+
     def give_consent(self, loan, person, amount):
         try:
             existing_contributions = GuarantorContribution.query.filter_by(
-            loan_form_payment_id=loan.id,
-            guarantor_id=person.id
+                loan_form_payment_id=loan.id, guarantor_id=person.id
             ).first()
 
             if existing_contributions is None:
-                
-                contribution = GuarantorContribution(loan_form_payment=loan, guarantor=person, contribution_amount=float(amount))
+                contribution = GuarantorContribution(
+                    loan_form_payment=loan,
+                    guarantor=person,
+                    contribution_amount=float(amount),
+                )
                 db.session.add(contribution)
                 person.available_balance -= float(amount)
                 person.balance_withheld += float(amount)
@@ -271,7 +294,7 @@ class Queries:
                 loan.move_to_loan()
 
                 # Create a new GuarantorContribution record to track the contribution
-                
+
                 db.session.commit()
                 log_report(loan.loan)
                 return True
@@ -280,8 +303,6 @@ class Queries:
         except Exception as e:
             db.session.rollback()
             return str(e)
-
-            
 
     def add_income(self, id, amount, date, ref_no, bank_id, description):
         bank = Bank.query.filter_by(id=bank_id).first()
@@ -297,6 +318,7 @@ class Queries:
                 balance=income.balance,
                 bank_id=bank.id,
                 income_id=income.id,
+                year=self.year,
             )
 
             self.db.session.add(income_payment)
@@ -310,6 +332,7 @@ class Queries:
                 ref_no=ref_no,
                 bank_balance=bank.new_balance,
                 bank_id=bank.id,
+                year=self.year,
             )
 
             self.db.session.add(bank_payment)
@@ -330,6 +353,7 @@ class Queries:
                 balance=expense.balance,
                 bank_id=bank.id,
                 expense_id=id,
+                year=self.year,
             )
 
             self.db.session.add(expense_payment)
@@ -343,6 +367,7 @@ class Queries:
                 ref_no=ref_no,
                 bank_balance=bank.new_balance,
                 bank_id=bank.id,
+                year=self.year,
             )
 
             self.db.session.add(bank_payment)
@@ -364,6 +389,7 @@ class Queries:
                     balance=asset.balance,
                     bank_id=bank.id,
                     asset_id=id,
+                    year=self.year,
                 )
 
                 self.db.session.add(asset_payment)
@@ -377,6 +403,7 @@ class Queries:
                     ref_no=ref_no,
                     bank_balance=bank.new_balance,
                     bank_id=bank.id,
+                    year=self.year,
                 )
 
                 self.db.session.add(bank_payment)
@@ -400,6 +427,7 @@ class Queries:
                 balance=liability.balance,
                 bank_id=bank.id,
                 liability_id=id,
+                year=self.year,
             )
 
             self.db.session.add(liability_payment)
@@ -413,6 +441,7 @@ class Queries:
                 ref_no=ref_no,
                 bank_balance=bank.new_balance,
                 bank_id=bank.id,
+                year=self.year,
             )
 
             self.db.session.add(bank_payment)
@@ -433,6 +462,7 @@ class Queries:
                 balance=investment.balance,
                 bank_id=bank.id,
                 investment_id=id,
+                year=self.year,
             )
 
             self.db.session.add(investment_payment)
@@ -446,6 +476,7 @@ class Queries:
                 ref_no=ref_no,
                 bank_balance=bank.new_balance,
                 bank_id=bank.id,
+                year=self.year,
             )
 
             self.db.session.add(bank_payment)
@@ -494,7 +525,8 @@ class Queries:
                     exact_date=datetime.utcnow(),
                     description=description,
                     ref_no=ref_no,
-                    balance=person.available_balance,
+                    balance=person.total_balance,
+                    year=self.year,
                 )
                 self.db.session.add(saving_payment)
                 bank = Bank.query.filter_by(id=bank_id).first()
@@ -509,6 +541,7 @@ class Queries:
                         description=description,
                         bank_balance=bank.new_balance,
                         bank_id=bank.id,
+                        year=self.year,
                     )
                     self.db.session.add(bank_payment)
                     self.db.session.commit()
@@ -534,7 +567,8 @@ class Queries:
                     description=description,
                     ref_no=ref_no,
                     company_id=company.id,
-                    balance=person.available_balance,
+                    balance=person.total_balance,
+                    year=self.year,
                 )
 
                 self.db.session.add(saving_payment)
@@ -548,6 +582,7 @@ class Queries:
                     ref_no=ref_no,
                     company_id=company.id,
                     balance=company.amount_accumulated,
+                    year=self.year,
                 )
 
                 self.db.session.add(company_payment)
@@ -557,7 +592,6 @@ class Queries:
         except Exception as e:
             self.db.session.rollback()
             return str(e)
-
 
     def make_loan_request(
         self,
@@ -586,11 +620,11 @@ class Queries:
                     bank_id=bank_id,
                     description=description,
                     ref_no=ref_no,
-                    is_approved=True
+                    is_approved=True,
                 )
                 self.db.session.add(loan)
                 self.db.session.commit()
-                log_report('how e take reach here')
+                log_report("how e take reach here")
                 log_report(pre_loan.guarantor_contributions)
                 for contribution in pre_loan.guarantor_contributions:
                     log_report(contribution)
@@ -602,11 +636,11 @@ class Queries:
         except Exception as e:
             self.db.session.rollback()
             return str(e)
-        
+
     def reject_loan(self, loan_id):
         try:
             loan = Loan.query.get(loan_id)
-            pre_loan=self.get_registered_person(loan.person_id)
+            pre_loan = self.get_registered_person(loan.person_id)
 
             if not pre_loan:
                 raise ValueError("Loan not found.")
@@ -615,15 +649,15 @@ class Queries:
                 pre_loan.is_approved = False
                 pre_loan.admin_approved = False
                 self.db.session.commit()
-            #delete loan
+            # delete loan
             self.db.session.delete(loan)
             self.db.session.commit()
             return True
-            
+
         except Exception as e:
             self.db.session.rollback()
             return str(e)
-        
+
     def approve_loan(self, loan_id):
         try:
             loan = Loan.query.get(loan_id)
@@ -640,7 +674,7 @@ class Queries:
 
                 # Update the person's loan balance by adding the loan amount and interest
                 person = Person.query.get(loan.person_id)
-                person.loan_balance += loan.amount 
+                person.loan_balance += loan.amount
                 self.delete_registered(person.id)
                 # Create a loan payment record for the loan amount
                 loan_payment = LoanPayment(
@@ -651,6 +685,7 @@ class Queries:
                     ref_no=loan.ref_no,
                     balance=person.loan_balance,
                     person_id=person.id,
+                    year=self.year,
                 )
                 self.db.session.add(loan_payment)
 
@@ -664,6 +699,7 @@ class Queries:
                     ref_no=loan.ref_no,
                     balance=person.loan_balance,
                     person_id=person.id,
+                    year=self.year,
                 )
                 self.db.session.add(interest_payment)
                 name = "Interest"
@@ -672,13 +708,14 @@ class Queries:
 
                 income.balance += float(interest_amount)
                 income_payment = IncomePayment(
-                amount=float(interest_amount),
-                date=loan.start_date,
-                description=income_description,
-                ref_no=loan.ref_no,
-                balance=income.balance,
-                bank_id=loan.bank_id,
-                income_id=income.id,
+                    amount=float(interest_amount),
+                    date=loan.start_date,
+                    description=income_description,
+                    ref_no=loan.ref_no,
+                    balance=income.balance,
+                    bank_id=loan.bank_id,
+                    income_id=income.id,
+                    year=self.year,
                 )
 
                 self.db.session.add(income_payment)
@@ -695,6 +732,7 @@ class Queries:
                     bank_balance=bank.new_balance,
                     bank_id=bank.id,
                     ref_no=loan.ref_no,
+                    year=self.year,
                 )
                 self.db.session.add(bank_payment)
 
@@ -721,10 +759,10 @@ class Queries:
                 log_report(bank.new_balance)
 
                 person.loan_balance -= float(amount)
-                
+
                 log_report(6)
-                loan = Loan.query.filter_by(person_id=id,is_paid= False).first()
-                log_report(Loan.query.filter_by(person_id=id,is_paid= False).all())
+                loan = Loan.query.filter_by(person_id=id, is_paid=False).first()
+                log_report(Loan.query.filter_by(person_id=id, is_paid=False).all())
                 log_report(loan)
                 loan_payment = LoanPayment(
                     amount=amount,
@@ -735,6 +773,7 @@ class Queries:
                     ref_no=ref_no,
                     balance=person.loan_balance,
                     bank_id=bank.id,
+                    year=self.year,
                 )
                 self.db.session.add(loan_payment)
                 log_report(person.loan_balance)
@@ -750,6 +789,7 @@ class Queries:
                     ref_no=ref_no,
                     bank_balance=bank.new_balance,
                     bank_id=bank.id,
+                    year=self.year,
                 )
                 self.db.session.add(bank_payment)
                 log_report(7)
@@ -763,14 +803,17 @@ class Queries:
                 if person.loan_balance == 0:
                     loan.is_paid = True
                     log_report(loan.guarantor_contributions)
-                    for contribution in loan.guarantor_contributions:   
+                    for contribution in loan.guarantor_contributions:
                         person = contribution.guarantor
                         log_report(person.name)
-                        person.available_balance += float(contribution.contribution_amount)
+                        person.available_balance += float(
+                            contribution.contribution_amount
+                        )
                         log_report(person.available_balance)
-                        person.balance_withheld -= float(contribution.contribution_amount)
+                        person.balance_withheld -= float(
+                            contribution.contribution_amount
+                        )
                         log_report(person.balance_withheld)
-                        
 
                 log_report(8)
 
@@ -798,8 +841,9 @@ class Queries:
                     exact_date=datetime.utcnow(),
                     description=description,
                     ref_no=ref_no,
-                    balance=person.available_balance,
+                    balance=person.total_balance,
                     bank_id=bank.id,
+                    year=self.year,
                 )
                 self.db.session.add(savings_payment)
 
@@ -814,6 +858,7 @@ class Queries:
                     ref_no=ref_no,
                     bank_balance=bank.new_balance,
                     bank_id=bank.id,
+                    year=self.year,
                 )
 
                 self.db.session.add(bank_payment)
@@ -828,6 +873,7 @@ class Queries:
                     ref_no=ref_no,
                     balance=person.loan_balance,
                     bank_id=bank.id,
+                    year=self.year,
                 )
                 self.db.session.add(loan_payment)
 
@@ -842,6 +888,7 @@ class Queries:
                     ref_no=ref_no,
                     bank_balance=bank.new_balance,
                     bank_id=bank.id,
+                    year=self.year,
                 )
 
                 self.db.session.add(bank_payment)
@@ -869,6 +916,7 @@ class Queries:
                     ref_no=ref_no,
                     balance=person.loan_balance,
                     company_id=company.id,
+                    year=self.year,
                 )
                 self.db.session.add(loan_payment)
 
@@ -881,11 +929,12 @@ class Queries:
                     ref_no=ref_no,
                     company_id=company.id,
                     balance=company.amount_accumulated,
+                    year=self.year,
                 )
 
                 self.db.session.add(company_payment)
                 self.db.session.commit()
-                
+
                 return True
         except Exception as e:
             self.db.session.rollback()
@@ -906,6 +955,7 @@ class Queries:
                     ref_no=ref_no,
                     company_id=company.id,
                     balance=company.amount_accumulated,
+                    year=self.year,
                 )
                 self.db.session.add(company_payment)
 
@@ -920,6 +970,7 @@ class Queries:
                     ref_no=ref_no,
                     bank_balance=bank.new_balance,
                     bank_id=bank.id,
+                    year=self.year,
                 )
                 self.db.session.add(bank_payment)
 
@@ -946,7 +997,7 @@ class Queries:
         elif ledger == 3:
             sub_accounts = Investment.query.all()
             return sub_accounts
-        
+
     def sub_journal(self, journal):
         if journal == "savings":
             return self.get_persons()
@@ -972,20 +1023,17 @@ class Queries:
         person = Person.query.all()
 
         return person
-    
+
     def get_registered(self):
-
         return LoanFormPayment.query.all()
-    
-    def get_registered_person(self,id):
 
+    def get_registered_person(self, id):
         return LoanFormPayment.query.filter_by(id=id).first()
-    
-    def delete_registered(self,id):
+
+    def delete_registered(self, id):
         person = LoanFormPayment.query.filter_by(id=id).first()
         db.session.delete(person)
-        
-    
+
     def get_person(self, person_id):
         person = Person.query.filter_by(id=person_id).first()
         return person
@@ -1002,6 +1050,10 @@ class Queries:
         loans = Loan.query.all()
         return loans
 
+    def get_loan(self, person_id):
+        loan = Loan.query.filter_by(person_id=person_id).first()
+        return loan
+
     def get_bank(self, bank_id):
         bank = Bank.query.get(bank_id)
         return bank
@@ -1013,11 +1065,13 @@ class Queries:
     def get_income(self):
         loans = Income.query.all()
         return loans
-    
+
     def get_net_income(self):
         income = Income.query.all()
         expense = Expense.query.all()
-        net_income = sum([i.balance for i in income if i.balance]) - sum([e.balance for e in expense if e.balance])
+        net_income = sum([i.balance for i in income if i.balance]) - sum(
+            [e.balance for e in expense if e.balance]
+        )
         return net_income
 
     def get_person_loans(self, person_id):
@@ -1036,33 +1090,145 @@ class Queries:
         bank = Bank.query.all()
         total = sum([b.new_balance for b in bank if b.new_balance])
         return total
-    
+
     def get_accounts_receivable(self):
         persons = Person.query.all()
         total = sum([p.loan_balance for p in persons if p.loan_balance])
         return total
-    
+
     def get_accounts_payable(self):
         persons = Person.query.all()
-        total = sum([p.available_balance for p in persons if p.available_balance])
+        total = sum([p.total_balance for p in persons if p.total_balance])
         return total
-    
+
     def get_total_investment(self):
         investment = Investment.query.all()
         total = sum([i.balance for i in investment if i.balance])
         return total
-    
+
     def get_company_receivables(self):
         company = Company.query.all()
         total = sum([c.amount_accumulated for c in company if c.amount_accumulated])
         return total
-    
+
     def get_fixed_assets(self):
         asset = Asset.query.all()
         total = sum([a.balance for a in asset if a.balance])
         return total
-    
+
     def get_total_liabilities(self):
         liability = Liability.query.all()
         total = sum(l.balance for l in liability if l.balance)
         return total
+
+    @staticmethod
+    def get_liabilities_per_year(year):
+        subquery = db.session.query(
+            LiabilityPayment.liability_id,
+            db.func.max(LiabilityPayment.date).label('max_date')
+        ).filter(
+            LiabilityPayment.year == year
+        ).group_by(LiabilityPayment.liability_id).subquery()
+
+        liabilities = db.session.query(
+                Liability,
+                LiabilityPayment.balance,
+                LiabilityPayment.date
+            ).select_from(Liability).join(
+                subquery,
+                db.and_(
+                    Liability.id == subquery.c.liability_id,
+                    LiabilityPayment.date == subquery.c.max_date
+                )
+            ).join(
+                LiabilityPayment,
+                db.and_(
+                    Liability.id == LiabilityPayment.liability_id,
+                    LiabilityPayment.date == subquery.c.max_date
+                )
+            ).filter(
+                LiabilityPayment.year == year
+            ).all()
+
+        return liabilities
+
+    def close_year(self, year, loan_application_fee):
+        try:
+            self.create_constants(year + 1, loan_application_fee)
+            fixed_assets = Asset.query.all()
+            total_fixed_assets = sum(a.balance for a in fixed_assets)
+
+            cash_and_bank = self.get_cash_and_banks()
+            accounts_receivable = self.get_accounts_receivable()
+            company_receivable = self.get_company_receivables()
+            investments = self.get_total_investment()
+            total_current_assets = (
+                cash_and_bank + accounts_receivable + company_receivable + investments
+            )
+
+            total_assets = total_current_assets + total_fixed_assets
+
+            net_income = self.get_net_income()
+            accounts_payable = self.get_accounts_payable()
+
+            total_liabilities = self.get_total_liabilities()
+
+            accounts_payable = self.get_accounts_payable()
+            total_equity = accounts_payable + net_income
+            total_liabilities_and_equity = total_liabilities + total_equity
+            balance_sheet = BalanceSheet(
+                total_fixed_assets=total_fixed_assets,
+                total_current_assets=total_current_assets,
+                total_assets=total_assets,
+                total_liabilities=total_liabilities,
+                total_equity=total_equity,
+                total_liabilities_and_equity=total_liabilities_and_equity,
+                net_income=net_income,cash_and_bank=cash_and_bank,
+                accounts_receivable=accounts_receivable,
+                company_receivable=company_receivable,
+                investments=investments,
+                accounts_payable=accounts_payable,
+                year=year,
+            )
+            self.db.session.add(balance_sheet)
+            self.db.session.commit()
+
+            for person in Person.query.all():
+                person.balance_bfd = person.available_balance + person.balance_withheld
+                person.loan__balance_bfd = person.loan_balance
+
+            for bank in Bank.query.all():
+                bank.balance_bfd = bank.new_balance
+
+            for income in Income.query.all():
+                income.balance_bfd = income.balance
+
+            for expense in Expense.query.all():
+                expense.balance_bfd = expense.balance
+
+            for asset in Asset.query.all():
+                asset.balance_bfd = asset.balance
+
+            for liability in Liability.query.all():
+                liability.balance_bfd = liability.balance
+
+            for investment in Investment.query.all():
+                investment.balance_bfd = investment.balance
+
+            for company in Company.query.all():
+                company.balance_bfd = company.amount_accumulated
+
+            self.db.session.commit()
+            return True
+        except Exception as e:
+            self.db.session.rollback()
+            return str(e)
+
+
+with app.app_context():
+    app = Flask(__name__)
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv(
+        "DATABASE_URL"
+    )  # Replace with your database URI
+    db.init_app(app)
+    query = Queries(db)
