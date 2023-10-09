@@ -15,7 +15,7 @@ Loan Details
 {%block content%}
 
 <body id="person">
-    <table class="tab-content">
+    <table class="tab-content" id="info-table">
         <tbody>
             <tr>
                 <th>ID</th>
@@ -23,7 +23,7 @@ Loan Details
             </tr>
             <tr>
                 <th>Member </th>
-                <td>{{ loan.person }}</td>
+                <td>{{ loan.person.name }}</td>
             </tr>
             <tr>
                 <th>Description</th>
@@ -50,7 +50,7 @@ Loan Details
                 <td>{{ loan.end_date }}</td>
             </tr>
             <tr>
-                <th>Guarantor ID</th>
+                <th>Guarantors </th>
                 <td>{% for guarantor in guarantors %} {{ guarantor }} {% endfor %} </td>
             </tr>
             <tr>

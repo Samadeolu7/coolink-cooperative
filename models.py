@@ -5,7 +5,7 @@ from flask_login import UserMixin
 from dotenv import load_dotenv
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import validates
-from sqlalchemy import event
+from sqlalchemy import desc
 import os
 
 load_dotenv()
@@ -111,6 +111,11 @@ class Person(db.Model, UserMixin):
         loan = LoanFormPayment.query.filter(LoanFormPayment.guarantors.any(id=self.id)).all()
         ret = [l for l in loan if not l.loan]
         return ret
+    
+    def last_loan(self):
+        # Query the loans associated with this person, ordered by the loan's start_date in descending order
+        last_loan = Loan.query.filter_by(person_id=self.id).order_by(desc(Loan.start_date)).first()
+        return last_loan
     
     @validates("balance_bfd", "balance_withheld", "available_balance", "loan_balance", "loan_balance_bfd")
     def validate_non_negative(self, key, value):
@@ -231,6 +236,8 @@ class Loan(db.Model):
             "is_paid": self.is_paid,
         }
     
+    
+    
     def payment_complete(self):
         log_report("loan balance")
         if self.person.loan_balance == 0:
@@ -242,9 +249,7 @@ class Loan(db.Model):
                 guarantor.balance_withheld -= guarantor.loan_form_payment.contribution_amount
                 
             db.session.commit()
-            
-            
-
+            return True
 
 class LoanPayment(db.Model):
     __tablename__ = "loan_payments"
@@ -678,7 +683,6 @@ class LoanFormPayment(db.Model):
     
     # Define a relationship with GuarantorContribution to access contributions for this loan
     guarantor_contributions = db.relationship("GuarantorContribution", backref="loan_form_payment")
-
 
 
     def move_to_loan(self):

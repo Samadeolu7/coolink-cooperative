@@ -1019,6 +1019,8 @@ class Queries:
         return loans
 
     def get_loan(self, person_id):
+        person = Person.query.filter_by(id=person_id).first()
+        loan = person.last_loan()
         loan = Loan.query.filter_by(person_id=person_id).first()
         return loan
 

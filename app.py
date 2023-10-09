@@ -455,8 +455,10 @@ def register_loan():
     form.fee.data = int(query.loan_application_fee)
     form.fee.render_kw = {'readonly': True}
     if request.method == "POST":
+
  
         if form.validate_on_submit():
+
             id = form.name.data
             amount = form.amount.data
             log_report(amount)
@@ -466,6 +468,11 @@ def register_loan():
             ref_no = form.ref_no.data
             guarantors= []
             guarantor = form.guarantor.data
+            loan_unpaid = Loan.query.filter_by(person_id=id,is_paid=False).first()
+            if loan_unpaid:
+                flash("You have an unpaid loan","error")
+                return redirect(url_for("register_loan"))
+            
             if guarantor!="None" :
                 guarantor = query.get_person(guarantor)
                 guarantors.append(guarantor)
@@ -1168,20 +1175,24 @@ def savings_account(person_id):
 def loan_account(person_id):
     user = current_user
     if user.role.id != 4 or user.id == int(person_id):
-        loans = query.get_person_loans(person_id)
         person = query.get_person(person_id)
+        loan = person.last_loan()
         payments = person.loan_payments_made
         form = DateFilterForm(request.args)
         # Filter payments based on date range
         start_date = form.start_date.data
         end_date = form.end_date.data
         filtered_payments = filter_payments(start_date, end_date, payments)
+        approved = query.get_person(loan.approved_by)
+        guarantors = [p.guarantor.name for p in loan.guarantor_contributions]
         return render_template(
             "query/loan_account.html",
             payments=filtered_payments,
             person=person,
-            loans=loans,
+            loan=loan,
             form=form,
+            approved=approved,
+            guarantors=guarantors
         )
     else:
         return redirect(url_for("loan_account", person_id=user.id))
