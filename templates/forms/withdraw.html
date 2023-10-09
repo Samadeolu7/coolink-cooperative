@@ -110,7 +110,10 @@ Make Withdrawal
                     if (xhr.readyState === XMLHttpRequest.DONE) {
                         if (xhr.status === 200) {
                             // Update the balance field with the retrieved balance
-                            balanceField.value = xhr.responseText;
+                            const data = JSON.parse(xhr.responseText);
+    
+                        // Update the balance field with the retrieved balance
+                            balanceField.value = data.balance;
                         } else {
                             // Handle errors here (e.g., server error, person not found)
                             balanceField.value = '';

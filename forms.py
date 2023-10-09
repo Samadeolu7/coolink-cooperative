@@ -89,6 +89,8 @@ class PaymentForm(FlaskForm):
     submit = SubmitField("Submit")
 
 
+
+
 class LoanForm(FlaskForm):
     name = SelectField("Select Person", coerce=int, validators=[DataRequired()])
     amount = StringField("Amount", validators=[DataRequired()])
@@ -166,6 +168,18 @@ class WithdrawalForm(FlaskForm):
     )
     bank_id = SelectField("Select Person", coerce=int, validators=[DataRequired()])
     submit = SubmitField("Withdraw")
+
+class RepayLoanForm(FlaskForm):
+    person = SelectField("Select Person", coerce=int, validators=[DataRequired()])
+    balance = StringField("Available Balance", render_kw={"readonly": True})
+    loan_balance = StringField("Loan Balance", render_kw={"readonly": True})
+    amount = DecimalField("Amount", validators=[DataRequired()])
+    date = DateField("Date", validators=[DataRequired()])
+    bank = SelectField("Bank", coerce=int, validators=[DataRequired()])
+    description = StringField("Description")
+    ref_no = StringField("Ref Number", validators=[DataRequired()])
+    submit = SubmitField("Submit")
+
 
 
 class RoleAssignmentForm(FlaskForm):

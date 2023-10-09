@@ -84,11 +84,6 @@ def before_request():
     g.user = current_user
 
 
-def log_report(report):
-    with open("report.txt", "a", encoding="utf-8") as f:
-        f.write(f"{report}\n")
-
-
 # Routes for creating and submitting forms
 
 
@@ -115,15 +110,20 @@ def login():
 def dashboard():
     person = current_user
     form = SearchForm()
-    failed_loan = None
     pre_guarantor = person.get_guaranteed_payments()
     failed_loan = None
+    message = None
     for payment in person.loan_form_payment:
         if payment.failed:
             failed_loan = payment
+            if failed_loan.loan_amount > failed_loan.guarantor_amount:
+                message = "Guaranteed amount insuffficient"
+            else:
+                message = "Consent not given"
+
             break  # Exit the loop if a failed loan is found
  
-    return render_template("dashboard.html", person=person, form=form,consents=pre_guarantor,failed_loan=failed_loan)
+    return render_template("dashboard.html", person=person, form=form,consents=pre_guarantor,failed_loan=failed_loan,message=message)
 
 
 @app.route("/forms")
@@ -392,6 +392,47 @@ def make_payment():
         return redirect(url_for("get_person", person_id=selected_person_id))
 
     return render_template("forms/payment.html", form=form)
+
+#repay loan with savings
+@app.route("/repay_loan", methods=["GET", "POST"])
+@login_required
+@role_required(["Admin", "Secretary"])
+def repay_loan():
+    form = RepayLoanForm()
+    form.person.choices = [
+        (person.id, (f"{person.name} ({person.employee_id})"))
+        for person in query.get_persons()
+    ]
+    form.date.data = pd.to_datetime("today")
+    form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
+    if request.method == "POST":
+        if form.validate_on_submit():
+            amount = form.amount.data
+            selected_person_id = form.person.data
+            selected_person = Person.query.get(selected_person_id)
+            date = form.date.data
+            bank_id = form.bank.data
+            ref_no = form.ref_no.data
+            description = form.description.data
+            if selected_person:
+                test = query.repay_loan_with_savings(
+                    selected_person.id, amount, date, bank_id, ref_no, description
+                )
+                if test == True:
+                    flash("Payment submitted successfully.", "success")
+                    return redirect(url_for("dashboard"))
+                else:
+                    flash(test, "error")
+                    log_report(test)
+                    return redirect(url_for("repay_loan"))
+
+            else:
+                flash(f"Error in field {form.errors}", "error")
+
+        return redirect(url_for("get_person", person_id=selected_person_id))
+
+    return render_template("forms/repay_loan.html", form=form)
+
 
 
 @app.route("/forms/register", methods=["GET", "POST"])
@@ -1454,9 +1495,11 @@ def get_loan_data(person_id):
 def get_balance(person_id):
     selected_person = Person.query.get(person_id)
     if selected_person:
-        return format_currency(selected_person.available_balance)
+        # Return JSON data with both balance and loan_balance values
+        return jsonify({"balance": format_currency(selected_person.available_balance), "loan_balance": format_currency(selected_person.loan_balance)})
     else:
-        return jsonify(error="Person not found"), 404
+        return jsonify({"balance": None, "loan_balance": None})  # Handle the case when the person is not found
+
 
 @app.route("/get_person_info/<person_id>")
 @login_required

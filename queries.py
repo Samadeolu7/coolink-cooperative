@@ -847,22 +847,6 @@ class Queries:
                 )
                 self.db.session.add(savings_payment)
 
-                bank.new_balance -= float(amount)
-
-                bank_payment = BankPayment(
-                    amount=-amount,
-                    date=date,
-                    person_id=person.id,
-                    exact_date=datetime.utcnow(),
-                    description=description,
-                    ref_no=ref_no,
-                    bank_balance=bank.new_balance,
-                    bank_id=bank.id,
-                    year=self.year,
-                )
-
-                self.db.session.add(bank_payment)
-
                 person.loan_balance -= float(amount)
                 loan_payment = LoanPayment(
                     amount=amount,
@@ -876,22 +860,6 @@ class Queries:
                     year=self.year,
                 )
                 self.db.session.add(loan_payment)
-
-                bank.new_balance += float(amount)
-
-                bank_payment = BankPayment(
-                    amount=amount,
-                    date=date,
-                    person_id=person.id,
-                    exact_date=datetime.utcnow(),
-                    description=description,
-                    ref_no=ref_no,
-                    bank_balance=bank.new_balance,
-                    bank_id=bank.id,
-                    year=self.year,
-                )
-
-                self.db.session.add(bank_payment)
                 self.db.session.commit()
                 return True
         except Exception as e:

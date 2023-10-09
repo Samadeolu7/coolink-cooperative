@@ -37,26 +37,21 @@ COOLINK CO-OPERATIVE EXPENSE ACCOUNT
 
         <button id="downloadExcelButton">Download Report</button>
 
-        <button id="downloadPdfButton">Download Report</button>
+        <button id="downloadPdfButton" onclick="window.print()">Download Report</button>
     
         <script>
             // Get the button element by its ID
             var buttonExcel = document.getElementById("downloadExcelButton");
-            var buttonPdf = document.getElementById("downloadPdfButton");
     
             // Define the link URL
             var linkUrlExcel = "{{url_for('download_excel',type='expense',type_id='None' )}}";
-            var linkUrlPdf = "{{url_for('download_pdf',type='expense',type_id='None' )}}";
-    
+
             // Add a click event listener to the button
             buttonExcel.addEventListener("click", function() {
                 // Redirect to the link URL
                 window.location.href = linkUrlExcel;
             });
-            buttonPdf.addEventListener("click", function() {
-                // Redirect to the link URL
-                window.location.href = linkUrlPdf;
-            });
+
         </script>
     </body>
 

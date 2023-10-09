@@ -1,0 +1,212 @@
+{%extends 'base.html' %}
+
+{%block title%}
+Repay Loan with Savings
+{% endblock %}
+
+{% block header%}
+Repay Loan with Savings
+{% endblock  %}
+
+{% block anchor%}
+<a href="{{ url_for('forms') }}" id='arrow'><i class="fa-solid fa-arrow-left"></i></a>
+{% endblock  %}
+
+{%block content%}
+<body id="form">
+    <div class="full-form-content">
+        <div class = "flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flash-messages">
+                    {% for message in messages %}
+                        <li class="fade-out {{message[0]}}">{{message[1]}}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+            {% endwith %}
+            </div>
+
+        <div class="form-wrapper" id="long-form">
+            <form  method="post">
+                {{ form.hidden_tag() }}
+
+                <h1>Withdrawal Page</h1>
+
+                <div class="form-label">
+                {{ form.person.label(class_='input-label') }} <br>
+                </div>
+
+                <div class="form-box">
+                {{ form.person(class_="input")}}
+                <br></div>
+
+                <div class="form-label">
+                {{ form.balance.label(class_='input-label')  }} <br>
+                </div>
+
+                <div class="form-box">
+                {{ form.balance(class_="input") }}
+                <br></div>
+
+                <div class="form-label">
+                    {{ form.loan_balance.label(class_='input-label')  }} <br>
+                </div>
+    
+                <div class="form-box">
+                    {{ form.loan_balance(class_="input") }}
+                <br></div>
+
+                <div class="form-label">
+                {{ form.date.label(class_='input-label')}} <br>
+                </div>
+        
+                <div class="form-box">
+                {{ form.date(class_="input") }}
+                <br></div>
+
+                <div class="form-label">
+                {{ form.amount.label(class_='input-label') }} <br>
+                </div>
+        
+                <div class="form-box">
+                {{ form.amount(class_="input") }}
+                <br></div>
+
+                <div class="form-label">
+                    {{ form.bank.label(class_='input-label') }} <br>
+                </div>
+
+                <div class="form-box">
+                    {{ form.bank(class_="input") }}
+                    <br></div>
+
+
+                <div class="form-label">
+                {{ form.description.label(class_='input-label') }} <br>
+                </div>
+        
+                <div class="form-box">
+                {{ form.description(class_="input") }}
+                <br></div>
+
+                <div class="form-label">
+                {{ form.ref_no.label(class_='input-label') }} <br>
+                </div>
+        
+                <div class="form-box">
+                {{ form.ref_no(class_="input") }} <br></div>
+                
+                <div class="button-wrapper">
+                {{ form.submit(class_="button") }} 
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+        const selectPerson = document.getElementById("person");
+        const balanceField = document.getElementById("balance");
+        const loanBalanceField = document.getElementById("loan_balance"); // Add this line
+    
+        function updateBalance() {
+            const selectedPersonId = selectPerson.value;
+    
+            // Make an AJAX request to the server to get the balance and loan balance of the selected person
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', `/get_balance/${selectedPersonId}`, true);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        // Parse the JSON response
+                        const data = JSON.parse(xhr.responseText);
+    
+                        // Update the balance field with the retrieved balance
+                        balanceField.value = data.balance;
+    
+                        // Update the loan balance field with the retrieved loan balance
+                        loanBalanceField.value = data.loan_balance;
+                    } else {
+                        // Handle errors here (e.g., server error, person not found)
+                        balanceField.value = '';
+                        loanBalanceField.value = '';
+                    }
+                }
+            };
+            xhr.send();
+        }
+    
+        // Add event listener to update balance and loan balance fields when person selection changes
+        selectPerson.addEventListener("change", updateBalance);
+    
+        // Call the function initially to set the initial balance and loan balance values
+        updateBalance();
+    
+        // Frontend validation to prevent withdrawal more than available balance
+        function validateForm() {
+            const availableBalance = parseFloat(balanceField.value);
+            const withdrawalAmount = parseFloat(amountField.value);
+    
+            if (isNaN(withdrawalAmount) || withdrawalAmount <= 0) {
+                alert("Please enter a valid withdrawal amount.");
+                return false;
+            }
+    
+            if (withdrawalAmount > availableBalance) {
+                alert("Withdrawal amount cannot exceed the available balance.");
+                return false;
+            }
+    
+            return true;
+        }
+    </script>
+
+    <!--<script>
+        const selectPerson = document.getElementById("person");
+        const balanceField = document.getElementById("balance");
+
+        function updateBalance() {
+            const selectedPersonId = selectPerson.value;
+
+            // Make an AJAX request to the server to get the balance of the selected person
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', `/get_balance/${selectedPersonId}`, true);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        // Update the balance field with the retrieved balance
+                        balanceField.value = xhr.responseText;
+                    } else {
+                        // Handle errors here (e.g., server error, person not found)
+                        balanceField.value = '';
+                    }
+                }
+            };
+            xhr.send();
+        }
+
+        // Add event listener to update balance field when person selection changes
+        selectPerson.addEventListener("change", updateBalance);
+
+        // Call the function initially to set the initial balance value
+        updateBalance();
+        // Frontend validation to prevent withdrawal more than available balance
+        function validateForm() {
+            const availableBalance = parseFloat(balanceField.value);
+            const withdrawalAmount = parseFloat(amountField.value);
+
+            if (isNaN(withdrawalAmount) || withdrawalAmount <= 0) {
+                alert("Please enter a valid withdrawal amount.");
+                return false;
+            }
+
+            if (withdrawalAmount > availableBalance) {
+                alert("Withdrawal amount cannot exceed the available balance.");
+                return false;
+            }
+
+            return true;
+        }
+    </script>-->
+</body>
+
+{%endblock%}

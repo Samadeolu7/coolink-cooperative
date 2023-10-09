@@ -83,26 +83,22 @@ Company Report
 
     <button id="downloadExcelButton">Download Excel Report</button>
 
-    <button id="downloadPdfButton">Download PDF Report</button>
+    <h2>Download PDF Report</h2>
+    <button id="downloadPdfButton" onclick="window.print()">Download Report</button>
 
     <script>
         // Get the button element by its ID
         var buttonExcel = document.getElementById("downloadExcelButton");
-        var buttonPdf = document.getElementById("downloadPdfButton");
 
         // Define the link URL
         var linkUrlExcel = "{{url_for('download_excel',type='company',type_id=company.id )}}";
-        var linkUrlPdf = "{{url_for('download_pdf',type='company',type_id=company.id )}}";
 
         // Add a click event listener to the button
         buttonExcel.addEventListener("click", function() {
             // Redirect to the link URL
             window.location.href = linkUrlExcel;
         });
-        buttonPdf.addEventListener("click", function() {
-            // Redirect to the link URL
-            window.location.href = linkUrlPdf;
-        });
+
     </script>
 </body>
 {%endblock%}
