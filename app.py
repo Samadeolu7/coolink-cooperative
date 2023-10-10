@@ -843,15 +843,13 @@ def approve_withdrawal(request_id):
 @role_required(["Admin", "Secretary"])
 def request_loan():
     form = LoanForm()
-    form.name.choices = [
-        (person.id, (f"{person.name} ({person.person.employee_id})"))
-        for person in query.get_registered() if person.loan == True and person.is_approved==False
-    ]
+    persons = [p for p in query.get_registered() if p.loan == True and p.is_approved==False]
+    for person in persons:
+        member = Person.query.filter_by(employee_id=person.employee_id).first()
+        form.name.choices.append((member.id, (f"{member.name} ({member.employee_id})")))
     form.start_date.data = pd.to_datetime("today")
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
     form.amount.render_kw = {'readonly': True}
-
-
 
     if request.method == "POST":
         if form.validate_on_submit():
