@@ -1002,7 +1002,7 @@ class Queries:
         return LoanFormPayment.query.all()
 
     def get_registered_person(self, id):
-        return LoanFormPayment.query.filter_by(id=id).first()
+        return LoanFormPayment.query.filter_by(person_id=id).first()
 
     def delete_registered(self, id):
         person = LoanFormPayment.query.filter_by(id=id).first()
