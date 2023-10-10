@@ -95,7 +95,7 @@ def login():
         password = form.password.data
         user = query.get_user(identifier)
 
-        if user and user.password == password:
+        if user and user.password == query.hash_password(password):
             login_user(user)
             return redirect(url_for("dashboard"))
 
@@ -322,7 +322,7 @@ def reset_password():
         person_id = form.person.data
         password = query.generate_password()
         person = query.get_person(person_id)
-        person.password = password
+        person.password = query.hash_password(password)
         db.session.commit()
         with open(
             f"credentials/{person.employee_id}_credentials.csv", "w", newline=""

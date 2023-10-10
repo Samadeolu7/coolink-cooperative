@@ -96,7 +96,7 @@ class Queries:
 
     def change_password(self, user, password, new_password):
         if bcrypt.checkpw(password.encode("utf-8"), user.password.encode("utf-8")):
-            hashed_new_password = bcrypt.hashpw(new_password.encode("utf-8"), self.salt)
+            hashed_new_password = self.hash_password(new_password)
             user.password = hashed_new_password
             db.session.commit()
             return True
