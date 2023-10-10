@@ -1015,7 +1015,7 @@ class Queries:
         return payments
 
     def get_loans(self):
-        loans = Loan.query.all()
+        loans = Loan.query.order_by(Loan.id.desc()).all()
         return loans
 
     def get_loan(self, person_id):
@@ -1171,9 +1171,24 @@ class Queries:
                 bank.balance_bfd = bank.new_balance
 
             for income in Income.query.all():
+                yearly_income = IncomePerYear(
+                    name=income.name,
+                    description=income.description,
+                    debit=income.balance,
+                    year=year,
+                )
+                self.db.session.add(yearly_income)
                 income.balance_bfd = income.balance
 
+
             for expense in Expense.query.all():
+                yearly_expense = IncomePerYear(
+                    name=expense.name,
+                    description=expense.description,
+                    credit=expense.balance,
+                    year=year,
+                )
+                self.db.session.add(yearly_expense)
                 expense.balance_bfd = expense.balance
 
             for asset in Asset.query.all():
@@ -1187,6 +1202,15 @@ class Queries:
 
             for company in Company.query.all():
                 company.balance_bfd = company.amount_accumulated
+
+            net_income = self.get_net_income()
+            yearly_net_income = IncomePerYear(
+                name="Net Income",
+                description="Net Income",
+                debit=net_income,
+                year=year,
+            )
+            self.db.session.add(yearly_net_income)
 
             self.db.session.commit()
             return True

@@ -1142,9 +1142,25 @@ def income_statement():
     expenses = query.get_expenses()
 
     net_income = query.get_net_income()
+    current_year = os.getenv("CURRENT_YEAR")
+    query_year = query.year
+    year_range = [year for year in range(int(current_year), int(query_year))]
 
-    return render_template("query/income.html", incomes=incomes, expenses=expenses, net_income=net_income)
+    return render_template("query/income.html", incomes=incomes, expenses=expenses, net_income=net_income,year=None,years=year_range)
 
+
+@app.route("/income-yearly/<year>", methods=["GET"])
+@login_required
+@role_required(["Admin", "Secretary", "Sub-Admin"])
+def income_statement_yearly(year):
+    all_incomes = IncomePerYear.query.filter_by(year=year).order_by(IncomePerYear.id.desc()).all()
+    net_income = all_incomes.pop(-1)
+    incomes = [income for income in all_incomes if income.debit >0]
+    expenses = [expense for expense in all_incomes if expense.credit >0]
+    current_year = os.getenv("CURRENT_YEAR")
+    query_year = query.year
+    year_range = [year for year in range(int(current_year), int(query_year))]
+    return render_template("query/income.html", incomes=incomes, expenses=expenses, net_income=net_income.debit,year=year,years=year_range)
 
 
 @app.route("/savings_account/<person_id>", methods=["GET", "POST"])

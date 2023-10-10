@@ -749,6 +749,15 @@ class BalanceSheet(db.Model):
     year = db.Column(db.Integer, nullable=False)
 
 
+class IncomePerYear(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name= db.Column(db.String)
+    description = db.Column(db.String)
+    credit = db.Column(db.Float, default=0.0)
+    debit = db.Column(db.Float, default=0.0)
+    year = db.Column(db.Integer, nullable=False)
+
+
 from sqlalchemy import event
 
 def log_report(target):

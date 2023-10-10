@@ -5,7 +5,11 @@ loan account
 {% endblock %}
 
 {% block header%}
+{% if year %}
+COOLINK CO-OPERATIVE INCOME ACCOUNT FOR {{ year }}
+{% else %}
 COOLINK CO-OPERATIVE INCOME ACCOUNT
+{% endif %}
 {% endblock  %}
 
 {% block anchor%}
@@ -30,9 +34,13 @@ COOLINK CO-OPERATIVE INCOME ACCOUNT
         <tbody>
             {% for income in incomes %}
                 <tr>
-                    <td>{{ income.name }}</td>
+                    <td>{{ income.name }}</td> 
                     <td>{{ income.description }}</td>
+                    {% if year%}
+                    <td>{{ income.debit | currency }}</td>
+                    {% else %}
                     <td>{{ income.balance | currency}}</td>
+                    {% endif %}
                 </tr>
             {% endfor %}
             <tr>
@@ -43,7 +51,11 @@ COOLINK CO-OPERATIVE INCOME ACCOUNT
                 <tr>
                     <td>{{ income.name }}</td>
                     <td>{{ income.description }}</td>
+                    {% if year%}
+                    <td>{{ income.credit | currency}}</td>
+                    {% else %}
                     <td>{{ income.balance | currency}}</td>
+                    {% endif %}
                 </tr>
             {% endfor %}
             <tr>
@@ -53,11 +65,14 @@ COOLINK CO-OPERATIVE INCOME ACCOUNT
             </tr>
 
         </tbody>
+        {% for year in years %}
+        <a href="{{url_for('balance_sheet_by_year',year=year)}}"><button id="downloadExcelButton">{{year}}</button></a>
+        {% endfor %}
     </table>
 
     <button id="downloadExcelButton">Download Excel Report</button>
 
-    <h2>Download PDF Report</h2>
+     
     <button id="downloadPdfButton" onclick="window.print()">Download Report</button>
 
     <script>
