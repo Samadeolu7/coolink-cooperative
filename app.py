@@ -873,7 +873,7 @@ def request_loan():
             )
             if test == True:
                 flash("Loan sent for approval.", "success")
-                return redirect(url_for("loan_accounts", person_id=person.id))
+                return redirect(url_for("loan_account", person_id=person.id))
             else:
                 flash(test, "error")
                 log_report(test)
