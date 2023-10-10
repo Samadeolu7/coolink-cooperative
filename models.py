@@ -1,3 +1,4 @@
+import bcrypt
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
@@ -14,7 +15,7 @@ app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")  # Replace with your database URI
 db = SQLAlchemy(app)
 
-
+salt = os.getenv("SALT")
 class Company(db.Model):
     __tablename__ = "companies"
 
@@ -798,12 +799,16 @@ with app.app_context():
         db.session.commit()
 
     if Person.query.count() == 0:
+        passwrd = "password"
+        hashed_password = bcrypt.hashpw(passwrd.encode("utf-8"), salt.encode("utf-8"))
+        password = hashed_password.decode("utf-8")
+        
         db.session.add(
             Person(
                 name="Samuel",
                 employee_id="ASA123",
                 email="samore@gmail.com",
-                password="password",
+                password=password,
                 available_balance=0,
                 loan_balance=0,
                 loan_balance_bfd=0,

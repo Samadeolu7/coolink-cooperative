@@ -6,13 +6,19 @@ import string
 import random
 import bcrypt
 import csv
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
 
+app = Flask(__name__)
+salt = os.getenv("SALT")
+salt = salt.encode("utf-8")
 
 class Queries:
     def __init__(self, db) -> None:
         self.db = db
-        self.salt = bcrypt.gensalt()
+        self.salt = salt
         constants = self.get_constants()
         self.year = constants.current_year
         self.loan_application_fee = constants.loan_application_fee
