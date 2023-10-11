@@ -255,7 +255,10 @@ class Queries:
                 return True
         except Exception as e:
             self.db.session.rollback()
-            return str(e)
+            if "UNIQUE constraint failed: loan_form_payment.person_id" in str(e):
+                return "You have already registered"
+            else:
+                return str(e)
 
     def update_loan(self, loan_id, amount, guarantors=[]):
         try:
@@ -641,7 +644,10 @@ class Queries:
                 return True
         except Exception as e:
             self.db.session.rollback()
-            return str(e)
+            if "UNIQUE constraint failed: loan.person_id" in str(e):
+                return "You have already registered"
+            else:
+                return str(e)
 
     def reject_loan(self, loan_id):
         try:
