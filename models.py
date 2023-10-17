@@ -140,23 +140,19 @@ class WithdrawalRequest(db.Model):
     __tablename__ = "withdrawal_requests"
 
     id = db.Column(db.Integer, primary_key=True)
-    person = db.relationship("Person", backref="withdrawal_requests")
     amount = db.Column(db.Float, nullable=False)
     description = db.Column(db.String, nullable=True)
     ref_no = db.Column(db.String)
-    bank_id = db.Column(
-        db.Integer, db.ForeignKey("banks.id"), nullable=False, index=True
-    )
-    person_id = db.Column(
-        db.Integer, db.ForeignKey("persons.id"), nullable=False, index=True
-    )
+    bank_id = db.Column(db.Integer, db.ForeignKey("banks.id"), nullable=False, index=True)
+    person_id = db.Column(db.Integer, db.ForeignKey("persons.id"), nullable=False, index=True)
     date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
     is_sub_approved = db.Column(db.Boolean, default=False)
-    sub_approved_by = db.Column(db.Integer, db.ForeignKey(person_id), nullable=True)
+    sub_approved_by = db.Column(db.Integer, db.ForeignKey("persons.id"), nullable=True)
     is_approved = db.Column(db.Boolean, default=False)
-    approved_by = db.Column(db.Integer, db.ForeignKey(person_id), nullable=True)
+    approved_by = db.Column(db.Integer, db.ForeignKey("persons.id"), nullable=True)
     year = db.Column(db.Integer, nullable=False)
-
+    sub_admin = db.relationship("Person", foreign_keys=[sub_approved_by])
+    admin = db.relationship("Person", foreign_keys=[approved_by])
 
     def to_json(self):
         return {
