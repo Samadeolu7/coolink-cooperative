@@ -1208,10 +1208,23 @@ def income_statement_yearly(year):
     net_income = all_incomes.pop(-1)
     incomes = [income for income in all_incomes if income.debit >0]
     expenses = [expense for expense in all_incomes if expense.credit >0]
+    total_income = sum(income.debit for income in incomes)
+    total_expenses = sum(expense.credit for expense in expenses)
+
     current_year = os.getenv("CURRENT_YEAR")
     query_year = query.year
     year_range = [year for year in range(int(current_year), int(query_year))]
-    return render_template("query/income.html", incomes=incomes, expenses=expenses, net_income=net_income.debit,year=year,years=year_range)
+
+    context = {
+        "incomes": incomes,
+        "expenses": expenses,
+        "total_income": total_income,
+        "total_expenses": total_expenses,
+        "net_income": net_income,
+        "year": year,
+        "years": year_range
+    }
+    return render_template("query/income.html", **context)
 
 
 @app.route("/savings_account/<person_id>", methods=["GET", "POST"])

@@ -64,16 +64,18 @@ COOLINK CO-OPERATIVE INCOME ACCOUNT
                     {% endif %}
                 </tr>
             {% endfor %}
+                    <!-- total expenses-->
+            <tr>
+                        <th colspan="2" class="total">Total Expenses </th>
+                        <th class="total">{{ total_expenses | currency}}</th>
+            </tr>
+
             <tr>
                 <th colspan="2" class="total">Net Income </th>
                 <th class="total">{{ net_income | currency}}</th>
 
             </tr>
-            <!-- total expenses-->
-            <tr>
-                <th colspan="2" class="total">Total Expenses </th>
-                <th class="total">{{ total_expenses | currency}}</th>
-            </tr>
+    
 
         </tbody>
         {% for year in years %}
