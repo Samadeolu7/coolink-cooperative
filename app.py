@@ -319,17 +319,17 @@ def reset_password():
         ]
 
     if form.validate_on_submit():
-        person_id = form.person.data
-        password = query.generate_password()
-        person = query.get_person(person_id)
-        person.password = query.hash_password(password)
-        db.session.commit()
-        with open(
-            f"credentials/{person.employee_id}_credentials.csv", "w", newline=""
-        ) as file:
-            writer = csv.writer(file)
-            writer.writerow(["Username", "Password"])
-            writer.writerow([f"{person.employee_id} or {person.email}", password])
+        try:
+            person_id = form.person.data
+            password = query.generate_password()
+            person = query.get_person(person_id)
+            person.password = query.hash_password(password)
+            db.session.commit()
+            from csv_helper import write_credentials_to_file
+            file = write_credentials_to_file(person.employee_id, person.email, password)
+        except Exception as e:
+            flash(f"Something went wrong. {e}", "error")
+            return redirect(url_for("reset_password"))
 
         flash(f"Succesfully reset {person.name}'s password", "success")
 

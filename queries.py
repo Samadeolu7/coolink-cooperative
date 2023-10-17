@@ -43,7 +43,7 @@ class Queries:
             return str(e)
 
     def generate_password(self, length=12):
-        characters = string.ascii_letters + string.digits + string.punctuation
+        characters = string.ascii_letters + string.digits
         password = "".join(random.choice(characters) for _ in range(length))
         return password
 
@@ -83,12 +83,9 @@ class Queries:
             )
             self.db.session.commit()
             # create .csv file
-            with open(
-                f"credentials/{employee_id}_credentials.csv", "w", newline=""
-            ) as file:
-                writer = csv.writer(file)
-                writer.writerow(["Username", "Password"])
-                writer.writerow([f"{employee_id} or {email}", password])
+            from csv_helper import write_credentials_to_file
+            file = write_credentials_to_file(employee_id, email, password)
+            
         except Exception as e:
             db.session.rollback()
             if "UNIQUE constraint failed: person.employee_id" in str(e):
