@@ -151,6 +151,7 @@ class WithdrawalRequest(db.Model):
     is_approved = db.Column(db.Boolean, default=False)
     approved_by = db.Column(db.Integer, db.ForeignKey("persons.id"), nullable=True)
     year = db.Column(db.Integer, nullable=False)
+    person= db.relationship("Person", foreign_keys=[person_id], backref="withdrawal_requests")
     sub_admin = db.relationship("Person", foreign_keys=[sub_approved_by])
     admin = db.relationship("Person", foreign_keys=[approved_by])
 

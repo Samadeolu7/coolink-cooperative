@@ -900,8 +900,7 @@ def approval():
     else:
         loans = query.get_loans()
         withdrawals = WithdrawalRequest.query.filter_by(is_sub_approved=True,is_approved=False).all()
-        loans= [loan for loan in loans if loan.sub_admin_approved==True and loan.admin_approved==False]
-        
+        loans= [loan for loan in loans if loan.sub_admin_approved==True and loan.admin_approved==False]      
 
     return render_template("admin/approval.html", loans=loans, withdrawals=withdrawals)
 
