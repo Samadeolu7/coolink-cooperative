@@ -344,7 +344,7 @@
 /* Person end */
 
 /* Loan details start */
-#print-content {
+#person #print-content {
     max-width: 800px;
     margin: 0 auto;
     padding: 20px;
@@ -354,14 +354,14 @@
     font-size: 18px;
 }
 
-.section-title {
+#person .section-title {
     font-size: 28px;
     margin-bottom: 20px;
     text-align: center;
     font-weight: bold;
 }
 
-.info-card {
+#person .info-card {
     background-color: #f9f9f9;
     padding: 10px;
     border: 1px solid #ddd;
@@ -369,7 +369,7 @@
     margin-bottom: 20px;
 }
 
-.info-item {
+#person .info-item {
     display: flex;
     justify-content: space-between;
     margin-bottom: 10px;
@@ -377,23 +377,23 @@
     font-size: 20px; 
 }
 
-.label {
+#person .label {
     font-weight: bold;
     font-size: 20px; 
     color: #483d8b;
 }
 
-.value {
+#person .value {
     flex-grow: 1;
     color: #333;
 }
 
-.action-buttons {
+#person .action-buttons {
     text-align: center;
     margin-top: 20px;
 }
 
-.print-button {
+#person .print-button {
     background-color: #483d8b;
     color: #fff;
     padding: 12px 24px;
@@ -404,16 +404,16 @@
     font-weight: bold;
 }
 
-.print-button:hover {
+#person .print-button:hover {
     background-color: #322b67;
 }
 
 @media print {
-    .print-content {
+    #person .print-content {
         border: none;
     }
 
-    .print-button {
+    #person .print-button {
         display: none;
     }
 }

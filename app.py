@@ -1165,19 +1165,39 @@ def get_loan_details(person_id):
     return render_template("query/loan_details.html", loan=filtered_payments, form=form,guarantors=guarantors,admin=admin,sub_admin=sub_admin)
 
 
+@app.route("/savings_details/<person_id>", methods=["GET", "POST"])
+@login_required
+def savings_account_details(person_id):
+    
+    person = query.get_person(person_id)
+    
+    return render_template("query/savings_account_details.html", person=person)
+
+
 @app.route("/income", methods=["GET"])
 @login_required
 @role_required(["Admin", "Secretary", "Sub-Admin"])
 def income_statement():
     incomes = query.get_income()
     expenses = query.get_expenses()
+    total_income = sum(income.balance for income in incomes)
+    total_expenses = sum(expense.balance for expense in expenses)
 
     net_income = query.get_net_income()
     current_year = os.getenv("CURRENT_YEAR")
     query_year = query.year
     year_range = [year for year in range(int(current_year), int(query_year))]
+    context = {
+        "incomes": incomes,
+        "expenses": expenses,
+        "total_income": total_income,
+        "total_expenses": total_expenses,
+        "net_income": net_income,
+        "year": None,
+        "years": year_range
+    }
 
-    return render_template("query/income.html", incomes=incomes, expenses=expenses, net_income=net_income,year=None,years=year_range)
+    return render_template("query/income.html", **context)
 
 
 @app.route("/income-yearly/<year>", methods=["GET"])

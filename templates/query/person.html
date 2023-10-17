@@ -31,7 +31,7 @@ EMPLOYEE DETAILS
             <tr>
                 <td>{{ person.employee_id }}</td>
                 <td>{{ person.is_admin }}</td>
-                <td>{{ person.name }}</td>
+                <td><a href="{{ url_for('savings_account_details',person_id=person.id)}}">{{ person.name }}</a></td>
                 <td>{{ person.email }}</td>
                 <td>{{ person.phone_no }}</td>
                 <td><a href="{{url_for('savings_account',person_id=person.id)}}">{{ person.total_balance | currency}}</a></td>

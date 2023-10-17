@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Savings Details
+{% endblock %}
+
+{% block header %}
+Savings Details
+{% endblock %}
+
+{% block anchor %}
+<a href="{{ url_for('queries') }}" id='arrow'><i class="fa-solid fa-arrow-left"></i></a>
+{% endblock %}
+
+{% block content %}
+<body id="person">
+<div id="loan-details" class="print-content">
+    <h2 class="section-title">{{person.name}} Account Details</h2>
+
+    
+
+        <table class='tab-content'id="info-table" >
+            
+            <tr>
+                <td>Member ID:</td>
+                <td>{{ person.employee_id }}</td>
+            </tr>
+
+            <tr>
+                <td>Total Balance:</td>
+                <td>{{ person.total_balance | currency }}</td>
+            </tr>
+            <tr>
+                <td>Available Balance:</td>
+                <td>{{ person.available_balance | currency }}</td>
+            </tr>
+
+            <tr>
+                <td>Withheld Balance:</td>
+                <td>{{ person.balance_withheld | currency }}</td>
+            
+        </table>
+
+    {% for contribution in person.guarantor_contributions %}
+    
+    <div class="info-card">
+        <div class="info-item">
+            <span class="label">ID:</span>
+            <span class="value">{{contribution.loan.id}}</span>
+        </div>
+        <div class="info-item">
+            <span class="label">Member:</span>
+            <span class="value">{{ contribution.loan.person.name }}</span>
+        </div>
+        <div class="info-item">
+            <span class="label">Description:</span>
+            <span class="value">{{ contribution.loan.description }}</span>
+        </div>
+        <div class="info-item">
+            <span class="label">Loan Balance:</span>
+            <span class="value">{{ contribution.loan.person.loan_balance | currency }}</span>
+        </div>
+        <div class="info-item">
+            <span class="label">Total Loan Amount:</span>
+            <span class="value">{{ contribution.loan.amount | currency }}</span>
+        </div>
+        <div class="info-item">
+            <span class="label">Interest:</span>
+            <span class="value">{{contribution.loan.interest_rate }}% </span>
+        </div>
+        <div class="info-item">
+            <span class="label">Date:</span>
+            <span class="value">{{ contribution.loan.start_date }}</span>
+        </div>
+        <div class="info-item">
+            <span class="label">End Date:</span>
+            <span class="value">{{ contribution.loan.end_date }}</span>
+        </div>
+
+        <div class="info-item">
+            <span class="label">Is Paid:</span>
+            <span class="value">{{ contribution.loan.is_paid }}</span>
+        </div>
+        <div class="info-item">
+            <span class="label">Amount Guaranteed for this Loan:</span>
+            <span class="value">{{ contribution.contribution_amount | currency }}</span>
+        </div>
+        {% endfor %}  
+      
+    </div>
+    <div class="action-buttons">
+        <button class="print-button" onclick="window.print()">Print</button>
+    </div>
+</div>
+</body>
+{% endblock %}
