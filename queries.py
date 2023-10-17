@@ -305,7 +305,6 @@ class Queries:
                 # Create a new GuarantorContribution record to track the contribution
 
                 db.session.commit()
-                log_report(loan.loan)
                 return True
             else:
                 return "You have already given consent"
@@ -633,12 +632,8 @@ class Queries:
                 )
                 self.db.session.add(loan)
                 self.db.session.commit()
-                log_report("how e take reach here")
-                log_report(pre_loan.guarantor_contributions)
                 for contribution in pre_loan.guarantor_contributions:
-                    log_report(contribution)
                     contribution.loan = loan
-                    log_report(contribution.loan)
                 pre_loan.is_approved = True
                 self.db.session.commit()
                 return True
@@ -648,6 +643,22 @@ class Queries:
                 return "You have already registered"
             else:
                 return str(e)
+            
+    def sub_reject_loan(self, loan_id):
+        try:
+            loan = Loan.query.get(loan_id)
+
+            if not loan:
+                raise ValueError("Loan not found.")
+
+            if loan:
+                loan.is_approved = False
+                loan.sub_approved = False
+                self.db.session.commit()
+                return True
+        except Exception as e:
+            self.db.session.rollback()
+            return str(e)
 
     def reject_loan(self, loan_id):
         try:
@@ -669,6 +680,23 @@ class Queries:
         except Exception as e:
             self.db.session.rollback()
             return str(e)
+    
+    def sub_approve_loan(self, loan_id):
+        try:
+            loan = Loan.query.get(loan_id)
+
+            if not loan:
+                raise ValueError("Loan not found.")
+
+            if not loan.sub_admin_approved:
+                loan.sub_admin_approved = True
+                self.db.session.commit()
+                return True
+            else:
+                raise ValueError("Loan is already approved.")
+        except Exception as e:
+            self.db.session.rollback()
+            return str(e)
 
     def approve_loan(self, loan_id):
         try:
@@ -683,7 +711,6 @@ class Queries:
 
                 # Calculate interest amount based on loan amount and interest rate
                 interest_amount = loan.amount * (loan.interest_rate / 100)
-
                 # Update the person's loan balance by adding the loan amount and interest
                 person = Person.query.get(loan.person_id)
                 person.loan_balance += loan.amount
@@ -759,23 +786,16 @@ class Queries:
     def repay_loan(self, id, amount, date, bank_id, ref_no, description=None):
         try:
             person = Person.query.filter_by(id=id).first()
-            log_report(4)
             if not person:
                 raise ValueError("Person not found.")
             if person:
-                log_report(person.loan_balance)
-                log_report(5)
 
                 bank = Bank.query.filter_by(id=bank_id).first()
 
-                log_report(bank.new_balance)
-
                 person.loan_balance -= float(amount)
 
-                log_report(6)
                 loan = Loan.query.filter_by(person_id=id, is_paid=False).first()
-                log_report(Loan.query.filter_by(person_id=id, is_paid=False).all())
-                log_report(loan)
+
                 loan_payment = LoanPayment(
                     amount=amount,
                     date=date,
@@ -788,7 +808,6 @@ class Queries:
                     year=self.year,
                 )
                 self.db.session.add(loan_payment)
-                log_report(person.loan_balance)
 
                 bank.new_balance += float(amount)
 
@@ -804,30 +823,19 @@ class Queries:
                     year=self.year,
                 )
                 self.db.session.add(bank_payment)
-                log_report(7)
                 gc = GuarantorContribution.query.filter_by(loan=loan).first()
-                log_report(gc)
+
                 fk_loan = gc.loan
-                log_report(fk_loan)
-                log_report(fk_loan.guarantor_contributions)
-                log_report(loan)
-                log_report(loan.guarantor_contributions)
                 if person.loan_balance == 0:
                     loan.is_paid = True
-                    log_report(loan.guarantor_contributions)
                     for contribution in loan.guarantor_contributions:
                         person = contribution.guarantor
-                        log_report(person.name)
                         person.available_balance += float(
                             contribution.contribution_amount
                         )
-                        log_report(person.available_balance)
                         person.balance_withheld -= float(
                             contribution.contribution_amount
                         )
-                        log_report(person.balance_withheld)
-
-                log_report(8)
 
                 self.db.session.commit()
                 return True
@@ -1011,7 +1019,8 @@ class Queries:
         return LoanFormPayment.query.filter_by(person_id=id).first()
 
     def delete_registered(self, id):
-        person = LoanFormPayment.query.filter_by(id=id).first()
+  
+        person = LoanFormPayment.query.filter_by(person_id=id).first()
         db.session.delete(person)
 
     def get_person(self, person_id):

@@ -350,7 +350,7 @@ def make_payment():
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
     if request.method == "POST":
         if form.validate_on_submit():
-            log_report(1)
+            
             amount = form.amount.data
             payment_type = form.payment_type.data
             description = form.description.data
@@ -360,7 +360,7 @@ def make_payment():
             bank_id = form.bank.data
             ref_no = form.ref_no.data
             if selected_person:
-                log_report(2)
+                
                 if payment_type == "savings":
                     query.save_amount(
                         employee_id=selected_person_id,
@@ -372,7 +372,7 @@ def make_payment():
                     )
 
                 elif payment_type == "loan":
-                    log_report(3)
+                    
                     test = query.repay_loan(
                         selected_person.id, amount, date, bank_id, ref_no, description
                     )
@@ -381,7 +381,7 @@ def make_payment():
                         return redirect(url_for("dashboard"))
                     else:
                         flash(test, "error")
-                        log_report(test)
+                        
                         return redirect(url_for("make_payment"))
 
                 flash("Payment submitted successfully.", "success")
@@ -423,7 +423,7 @@ def repay_loan():
                     return redirect(url_for("dashboard"))
                 else:
                     flash(test, "error")
-                    log_report(test)
+                    
                     return redirect(url_for("repay_loan"))
 
             else:
@@ -461,7 +461,6 @@ def register_loan():
 
             id = form.name.data
             amount = form.amount.data
-            log_report(amount)
             description = form.description.data
             date = form.date.data
             bank_id = form.bank.data
@@ -490,8 +489,6 @@ def register_loan():
                 flash('You cant pick the same person twice')
                 return redirect(url_for("register_loan")) 
 
-              
-            log_report(guarantors)
             test = query.registeration_payment(
                 id, amount, date, ref_no, bank_id, description, loan=True, guarantors=guarantors
             )
@@ -505,10 +502,8 @@ def register_loan():
                     return redirect(url_for("dashboard"))
                 else:
                     flash(test, "error")
-                    log_report(test)
             
             else:
-                log_report(test)
                 flash(f"something went wrong.{test}", "error")
                 return redirect(url_for("register_loan"))
             return redirect(url_for("dashboard"))
@@ -620,14 +615,12 @@ def give_consent(loan_id):
                             return redirect(url_for("dashboard"))
                         else:
                             flash(test, "error")
-                            log_report(test)
                     else:
                         try:
                             loan.loan_failed()
                             db.session.commit()
                         except Exception as e:
                             db.session.rollback()
-                            log_report(e)
                             flash(f"Something went wrong. {e}", "error")
                             return redirect(url_for("dashboard"))
                         flash("Consent not given.", "error")
@@ -770,6 +763,10 @@ def request_withdrawal():
 
             person = query.get_person(person_id)
 
+            if amount > person.available_balance:
+                flash("Amount cannot be greater than available balance.", "error")
+                return redirect(url_for("request_withdrawal"))
+            
             withdrawal_request = WithdrawalRequest(
                 person=person,
                 amount=amount,
@@ -810,30 +807,43 @@ def reject_withdrawal(request_id):
 
 @app.route("/withdraw/approve/<int:request_id>", methods=["GET"])
 @login_required
-@role_required(["Admin"])
+@role_required(["Admin","Sub-Admin"])
 def approve_withdrawal(request_id):
 
-    wr= WithdrawalRequest.query.get(request_id)
+    if current_user.role.name == "Sub-Admin":
+        wr= WithdrawalRequest.query.get(request_id)
 
-    if not wr:
-        flash("Withdrawal request not found.", "error")
-    elif not wr.is_approved:
-        test = query.withdraw(wr.person.id, wr.amount, wr.description, wr.ref_no, wr.bank_id, wr.date)
-        if test == True:
-            flash(
-                f"Withdrawal of {wr.amount} successful for {wr.person.name}. Updated balance: {wr.person.available_balance}"
-            )
-        
-        elif test :
-            flash(test, "error")
-            
-        wr.is_approved = True
-        wr.approved_by = current_user.id
+        if not wr:
+            flash("Withdrawal request not found.", "error")
+        elif not wr.is_sub_approved:   
+            wr.is_sub_approved = True
+            wr.sub_approved_by = current_user.id
 
-        db.session.commit()
-        flash("Withdrawal request approved successfully.", "success")
+            db.session.commit()
+            flash("Withdrawal request approved successfully.", "success")
+        else:
+            flash("Withdrawal request is already approved.", "error")
     else:
-        flash("Withdrawal request is already approved.", "error")
+        wr= WithdrawalRequest.query.get(request_id)
+        if not wr:
+            flash("Withdrawal request not found.", "error")
+        elif not wr.is_approved:
+            test = query.withdraw(wr.person.id, wr.amount, wr.description, wr.ref_no, wr.bank_id, wr.date)
+            if test == True:
+                flash(
+                    f"Withdrawal of {wr.amount} successful for {wr.person.name}. Updated balance: {wr.person.available_balance}"
+                )
+            
+            elif test :
+                flash(test, "error")
+                
+            wr.is_approved = True
+            wr.approved_by = current_user.id
+
+            db.session.commit()
+            flash("Withdrawal request approved successfully.", "success")
+        else:
+            flash("Withdrawal request is already approved.", "error")
 
     return redirect(url_for("approval"))
 
@@ -850,8 +860,6 @@ def request_loan():
     form.start_date.data = pd.to_datetime("today")
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
     form.amount.render_kw = {'readonly': True}
-
-
 
     if request.method == "POST":
         if form.validate_on_submit():
@@ -873,73 +881,97 @@ def request_loan():
             )
             if test == True:
                 flash("Loan sent for approval.", "success")
-                return redirect(url_for("loan_account", person_id=person.id))
+                return redirect(url_for("get_loan_details", person_id=person.id))
             else:
                 flash(test, "error")
-                log_report(test)
 
     return render_template("forms/loan_form.html", form=form)
 
 
 @app.route("/approval", methods=["GET", "POST"])
 @login_required
-@role_required(["Admin"])
+@role_required(["Admin","Sub-Admin"])
 def approval():
-    loans = query.get_loans()
-    loans= [loan for loan in loans if loan.is_approved==True and loan.admin_approved==False]
+    if current_user.role.name == "Sub-Admin":
+        loans = query.get_loans()
+        withdrawals = WithdrawalRequest.query.filter_by(is_sub_approved=False).all()
+        loans= [loan for loan in loans if loan.is_approved==True and loan.sub_admin_approved==False]
     
-    withdrawals = WithdrawalRequest.query.filter_by(is_approved=False).all()
+    else:
+        loans = query.get_loans()
+        withdrawals = WithdrawalRequest.query.filter_by(is_sub_approved=True,is_approved=False).all()
+        loans= [loan for loan in loans if loan.sub_admin_approved==True and loan.admin_approved==False]
+        
 
     return render_template("admin/approval.html", loans=loans, withdrawals=withdrawals)
 
 @app.route("/loan/reject/<int:loan_id>")     
 @login_required
-@role_required(["Admin"])
+@role_required(["Admin","Sub-Admin"])
 def reject_loan(loan_id):
+    if current_user.role.name == "Sub-Admin":
+        test = query.sub_reject_loan(loan_id, current_user.id)
+        if test == True:
+            flash("Loan rejected successfully.", "success")
+        else:
+            flash(test, "error")
     test = query.reject_loan(loan_id)
     if test == True:
         flash("Loan rejected successfully.", "success")
     else:
         flash(test, "error")
-        log_report(test)
+        
 
     return redirect(url_for("approval"))
 
 @app.route("/loan/approve/<int:loan_id>", methods=["GET"])
 @login_required
-@role_required(["Admin"])
+@role_required(["Admin","Sub-Admin"])
 def approve_loan(loan_id):
-
-    test = query.approve_loan(loan_id)
-    if test == True:
-        flash("Loan approved successfully.", "success")
+    if current_user.role.name == "Sub-Admin":
+        test = query.sub_approve_loan(loan_id)
+        if test == True:
+            flash("Loan approved successfully.", "success")
+            loan = Loan.query.get(loan_id)
+            loan.sub_admin_approved = True
+            loan.sub_approved_by = current_user.id
+            db.session.commit()
+        else:
+            flash(test, "error")
+            
+        return redirect("/dashboard")
+    else:
+        test = query.approve_loan(loan_id)
+        if test == True:
+            flash("Loan approved successfully.", "success")
 
             # Generate the repayment schedule
-        loan = Loan.query.get(loan_id)
-        loan.approved_by = current_user.id
-        db.session.commit()
-        repayment_schedule = generate_repayment_schedule(
-            loan.person_id, loan.amount, loan.interest_rate, loan.start_date, loan.end_date
-        )
+            loan = Loan.query.get(loan_id)
+            loan.approved_by = current_user.id
+            db.session.commit()
+            repayment_schedule = generate_repayment_schedule(
+                loan.person_id, loan.amount, loan.interest_rate, loan.start_date, loan.end_date
+            )
 
-        # Export the repayment schedule to Excel
-        file_path = export_repayment_schedule_to_excel(
-            repayment_schedule, loan.person_id
-        )
+            # Export the repayment schedule to Excel
+            file_path = export_repayment_schedule_to_excel(
+                repayment_schedule, loan.person_id
+            )
 
-        # Return the file path for download
-        flash("Loan created successfully.", "success")
+            # Return the file path for download
+            flash("Loan created successfully.", "success")
 
-        return redirect(f"/download/{file_path}")
-    else:
-        flash(test, "error")
-        log_report(test)
+            return redirect(f"/download/{file_path}")
+        else:
+            flash(test, "error")
+            
 
-    return render_template("admin/approval.html")
+        return render_template("admin/approval.html")
 
 
 
 @app.route("/change_password", methods=["GET", "POST"])
+@login_required
 def change_password():
     form = ChangePasswordForm()
 
@@ -994,7 +1026,6 @@ def upload_savings():
     if request.method == "POST" and form.validate_on_submit():
         file = request.files["file"]
         if file:
-            log_report("found_file")
             # Save the uploaded file
             file.save(f'upload/{file.filename}')
             # Process the uploaded file
@@ -1007,7 +1038,6 @@ def upload_savings():
             return redirect(url_for("get_payments"))
     else:
         flash(form.errors, "error")
-        log_report(form.errors)
     return render_template("forms/upload.html", form=form, route_type="savings")
 
 
@@ -1129,9 +1159,11 @@ def get_loan_details(person_id):
     start_date = form.start_date.data
     end_date = form.end_date.data
     guarantors = [p.guarantor.name for p in loans.guarantor_contributions]
+    admin = query.get_person(loans.approved_by)
+    sub_admin = query.get_person(loans.sub_approved_by)
     
     filtered_payments = filter_payments(start_date, end_date, loans)
-    return render_template("query/loan_details.html", loan=filtered_payments, form=form,guarantors=guarantors)
+    return render_template("query/loan_details.html", loan=filtered_payments, form=form,guarantors=guarantors,admin=admin,sub_admin=sub_admin)
 
 
 @app.route("/income", methods=["GET"])
@@ -1395,17 +1427,7 @@ def balance_sheet_by_year(year):
     current_year = os.getenv("CURRENT_YEAR")
     query_year = query.year
     year_range = [year for year in range(int(current_year), int(query_year))]
-    log_report(bs.total_fixed_assets)
-    log_report(bs.cash_and_bank)
-    log_report(bs.accounts_receivable)
-    log_report(bs.company_receivable)  
-    log_report(bs.investments)
-    log_report(bs.total_assets)
-    log_report(bs.net_income)
-    log_report(bs.accounts_payable)
-    log_report(bs.total_liabilities)
-    log_report(bs.total_equity)
-    log_report(bs.total_liabilities_and_equity)
+
     context = {
         "assets": bs.total_fixed_assets,
         "cash_and_bank": bs.cash_and_bank,
@@ -1487,11 +1509,11 @@ def close_year():
 
         else:
             flash("An error occurred while closing the year.", "error")
-            log_report(test)
+            
             return redirect(url_for("close_year"))
     else:
         flash(form.errors, "error")
-        log_report(form.errors)
+  
     return render_template("forms/close_year.html", form=form)
 
 

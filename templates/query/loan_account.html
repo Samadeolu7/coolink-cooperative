@@ -39,51 +39,6 @@ COOLINK CO-OPERATIVE LOAN ACCOUNT
         
     </table>
 
-    <table class="tab-content" id="info-table">
-        <tbody>
-            <tr>
-                <td>ID</td>
-                <td>{{ loan.id }}</td>
-            </tr>
-            <tr>
-                <td>Member </td>
-                <td>{{ loan.person.name }}</td>
-            </tr>
-            <tr>
-                <td>Description</td>
-                <td>{{ loan.description }}</td>
-            </tr>
-            <tr>
-                <td>Reference Number</td>
-                <td>{{ loan.ref_no }}</td>
-            </tr>
-            <tr>
-                <td>Amount</td>
-                <td>{{ loan.amount }}</td>
-            </tr>
-            <tr>
-                <td>Interest Rate</td>
-                <td>{{ loan.interest_rate }}</td>
-            </tr>
-            <tr>
-                <td>Start Date</td>
-                <td>{{ loan.start_date }}</td>
-            </tr>
-            <tr>
-                <td>End Date</td>
-                <td>{{ loan.end_date }}</td>
-            </tr>
-            <tr>
-                <td>Guarantors </td>
-                <td>{% for guarantor in guarantors %} {{ guarantor }} {% endfor %} </td>
-            </tr>
-            <tr>
-                <td>Approved By</td>
-                <td>{{ approved.name }}</td>
-            </tr>
-        </tbody>
-    </table>
-
     <form method="get" class="filt-wrap">
         <div class="filt">
             {{ form.start_date.label(class="filt_item")}}

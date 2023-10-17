@@ -147,10 +147,16 @@ class WithdrawalRequest(db.Model):
     bank_id = db.Column(
         db.Integer, db.ForeignKey("banks.id"), nullable=False, index=True
     )
+    person_id = db.Column(
+        db.Integer, db.ForeignKey("persons.id"), nullable=False, index=True
+    )
     date = db.Column(db.Date, nullable=False, default=datetime.utcnow)
+    is_sub_approved = db.Column(db.Boolean, default=False)
+    sub_approved_by = db.Column(db.Integer, db.ForeignKey(person_id), nullable=True)
     is_approved = db.Column(db.Boolean, default=False)
-    approved_by = db.Column(db.Integer, db.ForeignKey("persons.id"), nullable=True)
+    approved_by = db.Column(db.Integer, db.ForeignKey(person_id), nullable=True)
     year = db.Column(db.Integer, nullable=False)
+
 
     def to_json(self):
         return {
@@ -223,6 +229,8 @@ class Loan(db.Model):
     is_paid = db.Column(db.Boolean, default=False)
     is_approved = db.Column(db.Boolean, default=False)
     admin_approved = db.Column(db.Boolean, default=False)
+    sub_admin_approved = db.Column(db.Boolean, default=False)
+    sub_approved_by = db.Column(db.Integer, db.ForeignKey("persons.id"), nullable=True)
     approved_by = db.Column(db.Integer, db.ForeignKey("persons.id"), nullable=True)
 
 
@@ -240,12 +248,12 @@ class Loan(db.Model):
     
     
     def payment_complete(self):
-        log_report("loan balance")
+
         if self.person.loan_balance == 0:
-            log_report("loan balance is 0")
+
             self.is_paid = True
             for guarantor in self.guarantor:
-                log_report("payment complete")
+
                 guarantor.available_balance += guarantor.loan_form_payment.contribution_amount
                 guarantor.balance_withheld -= guarantor.loan_form_payment.contribution_amount
                 
@@ -703,20 +711,16 @@ class LoanFormPayment(db.Model):
         self.guarantor_amount = 0
         self.is_approved = False
 
-        log_report("guarantor contributions")
 
-        log_report(self.guarantor_contributions)
-        log_report(GuarantorContribution.query.all())
 
         # Delete associated GuarantorContribution records
         for contribution in GuarantorContribution.query.filter_by(loan_form_payment_id=self.id).all():
             contribution.guarantor.available_balance += contribution.contribution_amount
-            log_report("available balance")
-            log_report(contribution.guarantor.available_balance)
+
+ 
             contribution.guarantor.balance_withheld -= contribution.contribution_amount
             id = contribution.id
-            log_report('id')
-            log_report(id)
+  
             contribution=GuarantorContribution.query.get(id)
             db.session.delete(contribution)
 
@@ -824,4 +828,3 @@ with app.app_context():
         db.session.add(Constants(current_year=datetime.utcnow().year, loan_application_fee=1000))
         db.session.commit()
 
-    log_report(GuarantorContribution.query.all())

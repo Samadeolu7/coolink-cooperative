@@ -343,6 +343,81 @@
 
 /* Person end */
 
+/* Loan details start */
+#print-content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ddd;
+    background-color: #fff;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    font-size: 18px;
+}
+
+.section-title {
+    font-size: 28px;
+    margin-bottom: 20px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.info-card {
+    background-color: #f9f9f9;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-weight: bold; /* Increase font weight */
+    font-size: 20px; 
+}
+
+.label {
+    font-weight: bold;
+    font-size: 20px; 
+    color: #483d8b;
+}
+
+.value {
+    flex-grow: 1;
+    color: #333;
+}
+
+.action-buttons {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.print-button {
+    background-color: #483d8b;
+    color: #fff;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.print-button:hover {
+    background-color: #322b67;
+}
+
+@media print {
+    .print-content {
+        border: none;
+    }
+
+    .print-button {
+        display: none;
+    }
+}
+
 /* QUERY END*/
 
 /* special-dash(dashboard) start*/

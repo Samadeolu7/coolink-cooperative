@@ -58,6 +58,9 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('role_assignment') }}"><i class="fa-brands fa-atlassian"></i><span>Role Assignment</span></a>  
                 </li>
+                {% endif %}
+                
+                {% if person.role.id == 1 or person.role.id == 2 %}
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('approval') }}"><i class="fa-solid fa-user-plus"></i><span>Approvals</span></a>
                 </li>
@@ -224,7 +227,7 @@
 
                         <a href="{{url_for('update_loan',loan_id=failed_loan.id)}}">
                             <div>
-                                <p><strong>View Consent</strong></p>
+                                <p><strong>Re-Apply</strong></p>
                             </div>
                         </a>
                     </div> <!--content-con-new-->

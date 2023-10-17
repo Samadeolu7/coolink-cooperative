@@ -1,76 +1,79 @@
-{%extends 'base.html' %}
+{% extends 'base.html' %}
 
-{%block title%}
+{% block title %}
 Loan Details
 {% endblock %}
 
-{% block header%}
+{% block header %}
 Loan Details
-{% endblock  %}
+{% endblock %}
 
-{% block anchor%}
+{% block anchor %}
 <a href="{{ url_for('queries') }}" id='arrow'><i class="fa-solid fa-arrow-left"></i></a>
-{% endblock  %}
+{% endblock %}
 
-{%block content%}
-
-<body id="person">
-    <table class="tab-content" id="info-table">
-        <tbody>
-            <tr>
-                <th>ID</th>
-                <td>{{ loan.id }}</td>
-            </tr>
-            <tr>
-                <th>Member </th>
-                <td>{{ loan.person.name }}</td>
-            </tr>
-            <tr>
-                <th>Description</th>
-                <td>{{ loan.description }}</td>
-            </tr>
-            <tr>
-                <th>Reference Number</th>
-                <td>{{ loan.ref_no }}</td>
-            </tr>
-            <tr>
-                <th>Amount</th>
-                <td>{{ loan.amount }}</td>
-            </tr>
-            <tr>
-                <th>Interest Rate</th>
-                <td>{{ loan.interest_rate }}</td>
-            </tr>
-            <tr>
-                <th>Start Date</th>
-                <td>{{ loan.start_date }}</td>
-            </tr>
-            <tr>
-                <th>End Date</th>
-                <td>{{ loan.end_date }}</td>
-            </tr>
-            <tr>
-                <th>Guarantors </th>
-                <td>{% for guarantor in guarantors %} {{ guarantor }} {% endfor %} </td>
-            </tr>
-            <tr>
-                <th>Is Paid</th>
-                <td>{{ loan.is_paid }}</td>
-            </tr>
-            <tr>
-                <th>Is Approved</th>
-                <td>{{ loan.is_approved }}</td>
-            </tr>
-            <tr>
-                <th>Admin Approved</th>
-                <td>{{ loan.admin_approved }}</td>
-            </tr>
-            <tr>
-                <th>Approved By</th>
-                <td>{{ loan.approved_by }}</td>
-            </tr>
-        </tbody>
-    </table>
-
-
-{%endblock%}
+{% block content %}
+<div id="loan-details" class="print-content">
+    <h2 class="section-title">Loan Details</h2>
+    <div class="info-card">
+        <div class="info-item">
+            <span class="label">ID:</span>
+            <span class="value">{{ loan.id }}</span>
+        </div>
+        <div class="info-item">
+            <span class="label">Member:</span>
+            <span class="value">{{ loan.person.name }}</span>
+        </div>
+        <div class="info-item">
+            <span class="label">Description:</span>
+            <span class="value">{{ loan.description }}</span>
+        </div>
+        <div class="info-item">
+            <span class="label">Reference Number:</span>
+            <span class="value">{{ loan.ref_no }}</span>
+        </div>
+        <div class="info-item">
+            <span class="label">Amount:</span>
+            <span class="value">{{ loan.amount | currency }}</span>
+        </div>
+        <div class="info-item">
+            <span class="label">Interest:</span>
+            <span class="value">{{ loan.interest_rate }}% </span>
+        </div>
+        <div class="info-item">
+            <span class="label">Date:</span>
+            <span class="value">{{ loan.start_date }}</span>
+        </div>
+        <div class="info-item">
+            <span class="label">End Date:</span>
+            <span class="value">{{ loan.end_date }}</span>
+        </div>
+        <div class="info-item">
+            <span class="label">Guarantors:</span>
+            <span class="value">{% for guarantor in guarantors %} {{ guarantor }} {% endfor %}</span>
+        </div>
+        <div class="info-item">
+            <span class="label">Is Paid:</span>
+            <span class="value">{{ loan.is_paid }}</span>
+        </div>
+        <div class="info-item">
+            <span class="label">Loan Commitee Approved:</span>
+            <span class="value">{{ loan.sub_admin_approved }}</span>
+        </div>
+        <div class="info-item">
+            <span class="label">Admin Approved:</span>
+            <span class="value">{{ loan.admin_approved }}</span>
+        </div>
+        <div class="info-item">
+            <span class="label">Approved By:</span>
+            <span class="value">{{ admin.name }}, {{ sub_admin.name }}</span>
+        </div>
+        
+        
+      
+    </div>
+    <div class="action-buttons">
+        <button class="print-button" onclick="window.print()">Print</button>
+    </div>
+</div>
+{% endblock %}
