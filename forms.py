@@ -240,6 +240,7 @@ class LedgerAdminForm(FlaskForm):
 class LedgerForm(FlaskForm):
     name = StringField("Name", validators=[DataRequired()])
     description = StringField("Description", validators=[DataRequired()])
+    balance_bfd = FloatField("Balance B/FWD")
     submit = SubmitField("Create")
 
 

@@ -554,29 +554,29 @@ class Queries:
             self.db.session.rollback()
             return str(e)
 
-    def create_new_ledger(self, ledger, name, description):
+    def create_new_ledger(self, ledger, name, description, balance=0):
         if ledger == 1:
-            asset = Asset(name=name, description=description)
+            asset = Asset(name=name, description=description,balance=balance, balance_bfd=balance)
             db.session.add(asset)
             db.session.commit()
 
         elif ledger == 2:
-            expense = Expense(name=name, description=description)
+            expense = Expense(name=name, description=description,balance=balance, balance_bfd=balance)
             db.session.add(expense)
             db.session.commit()
 
         elif ledger == 3:
-            income = Income(name=name, description=description)
+            income = Income(name=name, description=description,balance=balance, balance_bfd=balance)
             db.session.add(income)
             db.session.commit()
 
         elif ledger == 4:
-            liability = Liability(name=name, description=description)
+            liability = Liability(name=name, description=description,balance=balance, balance_bfd=balance)
             db.session.add(liability)
             db.session.commit()
 
         elif ledger == 5:
-            investment = Investment(name=name, description=description)
+            investment = Investment(name=name, description=description,balance=balance, balance_bfd=balance)
             db.session.add(investment)
             db.session.commit()
 

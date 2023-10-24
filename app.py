@@ -265,7 +265,7 @@ def new_ledger(ledger):
     form = LedgerForm()
     if request.method == "POST":
         if form.validate_on_submit():
-            query.create_new_ledger(int(ledger), form.name.data, form.description.data)
+            query.create_new_ledger(int(ledger), form.name.data,form.description.data,form.balance_bfd.data)
             flash("Succesfully created Ledger", "success")
 
             return redirect(url_for("dashboard"))
