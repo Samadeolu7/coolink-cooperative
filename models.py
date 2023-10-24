@@ -373,7 +373,7 @@ class ExpensePayment(db.Model):
     amount = db.Column(db.Float, nullable=False)
     exact_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     date = db.Column(db.Date, nullable=False)
-    expense_id = db.Column(
+    main_id = db.Column(
         db.Integer, db.ForeignKey("expenses.id"), nullable=True, index=True
     )
     description = db.Column(db.String, nullable=True)
@@ -390,7 +390,7 @@ class ExpensePayment(db.Model):
             "amount": self.amount,
             "exact_date": self.exact_date,
             "date": self.date,
-            "expense_id": self.expense_id,
+            "main_id": self.main_id,
             "description": self.description,
             "ref_no": self.ref_no,
             "balance": self.balance,
@@ -424,7 +424,7 @@ class AssetPayment(db.Model):
     amount = db.Column(db.Float, nullable=False)
     exact_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     date = db.Column(db.Date, nullable=False)
-    asset_id = db.Column(
+    main_id = db.Column(
         db.Integer, db.ForeignKey("assets.id"), nullable=True, index=True
     )
     description = db.Column(db.String, nullable=True)
@@ -441,7 +441,7 @@ class AssetPayment(db.Model):
             "amount": self.amount,
             "exact_date": self.exact_date,
             "date": self.date,
-            "expense_id": self.expense_id,
+            "main_id": self.main_id,
             "description": self.description,
             "ref_no": self.ref_no,
             "balance": self.balance,
@@ -492,7 +492,7 @@ class IncomePayment(db.Model):
             "amount": self.amount,
             "exact_date": self.exact_date,
             "date": self.date,
-            "expense_id": self.expense_id,
+            "main_id": self.main_id,
             "description": self.description,
             "ref_no": self.ref_no,
             "balance": self.balance,
@@ -526,7 +526,7 @@ class InvestmentPayment(db.Model):
     amount = db.Column(db.Float, nullable=False)
     exact_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     date = db.Column(db.Date, nullable=False)
-    investment_id = db.Column(
+    main_id = db.Column(
         db.Integer, db.ForeignKey("investments.id"), nullable=True, index=True
     )
     description = db.Column(db.String, nullable=True)
@@ -543,7 +543,7 @@ class InvestmentPayment(db.Model):
             "amount": self.amount,
             "exact_date": self.exact_date,
             "date": self.date,
-            "expense_id": self.expense_id,
+            "main_id": self.main_id,
             "description": self.description,
             "ref_no": self.ref_no,
             "balance": self.balance,
@@ -577,7 +577,7 @@ class LiabilityPayment(db.Model):
     amount = db.Column(db.Float, nullable=False)
     exact_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     date = db.Column(db.Date, nullable=False)
-    liability_id = db.Column(
+    main_id = db.Column(
         db.Integer, db.ForeignKey("liabilities.id"), nullable=True, index=True
     )
     description = db.Column(db.String, nullable=True)
@@ -594,7 +594,7 @@ class LiabilityPayment(db.Model):
             "amount": self.amount,
             "exact_date": self.exact_date,
             "date": self.date,
-            "expense_id": self.expense_id,
+            "main_id": self.main_id,
             "description": self.description,
             "ref_no": self.ref_no,
             "balance": self.balance,
@@ -645,7 +645,7 @@ class EquityPayment(db.Model):
             "amount": self.amount,
             "exact_date": self.exact_date,
             "date": self.date,
-            "expense_id": self.expense_id,
+            "main_id": self.main_id,
             "description": self.description,
             "ref_no": self.ref_no,
             "balance": self.balance,

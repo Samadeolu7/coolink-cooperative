@@ -136,6 +136,29 @@ class JournalForm(FlaskForm):
     bank = SelectField("Bank", choices=[], coerce=int)
     ref_no = StringField("Reference Number")
 
+class LedgerPaymentForm(FlaskForm):
+
+    sub_account = SelectField(
+        "Sub-Select Account", choices=[], coerce=int
+    )  # change name to main account
+    sub_account_2 = SelectField(
+        "Sub-Select Account", choices=[], coerce=int
+    )
+    amount = FloatField("Amount", validators=[DataRequired()])
+    date = DateField("Date", validators=[DataRequired()])
+    description = StringField("Description")
+    main_account = SelectField(
+        "Select Account",
+        choices=[(1, "Asset"), (2, "Expense"), (3, "Investment"), (4, "Liability")],
+        coerce=int,
+    )  # change name to sub-account
+    main_account_2 = SelectField(
+        "Select Account",
+        choices=[(1, "Asset"), (2, "Expense"), (3, "Investment"), (4, "Liability")],
+        coerce=int,
+    ) 
+    ref_no = StringField("Reference Number")
+
 class UploadForm(FlaskForm):
     ref_no = StringField("Reference Number")
     description = StringField("Description", validators=[DataRequired()])

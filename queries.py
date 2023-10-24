@@ -216,13 +216,59 @@ class Queries:
 
     def add_transaction(self, id, sub_id, amount, date, ref_no, bank_id, description):
         if id == 1:
-            self.add_asset(sub_id, amount, date, ref_no, bank_id, description)
+            return self.add_asset(sub_id, amount, date, ref_no, bank_id, description)
         elif id == 2:
-            self.add_expense(sub_id, amount, date, ref_no, bank_id, description)
+            return self.add_expense(sub_id, amount, date, ref_no, bank_id, description)
         elif id == 3:
-            self.add_investment(sub_id, amount, date, ref_no, bank_id, description)
+            return self.add_investment(sub_id, amount, date, ref_no, bank_id, description)
         elif id == 4:
-            self.add_liability(sub_id, amount, date, ref_no, bank_id, description)
+            return self.add_liability(sub_id, amount, date, ref_no, bank_id, description)
+
+    def journal_voucher(self, id, id_2, sub_id,sub_id_2, amount, date, ref_no, description):
+        try:
+            dict={
+                1:(Asset,AssetPayment),
+                2:(Expense,ExpensePayment),
+                3:(Investment,InvestmentPayment),
+                4:(Liability,LiabilityPayment),
+            }
+            debit = dict[id][0].query.filter_by(id=sub_id).first()
+            debit.balance -= float(amount)
+            debit_payment = dict[id][1](
+                    amount=float(amount),
+                    date=date,
+                    exact_date=datetime.utcnow(),
+                    description=description,
+                    ref_no=ref_no,
+                    balance=debit.balance,
+                    main_id=id,
+                    year=self.year,
+                )
+
+            self.db.session.add(debit_payment)
+
+            credit = dict[id_2][0].query.filter_by(id=sub_id_2).first()
+            credit.balance += float(amount)
+            credit_payment = dict[id_2][1](
+                    amount=float(-amount),
+                    date=date,
+                    exact_date=datetime.utcnow(),
+                    description=description,
+                    ref_no=ref_no,
+                    balance= credit.balance,
+                    main_id=id,
+                    year=self.year,
+                )
+
+            self.db.session.add(credit_payment)
+            self.db.session.commit()
+
+            return True
+        except Exception as e:
+            self.db.session.rollback()
+            return str(e)
+
+
 
     def add_journal_transaction(
         self, id, sub_id, amount, date, ref_no, bank_id, description
@@ -310,74 +356,84 @@ class Queries:
             return str(e)
 
     def add_income(self, id, amount, date, ref_no, bank_id, description):
-        bank = Bank.query.filter_by(id=bank_id).first()
-        if bank:
-            income = id
-            income.balance += float(amount)
-            income_payment = IncomePayment(
-                amount=float(amount),
-                date=date,
-                exact_date=datetime.utcnow(),
-                description=description,
-                ref_no=ref_no,
-                balance=income.balance,
-                bank_id=bank.id,
-                income_id=income.id,
-                year=self.year,
-            )
+        try:
+            bank = Bank.query.filter_by(id=bank_id).first()
+            if bank:
+                income = id
+                income.balance += float(amount)
+                income_payment = IncomePayment(
+                    amount=float(amount),
+                    date=date,
+                    exact_date=datetime.utcnow(),
+                    description=description,
+                    ref_no=ref_no,
+                    balance=income.balance,
+                    bank_id=bank.id,
+                    income_id=income.id,
+                    year=self.year,
+                )
 
-            self.db.session.add(income_payment)
+                self.db.session.add(income_payment)
 
-            bank.new_balance += float(amount)
-            bank_payment = BankPayment(
-                amount=amount,
-                date=date,
-                exact_date=datetime.utcnow(),
-                description=description,
-                ref_no=ref_no,
-                bank_balance=bank.new_balance,
-                bank_id=bank.id,
-                year=self.year,
-            )
+                bank.new_balance += float(amount)
+                bank_payment = BankPayment(
+                    amount=amount,
+                    date=date,
+                    exact_date=datetime.utcnow(),
+                    description=description,
+                    ref_no=ref_no,
+                    bank_balance=bank.new_balance,
+                    bank_id=bank.id,
+                    year=self.year,
+                )
 
-            self.db.session.add(bank_payment)
+                self.db.session.add(bank_payment)
 
-            self.db.session.commit()
+                self.db.session.commit()
+                return True
+        except Exception as e:
+            self.db.session.rollback()
+            return str(e)
 
     def add_expense(self, id, amount, date, ref_no, bank_id, description=None):
-        bank = Bank.query.filter_by(id=bank_id).first()
-        if bank:
-            expense = Expense.query.filter_by(id=id).first()
-            expense.balance += float(amount)
-            expense_payment = ExpensePayment(
-                amount=float(amount),
-                date=date,
-                exact_date=datetime.utcnow(),
-                description=description,
-                ref_no=ref_no,
-                balance=expense.balance,
-                bank_id=bank.id,
-                expense_id=id,
-                year=self.year,
-            )
+        try:
+            bank = Bank.query.filter_by(id=bank_id).first()
+            if bank:
+                expense = Expense.query.filter_by(id=id).first()
+                expense.balance += float(amount)
+                expense_payment = ExpensePayment(
+                    amount=float(amount),
+                    date=date,
+                    exact_date=datetime.utcnow(),
+                    description=description,
+                    ref_no=ref_no,
+                    balance=expense.balance,
+                    bank_id=bank.id,
+                    main_id=id,
+                    year=self.year,
+                )
 
-            self.db.session.add(expense_payment)
+                self.db.session.add(expense_payment)
 
-            bank.new_balance -= float(amount)
-            bank_payment = BankPayment(
-                amount=-amount,
-                date=date,
-                exact_date=datetime.utcnow(),
-                description=description,
-                ref_no=ref_no,
-                bank_balance=bank.new_balance,
-                bank_id=bank.id,
-                year=self.year,
-            )
+                bank.new_balance -= float(amount)
+                bank_payment = BankPayment(
+                    amount=-amount,
+                    date=date,
+                    exact_date=datetime.utcnow(),
+                    description=description,
+                    ref_no=ref_no,
+                    bank_balance=bank.new_balance,
+                    bank_id=bank.id,
+                    year=self.year,
+                )
 
-            self.db.session.add(bank_payment)
+                self.db.session.add(bank_payment)
 
-            self.db.session.commit()
+                self.db.session.commit()
+                return True
+        except Exception as e:
+            self.db.session.rollback()
+            return str(e)
 
     def add_asset(self, id, amount, date, ref_no, bank_id, description=None):
         try:
@@ -393,7 +449,7 @@ class Queries:
                     ref_no=ref_no,
                     balance=asset.balance,
                     bank_id=bank.id,
-                    asset_id=id,
+                    main_id=id,
                     year=self.year,
                 )
 
@@ -414,79 +470,89 @@ class Queries:
                 self.db.session.add(bank_payment)
 
                 self.db.session.commit()
+                return True
         except Exception as e:
             self.db.session.rollback()
             return str(e)
 
     def add_liability(self, id, amount, date, ref_no, bank_id, description=None):
-        bank = Bank.query.filter_by(id=bank_id).first()
-        if bank:
-            liability = Liability.query.filter_by(id=id).first()
-            liability.balance += float(amount)
-            liability_payment = LiabilityPayment(
-                amount=float(amount),
-                date=date,
-                exact_date=datetime.utcnow(),
-                description=description,
-                ref_no=ref_no,
-                balance=liability.balance,
-                bank_id=bank.id,
-                liability_id=id,
-                year=self.year,
-            )
+        try:
+            bank = Bank.query.filter_by(id=bank_id).first()
+            if bank:
+                liability = Liability.query.filter_by(id=id).first()
+                liability.balance += float(amount)
+                liability_payment = LiabilityPayment(
+                    amount=float(amount),
+                    date=date,
+                    exact_date=datetime.utcnow(),
+                    description=description,
+                    ref_no=ref_no,
+                    balance=liability.balance,
+                    bank_id=bank.id,
+                    main_id=id,
+                    year=self.year,
+                )
 
-            self.db.session.add(liability_payment)
+                self.db.session.add(liability_payment)
 
-            bank.new_balance -= float(amount)
-            bank_payment = BankPayment(
-                amount=-amount,
-                date=date,
-                exact_date=datetime.utcnow(),
-                description=description,
-                ref_no=ref_no,
-                bank_balance=bank.new_balance,
-                bank_id=bank.id,
-                year=self.year,
-            )
+                bank.new_balance -= float(amount)
+                bank_payment = BankPayment(
+                    amount=-amount,
+                    date=date,
+                    exact_date=datetime.utcnow(),
+                    description=description,
+                    ref_no=ref_no,
+                    bank_balance=bank.new_balance,
+                    bank_id=bank.id,
+                    year=self.year,
+                )
 
-            self.db.session.add(bank_payment)
+                self.db.session.add(bank_payment)
 
             self.db.session.commit()
-
+            return True
+        except Exception as e:
+            self.db.session.rollback()
+            return str(e)
     def add_investment(self, id, amount, date, ref_no, bank_id, description=None):
-        bank = Bank.query.filter_by(id=bank_id).first()
-        if bank:
-            investment = Expense.query.filter_by(id=id).first()
-            investment.balance += float(amount)
-            investment_payment = InvestmentPayment(
-                amount=float(amount),
-                date=date,
-                exact_date=datetime.utcnow(),
-                description=description,
-                ref_no=ref_no,
-                balance=investment.balance,
-                bank_id=bank.id,
-                investment_id=id,
-                year=self.year,
-            )
+        try:
+            bank = Bank.query.filter_by(id=bank_id).first()
+            if bank:
+                investment = Expense.query.filter_by(id=id).first()
+                investment.balance += float(amount)
+                investment_payment = InvestmentPayment(
+                    amount=float(amount),
+                    date=date,
+                    exact_date=datetime.utcnow(),
+                    description=description,
+                    ref_no=ref_no,
+                    balance=investment.balance,
+                    bank_id=bank.id,
+                    main_id=id,
+                    year=self.year,
+                )
 
-            self.db.session.add(investment_payment)
+                self.db.session.add(investment_payment)
 
-            bank.new_balance -= float(amount)
-            bank_payment = BankPayment(
-                amount=-amount,
-                date=date,
-                exact_date=datetime.utcnow(),
-                description=description,
-                ref_no=ref_no,
-                bank_balance=bank.new_balance,
-                bank_id=bank.id,
-                year=self.year,
-            )
+                bank.new_balance -= float(amount)
+                bank_payment = BankPayment(
+                    amount=-amount,
+                    date=date,
+                    exact_date=datetime.utcnow(),
+                    description=description,
+                    ref_no=ref_no,
+                    bank_balance=bank.new_balance,
+                    bank_id=bank.id,
+                    year=self.year,
+                )
 
-            self.db.session.add(bank_payment)
+                self.db.session.add(bank_payment)
 
-            self.db.session.commit()
+                self.db.session.commit()
+                return True
+        except Exception as e:
+            self.db.session.rollback()
+            return str(e)
 
     def create_new_ledger(self, ledger, name, description):
         if ledger == 1:
@@ -1112,11 +1178,11 @@ class Queries:
     @staticmethod
     def get_liabilities_per_year(year):
         subquery = db.session.query(
-            LiabilityPayment.liability_id,
+            LiabilityPayment.main_id,
             db.func.max(LiabilityPayment.date).label('max_date')
         ).filter(
             LiabilityPayment.year == year
-        ).group_by(LiabilityPayment.liability_id).subquery()
+        ).group_by(LiabilityPayment.main_id).subquery()
 
         liabilities = db.session.query(
                 Liability,
@@ -1125,13 +1191,13 @@ class Queries:
             ).select_from(Liability).join(
                 subquery,
                 db.and_(
-                    Liability.id == subquery.c.liability_id,
+                    Liability.id == subquery.c.main_id,
                     LiabilityPayment.date == subquery.c.max_date
                 )
             ).join(
                 LiabilityPayment,
                 db.and_(
-                    Liability.id == LiabilityPayment.liability_id,
+                    Liability.id == LiabilityPayment.main_id,
                     LiabilityPayment.date == subquery.c.max_date
                 )
             ).filter(

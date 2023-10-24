@@ -690,7 +690,7 @@ def create_expense():
     if request.method == "POST":
         if form.validate_on_submit():
             # Handle existing expense selection
-            query.add_transaction(
+            test = query.add_transaction(
                 form.main_account.data,
                 form.sub_account.data,
                 form.amount.data,
@@ -699,12 +699,58 @@ def create_expense():
                 form.bank.data,
                 form.description.data,
             )
-            flash("Transaction submitted successfully.", "success")
-            return redirect(url_for("dashboard"))
+            if test == True:
+
+                flash("Transaction submitted successfully.", "success")
+                return redirect(url_for("dashboard"))
+            else:
+                flash(f'somthing went wrong {test}','error')
+                return redirect(url_for('create_expense'))
         else:
             flash(form.errors, "error")
 
     return render_template("forms/expense_form.html", form=form)
+
+@app.route("/ledger_payment", methods=["GET", "POST"])
+@login_required
+@role_required(["Admin", "Secretary"])
+def ledger_payment():
+    form = LedgerPaymentForm()
+    assets = [(asset.id, asset.name) for asset in Asset.query.all()]
+    
+    expenses = [(expense.id, expense.name) for expense in Expense.query.all()]
+    liabilities = [
+        (liability.id, liability.name) for liability in Liability.query.all()
+    ]
+    investments = [
+        (investment.id, investment.name) for investment in Investment.query.all()
+    ]
+    form.sub_account.choices = assets + expenses + investments + liabilities
+    form.sub_account_2.choices = assets + expenses + investments + liabilities
+    form.date.data = pd.to_datetime("today")
+    if request.method == "POST":
+        if form.validate_on_submit():
+            # Handle existing expense selection
+            test = query.journal_voucher(
+                form.main_account.data,
+                form.main_account_2.data,
+                form.sub_account.data,
+                form.sub_account_2.data,
+                form.amount.data,
+                form.date.data,
+                form.ref_no.data,
+                form.description.data,
+            )
+            if test == True:
+                flash("Transaction submitted successfully.", "success")
+                return redirect(url_for("dashboard"))
+            else:
+                flash(f'error{test}','error')
+                return redirect(url_for('ledger_payment'))
+        else:
+            flash(form.errors, "error")
+
+    return render_template("forms/ledger_payment.html", form=form)
 
 @app.route("/journal", methods=["GET", "POST"])
 @login_required
@@ -1382,11 +1428,15 @@ def trial_balance():
     expenses = Expense.query.all()
     investments = Investment.query.all()
 
+    incomes = [income for income in incomes if income.balance > 0]
+    expenses = [expense for expense in expenses if expense.balance > 0]
+    total_income = sum(income.balance for income in incomes)
+    total_expenses = sum(expense.balance for expense in expenses)
     total_fixed_assets = sum(a.balance for a in fixed_assets)
     total_assets = cash_and_bank + accounts_receivable+ company_receivable+ total_investments+ total_fixed_assets
 
-    total_dr = total_assets
-    total_cr = net_income+ accounts_payable+ total_liabilities
+    total_dr = total_assets + total_expenses
+    total_cr = accounts_payable+ total_liabilities + total_income
     context = {
         "assets": fixed_assets,
         "incomes": incomes,
@@ -1410,7 +1460,9 @@ def trial_balance():
 @role_required(["Admin", "Secretary", "Sub-Admin"])
 def balance_sheet():
     fixed_assets = Asset.query.all()
+    expenses = Expense.query.all()
     total_fixed_assets = sum(a.balance for a in fixed_assets)
+    total_expense = sum(e.balance for e in expenses)
 
     cash_and_bank = query.get_cash_and_banks()
     accounts_receivable = query.get_accounts_receivable()
@@ -1426,7 +1478,7 @@ def balance_sheet():
     total_liabilities = query.get_total_liabilities()
     
     accounts_payable = query.get_accounts_payable()
-    total_equity = accounts_payable + net_income
+    total_equity = accounts_payable + net_income + total_expense
     total_liabilities_and_equity = total_liabilities + total_equity
     current_year = os.getenv("CURRENT_YEAR")
     query_year = query.year
@@ -1613,7 +1665,7 @@ def get_sub_accounts(main_account_id):
 
     # Create a list of dictionaries with 'id' and 'name' keys
     sub_account_options = [
-        {"id": sub_account.id, "name": sub_account.name} for sub_account in sub_accounts
+        {"id": sub_account.id, "name": sub_account.name,"balance":sub_account.balance} for sub_account in sub_accounts
     ]
 
     return jsonify(sub_account_options)

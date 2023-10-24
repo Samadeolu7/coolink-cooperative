@@ -83,7 +83,7 @@ Trial Balance
             <tr>
                 <td><a href="{{url_for('ledger_report',ledger='expense',ledger_id=expense.id)}}">{{ expense.name }}</a></td>  <!-- Fetching the person's name -->
                 <td>{{expense.description}}</td>
-                <td>{{expense.balance | currency}}_</td>
+                <td>{{expense.balance | currency}}</td>
                 <td>_</td>
             <!--total_accounts_payable-->
 
