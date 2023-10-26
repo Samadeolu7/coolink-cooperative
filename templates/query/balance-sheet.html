@@ -64,6 +64,17 @@ Sheet {% endblock %} {% block anchor%}
         <td>{{ treasury_bill | currency }}</td>
         <!-- Fetching the person's name -->
       </tr>
+      {% for asset in assets %}
+      <tr>
+        <td>
+          <a
+            href="{{url_for('ledger_report',ledger='asset',ledger_id=asset.id)}}"
+            >{{ asset.name }}</a
+          >
+        </td>
+        <!-- Fetching the person's name -->
+        <td>{{ asset.balance | currency }}</td>
+      </tr>
       <tr>
         <th class="total">Total Current Assets</th>
 
