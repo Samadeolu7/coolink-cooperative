@@ -50,15 +50,15 @@ Trial Balance
                 
             </tr>
 
-            <tr>
+            <!--<tr>
 
          
-                <td><a href="">Deferred Income </a></td>  <!-- Fetching the person's name -->
+                <td><a href="">Deferred Income </a></td>   Fetching the person's name 
                 <td>_</td>
                 <td> _ </td>
                 <td>{{ deferred_income | currency }}</td>
 
-            </tr>
+            </tr>-->
 
             <!--assets-->
             {% for asset in assets %}
@@ -92,8 +92,8 @@ Trial Balance
                 {% for liability in liabilities%}
                 <td><a href="{{url_for('ledger_report',ledger='liability',ledger_id=liability.id)}}">{{ liability.name }}</a></td>  <!-- Fetching the person's name -->
                 <td>{{liability.description}}</td>
-                <td>{{liability.balance | currency}}</td>
                 <td>_</td>
+                <td>{{liability.balance | currency}}</td>
             </tr>
             {% endfor %}
 
@@ -101,8 +101,8 @@ Trial Balance
             <tr>
                 <td><a href="{{url_for('ledger_report',ledger='investment',ledger_id=investment.id)}}">{{ investment.name }}</a></td>  <!-- Fetching the person's name -->
                 <td>{{investment.description}}</td>
-                <td>_</td>
                 <td>{{investment.balance | currency}}</td>
+                <td>_</td>
             </tr>   
             {% endfor %}
   
@@ -113,15 +113,15 @@ Trial Balance
 
             </tr>
 
-            <!--deficit-->
+            <!--deficit
             <tr>
                 
-                <td><a href="">Retained earnings</a></td>  <!-- Fetching the person's name -->
+                <td><a href="">Retained earnings</a></td>  Fetching the person's name
                 <td>Retained earnings</td>
                 <td> _ </td>
                 <td>{{ deficit | currency }}</td>
 
-            </tr>
+            </tr>-->
 
             <tr>
               
