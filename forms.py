@@ -204,6 +204,10 @@ class RepayLoanForm(FlaskForm):
     submit = SubmitField("Submit")
 
 
+class UpdateOldLoanForm(FlaskForm):
+    name = SelectField("Select Person", coerce=int, validators=[DataRequired()])
+    submit = SubmitField("Submit")
+
 
 class RoleAssignmentForm(FlaskForm):
     person = SelectField("Select Person", choices=[], validators=[DataRequired()])

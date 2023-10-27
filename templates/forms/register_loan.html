@@ -132,7 +132,37 @@ Register for Loan
   </div>
   
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  {% if download_link %}
+    <a href="{{ download_link }}" id="downloadLink" download></a>
+    <!-- Include the following JavaScript code in your HTML template, or in a separate script.js file -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Simulate a click event on the download link
+        var downloadLink = document.getElementById("downloadLink");
+        if (downloadLink) {
+            downloadLink.click();
+        }
+    });
+    </script>
+    
+  {% endif %}
+
+
+<!-- Include the following JavaScript code in your HTML template, or in a separate script.js file -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Simulate a click event on the download link
+        var downloadLink = document.getElementById("downloadLink");
+        if (downloadLink) {
+            downloadLink.click();
+        }
+    });
+    </script>
+    
+
   <script>
+    
     $(document).ready(function () {
         // Function to show/hide the "No of Guarantors" field based on total balance.
         function toggleNoOfGuarantorsField(totalBalance) {

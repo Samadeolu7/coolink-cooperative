@@ -83,23 +83,19 @@ class Queries:
             )
             person = Person.query.filter_by(employee_id=employee_id).first()
             if loan_balance > 0:
-                loan = Loan(
+                loan = LoanFormPayment(
+                        name=person.name,
                         person_id=person.id,
-                        amount=person.loan_balance,
-                        interest_rate=5,
-                        start_date=datetime.utcnow(),
-                        end_date=datetime.utcnow()+timedelta(days=365),
-                        description="brought forward loan",
-                        ref_no="brought forward loan",
-                        is_approved=True,
-                        admin_approved=True,
-                        sub_admin_approved=True,
+                        loan_amount=person.loan_balance,
+                        Loan=True,
                     )
                 self.db.session.add(loan)
             self.db.session.commit()
             # create .csv file
             from csv_helper import write_credentials_to_file
             file = write_credentials_to_file(employee_id, email, password)
+            if loan_balance > 0:
+                return file.name, loan.id
             
         except Exception as e:
             db.session.rollback()

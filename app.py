@@ -233,6 +233,11 @@ def create_person():
                 loan_balance=form.loan_balance.data,
                 company_id=form.company_id.data,
             )
+            #check type of file
+            
+            if type(file) == tuple:
+                flash("Succesfully created Member", "success")
+                return redirect(url_for('update_old_loan',loan_id=file[1],file=file[0]))
             if file:
                 flash("Succesfully created Member", "success")
                 return redirect(f"/download/{file}")
@@ -511,6 +516,77 @@ def register_loan():
 
     return render_template("forms/register_loan.html", form=form)
 
+@app.route("/forms/update_old_loan/<int:loan_id>/<file>", methods=["GET", "POST"])
+@login_required
+@role_required(["Admin", "Sub-Admin", "Secretary"])
+def update_old_loan(loan_id, file):
+    download_link = url_for("download", file_path=file)
+    form = RegisterLoanForm()
+    Loan = LoanFormPayment.query.get(loan_id)
+    form.name.choices = [(Loan.person.id, (f"{Loan.person.name} ({Loan.person.employee_id})"))]
+    form.description.data = f"Loan Application for {Loan.person.employee_id}"
+    form.amount.data = Loan.loan_amount
+    form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
+    form.guarantor.choices = [(None,None)] + [(person.id, f'{person.name},{person.employee_id}') for person in query.get_persons() ]
+    form.guarantor_2.choices =[(None,None)] + [(person.id,f'{person.name},{person.employee_id}') for person in query.get_persons() ]
+    form.date.data = pd.to_datetime("today")
+    form.ref_no.render_kw = {'readonly': True}
+    form.fee.render_kw = {'readonly': True}
+    form.fee.data = int(query.loan_application_fee)
+
+    if request.method == "POST":
+        if form.validate_on_submit():
+            id = form.name.data
+            amount = form.amount.data
+            description = form.description.data
+            date = form.date.data
+            bank_id = form.bank.data
+            ref_no = form.ref_no.data
+            guarantors= []
+            guarantor = form.guarantor.data
+            loan_unpaid = Loan.query.filter_by(person_id=id,is_paid=False).first()
+            if loan_unpaid:
+                flash("You have an unpaid loan","error")
+                return redirect(url_for("register_loan"))
+            
+            if guarantor!="None" :
+                guarantor = query.get_person(guarantor)
+                guarantors.append(guarantor)
+
+            guarantor_2 = form.guarantor_2.data   
+            if guarantor_2 !="None":   
+                guarantor_2 = query.get_person(guarantor_2)
+                guarantors.append(guarantor_2)
+
+            if guarantor=='None' and guarantor_2 == 'None':
+                guarantor = query.get_person(int(form.name.data))
+                guarantors.append(guarantor)
+
+            elif guarantor == guarantor_2:
+                flash('You cant pick the same person twice')
+                return redirect(url_for("register_loan")) 
+
+            test = query.update_loan(loan_id,amount,guarantors=guarantors)
+            if test == True:
+                flash("Registration submitted successfully.", "success")
+                name='Loan Application Form'
+                income_id= Income.query.filter_by(name=name).first()
+                test_2 = query.add_income(income_id,query.loan_application_fee,date,ref_no,bank_id,description)
+                if test_2 == True:
+                    flash("Income submitted successfully.", "success")
+                    return redirect(url_for("dashboard"))
+                else:
+                    flash(test, "error")
+            
+            else:
+                flash(f"something went wrong.{test}", "error")
+                return redirect(url_for("register_loan"))
+            return redirect(url_for("dashboard"))
+        flash(form.errors, "error")
+        
+    return render_template("forms/register_loan.html", form=form, download_link=download_link)
+    
+
 
 @app.route("/forms/update_loan/<int:loan_id>", methods=["GET", "POST"])
 @login_required
@@ -520,11 +596,7 @@ def update_loan(loan_id):
     
     if current_user.role.name == "User":
         form.name.choices = [(current_user.id, f"{current_user.name} ({current_user.employee_id}))")]
-    else:
-        form.name.choices = [
-            (person.id, f"{person.name} ({person.employee_id})")
-            for person in query.get_persons()
-        ]
+    
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
 
     form.guarantor.choices = [(None, None)] + [(person.id, f'{person.name}, {person.employee_id}') for person in query.get_persons()]
