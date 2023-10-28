@@ -346,7 +346,6 @@ def make_payment():
         (person.id, (f"{person.name} ({person.employee_id})"))
         for person in query.get_persons()
     ]
-    form.date.data = pd.to_datetime("today")
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
     if request.method == "POST":
         if form.validate_on_submit():
@@ -388,6 +387,7 @@ def make_payment():
                 return redirect(url_for("dashboard"))
             else:
                 flash(f"Error in field {form.errors}", "error")
+        form.date.data = pd.to_datetime("today")
 
         return redirect(url_for("get_person", person_id=selected_person_id))
 
@@ -403,7 +403,7 @@ def repay_loan():
         (person.id, (f"{person.name} ({person.employee_id})"))
         for person in query.get_persons()
     ]
-    form.date.data = pd.to_datetime("today")
+    
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
     if request.method == "POST":
         if form.validate_on_submit():
@@ -430,7 +430,8 @@ def repay_loan():
                 flash(f"Error in field {form.errors}", "error")
 
         return redirect(url_for("get_person", person_id=selected_person_id))
-
+    form.date.data = pd.to_datetime("today")
+    
     return render_template("forms/repay_loan.html", form=form)
 
 
@@ -450,7 +451,7 @@ def register_loan():
     form.guarantor.choices = [(None,None)] + [(person.id, f'{person.name},{person.employee_id}') for person in query.get_persons() ]
     form.guarantor_2.choices =[(None,None)] + [(person.id,f'{person.name},{person.employee_id}') for person in query.get_persons() ]
 
-    form.date.data = pd.to_datetime("today")
+
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
     form.fee.data = int(query.loan_application_fee)
     form.fee.render_kw = {'readonly': True}
@@ -508,7 +509,7 @@ def register_loan():
                 return redirect(url_for("register_loan"))
             return redirect(url_for("dashboard"))
         flash(form.errors, "error")
-
+    form.date.data = pd.to_datetime("today")
     return render_template("forms/register_loan.html", form=form)
 
 
@@ -643,7 +644,7 @@ def make_income():
     form = IncomeForm()
     form.name.choices = [(income.id, income.name) for income in query.get_income()]
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
-    form.date.data = pd.to_datetime("today")
+
     if request.method == "POST":
         if form.validate_on_submit():
             id = form.name.data
@@ -667,6 +668,7 @@ def make_income():
             return redirect(url_for("dashboard"))
         flash(form.errors, "error")
 
+    form.date.data = pd.to_datetime("today")
     return render_template("forms/income_form.html", form=form)
 
 
@@ -686,7 +688,7 @@ def create_expense():
         (investment.id, investment.name) for investment in Investment.query.all()
     ]
     form.sub_account.choices = assets + expenses + investments + liabilities
-    form.date.data = pd.to_datetime("today")
+
     if request.method == "POST":
         if form.validate_on_submit():
             # Handle existing expense selection
@@ -709,6 +711,7 @@ def create_expense():
         else:
             flash(form.errors, "error")
 
+    form.date.data = pd.to_datetime("today")
     return render_template("forms/expense_form.html", form=form)
 
 @app.route("/ledger_payment", methods=["GET", "POST"])
@@ -727,7 +730,7 @@ def ledger_payment():
     ]
     form.sub_account.choices = assets + expenses + investments + liabilities
     form.sub_account_2.choices = assets + expenses + investments + liabilities
-    form.date.data = pd.to_datetime("today")
+
     if request.method == "POST":
         if form.validate_on_submit():
             # Handle existing expense selection
@@ -740,6 +743,7 @@ def ledger_payment():
                 form.date.data,
                 form.ref_no.data,
                 form.description.data,
+                current_user.id
             )
             if test == True:
                 flash("Transaction submitted successfully.", "success")
@@ -750,6 +754,7 @@ def ledger_payment():
         else:
             flash(form.errors, "error")
 
+    form.date.data = pd.to_datetime("today")
     return render_template("forms/ledger_payment.html", form=form)
 
 @app.route("/journal", methods=["GET", "POST"])
@@ -796,7 +801,7 @@ def request_withdrawal():
     else:
         form.person.choices = [(person.id, person.name) for person in query.get_persons()]
     form.bank_id.choices = [(bank.id, bank.name) for bank in query.get_banks()]
-    form.date.data = pd.to_datetime("today")
+
 
     if request.method == "POST":
         if form.validate_on_submit():
@@ -833,6 +838,7 @@ def request_withdrawal():
         else:
             flash(form.errors, "error")
 
+    form.date.data = pd.to_datetime("today")
     return render_template("forms/withdraw.html", form=form)
 
 @app.route("/withdraw/reject/<int:request_id>")
@@ -903,7 +909,7 @@ def request_loan():
         (person.person.id, (f"{person.name} ({person.person.employee_id})"))
         for person in query.get_registered() if person.loan == True and person.is_approved==False
     ]
-    form.start_date.data = pd.to_datetime("today")
+
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
     form.amount.render_kw = {'readonly': True}
 
@@ -931,6 +937,7 @@ def request_loan():
             else:
                 flash(test, "error")
 
+    form.start_date.data = pd.to_datetime("today")
     return render_template("forms/loan_form.html", form=form)
 
 
@@ -1067,7 +1074,7 @@ def edit_profile():
 @role_required(["Admin", "Secretary"])
 def upload_savings():
     form = UploadForm()
-    form.date.data = pd.to_datetime("today")
+
     if request.method == "POST" and form.validate_on_submit():
         file = request.files["file"]
         if file:
@@ -1083,6 +1090,8 @@ def upload_savings():
             return redirect(url_for("get_payments"))
     else:
         flash(form.errors, "error")
+
+    form.date.data = pd.to_datetime("today")
     return render_template("forms/upload.html", form=form, route_type="savings")
 
 
@@ -1091,7 +1100,7 @@ def upload_savings():
 @role_required(["Admin", "Secretary"])
 def upload_loan():
     form = UploadForm()
-    form.date.data = pd.to_datetime("today")
+
     if request.method == "POST" and form.validate_on_submit():
         file = request.files["file"]
         if file:
@@ -1104,6 +1113,8 @@ def upload_loan():
             flash("Savings updated successfully!", "success")
 
             return redirect("/dashboard")
+        
+    form.date.data = pd.to_datetime("today")
     return render_template("forms/upload.html", form=form, route_type="loan")
 
 

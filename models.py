@@ -602,60 +602,44 @@ class LiabilityPayment(db.Model):
         }
 
 
-class Equity(db.Model):
-    __tablename__ = "equities"
+class TransactionCounter(db.Model):
+    __tablename__ = "transaction_counters"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    description = db.Column(db.String, nullable=True)
-    balance = db.Column(db.Float, default=0.0)
-    balance_bfd = db.Column(db.Float, default=0.0)
-    payments = db.relationship("EquityPayment", backref="equity")
-
-    def to_json(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "description": self.description,
-            "balance": self.balance,
-        }
-
-
-class EquityPayment(db.Model):
-    __tablename__ = "equity_payments"
-
-    id = db.Column(db.Integer, primary_key=True)
-    amount = db.Column(db.Float, nullable=False)
-    exact_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    date = db.Column(db.Date, nullable=False)
-    equity_id = db.Column(
-        db.Integer, db.ForeignKey("equities.id"), nullable=True, index=True
-    )
-    description = db.Column(db.String, nullable=True)
-    ref_no = db.Column(db.String)
-    balance = db.Column(db.Float, nullable=True)
-    bank_id = db.Column(
-        db.Integer, db.ForeignKey("banks.id"), nullable=True, index=True
-    )
+    type = db.Column(db.String, nullable=False)
     year = db.Column(db.Integer, nullable=False)
+    month = db.Column(db.Integer, nullable=False)
+    counter = db.Column(db.Integer, default=0)
 
-    def to_json(self):
-        return {
-            "id": self.id,
-            "amount": self.amount,
-            "exact_date": self.exact_date,
-            "date": self.date,
-            "main_id": self.main_id,
-            "description": self.description,
-            "ref_no": self.ref_no,
-            "balance": self.balance,
-            "bank_id": self.bank_id,
-        }
+    @property
+    def ref_no(self):
+        # Calculate the year and month from the transaction date
+        type = self.type
+        year = self.year
+        month = self.month
+        
+        # Find the transaction counter for the current year and month
+        counter_record = TransactionCounter.query.filter_by(type=type,year=year, month=month).first()
+        
+        if counter_record is None:
+            # If there's no counter record for the current month, create one
+            counter_record = TransactionCounter(year=year, month=month, counter=1)
+            db.session.add(counter_record)
+        else:
+            # If a counter record exists, increment the counter
+            counter_record.counter += 1
+            db.session.commit()
+        
+        # Format the reference number with leading zeros for the counter
+        return f"{year}{month:02d}-{counter_record.counter:04d}"
+
 
 loan_payment_guarantor_association = db.Table(
     'loan_payment_guarantor_association',
     db.Column('loan_payment_id', db.Integer, db.ForeignKey('loan_form_payment.id')),
     db.Column('guarantor_id', db.Integer, db.ForeignKey('persons.id')))
+
+
 class GuarantorContribution(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     loan_form_payment_id = db.Column(db.Integer, db.ForeignKey('loan_form_payment.id', ondelete='SET NULL'))
@@ -670,6 +654,7 @@ class GuarantorContribution(db.Model):
     
     # Define a relationship with Loan, making it nullable
     loan = db.relationship("Loan", backref="guarantor_contributions")
+
 
 class LoanFormPayment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -726,6 +711,7 @@ class LoanFormPayment(db.Model):
 
         self.failed = True
         db.session.commit()
+
 
 class Constants(db.Model):
 

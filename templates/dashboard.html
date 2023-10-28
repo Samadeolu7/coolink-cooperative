@@ -127,11 +127,13 @@
                         <a href="{{url_for('savings_account',person_id=person.id)}}">
                             
                             <div>
-                            <p><strong>Current Balance:</strong></p>
+                            <p><strong>Current Balance:{{ person.total_balance | currency}}</strong></p>
                             </div>
-                            
+                        </a>
+
+                        <a href="{{url_for('savings_account_details',person_id=person.id )}}">
                             <div>
-                            <p><strong>{{ person.total_balance | currency}}</strong></p>
+                            <p><strong>Account Information</strong></p>
                             </div>
                         </a>
 

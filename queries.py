@@ -195,6 +195,10 @@ class Queries:
             if person:
                 person.available_balance += float(amount)
 
+                marker = TransactionCounter(type ="BR",year=date.year,month=date.month)
+                self.db.session.add(marker)
+                ref_no = f"BR{marker.ref_no}"
+
                 saving_payment = SavingPayment(
                     amount=amount,
                     date=date,
@@ -239,7 +243,7 @@ class Queries:
         elif id == 4:
             return self.add_liability(sub_id, amount, date, ref_no, bank_id, description)
 
-    def journal_voucher(self, id, id_2, sub_id,sub_id_2, amount, date, ref_no, description):
+    def journal_voucher(self, id, id_2, sub_id,sub_id_2, amount, date, ref_no, description,user_id):
         try:
             dict={
                 1:(Asset,AssetPayment),
@@ -248,6 +252,9 @@ class Queries:
                 4:(Liability,LiabilityPayment),
             }
             debit = dict[id][0].query.filter_by(id=sub_id).first()
+            marker = TransactionCounter(type ="JV",year=datetime.utcnow().year,month=datetime.utcnow().month)
+            self.db.session.add(marker)
+            ref_no = f"JV{marker.ref_no}"
             debit.balance -= float(amount)
             debit_payment = dict[id][1](
                     amount=float(amount),
@@ -374,6 +381,9 @@ class Queries:
         try:
             bank = Bank.query.filter_by(id=bank_id).first()
             if bank:
+                marker = TransactionCounter(type="IN",year= date.year,month=date.month)
+                self.db.session.add(marker)
+                ref_no = f"IN{marker.ref_no}"
                 income = id
                 income.balance += float(amount)
                 income_payment = IncomePayment(
@@ -414,6 +424,9 @@ class Queries:
         try:
             bank = Bank.query.filter_by(id=bank_id).first()
             if bank:
+                marker = TransactionCounter(type="EX",year= date.year,month=date.month)
+                self.db.session.add(marker)
+                ref_no = f"EX{marker.ref_no}"
                 expense = Expense.query.filter_by(id=id).first()
                 expense.balance += float(amount)
                 expense_payment = ExpensePayment(
@@ -453,6 +466,9 @@ class Queries:
     def add_asset(self, id, amount, date, ref_no, bank_id, description=None):
         try:
             bank = Bank.query.filter_by(id=bank_id).first()
+            marker = TransactionCounter(type="AS",year= date.year,month=date.month)
+            self.db.session.add(marker)
+            ref_no = f"AS{marker.ref_no}"
             if bank:
                 asset = Asset.query.filter_by(id=id).first()
                 asset.balance += float(amount)
@@ -493,6 +509,9 @@ class Queries:
     def add_liability(self, id, amount, date, ref_no, bank_id, description=None):
         try:
             bank = Bank.query.filter_by(id=bank_id).first()
+            marker = TransactionCounter(type="LI",year= date.year,month=date.month)
+            self.db.session.add(marker)
+            ref_no = f"LI{marker.ref_no}"
             if bank:
                 liability = Liability.query.filter_by(id=id).first()
                 liability.balance += float(amount)
@@ -532,6 +551,9 @@ class Queries:
     def add_investment(self, id, amount, date, ref_no, bank_id, description=None):
         try:
             bank = Bank.query.filter_by(id=bank_id).first()
+            marker = TransactionCounter(type="IV",year= date.year,month=date.month)
+            self.db.session.add(marker)
+            ref_no = f"IV{marker.ref_no}"
             if bank:
                 investment = Expense.query.filter_by(id=id).first()
                 investment.balance += float(amount)
@@ -598,6 +620,9 @@ class Queries:
     # payments
     def withdraw(self, id, amount, description, ref_no, bank_id, date):
         try:
+            marker = TransactionCounter(type="WD",year= date.year,month=date.month)
+            self.db.session.add(marker)
+            ref_no = f"WD{marker.ref_no}"
             person = Person.query.filter_by(id=id).first()
             if not person:
                 raise ValueError("Person not found.")
@@ -639,6 +664,9 @@ class Queries:
     def save_amount_company(self, employee_id, amount, date, ref_no, description=None):
         try:
             person = Person.query.filter_by(employee_id=employee_id).first()
+            marker = TransactionCounter(type="CO-SA",year= date.year,month=date.month)
+            self.db.session.add(marker)
+            ref_no = f"CO-SA{marker.ref_no}"
             if not person:
                 raise ValueError("Person not found.")
             if person:
@@ -692,6 +720,9 @@ class Queries:
     ):
         try:
             person = Person.query.filter_by(id=id).first()
+            marker = TransactionCounter(type="LO",year= start_date.year,month=start_date.month)
+            self.db.session.add(marker)
+            ref_no = f"LO{marker.ref_no}"
 
             if not person:
                 raise ValueError("Person not found.")
@@ -864,6 +895,9 @@ class Queries:
     def repay_loan(self, id, amount, date, bank_id, ref_no, description=None):
         try:
             person = Person.query.filter_by(id=id).first()
+            marker = TransactionCounter(type="BR",year= date.year,month=date.month)
+            self.db.session.add(marker)
+            ref_no = f"BR{marker.ref_no}"
             if not person:
                 raise ValueError("Person not found.")
             if person:
@@ -926,6 +960,9 @@ class Queries:
     ):
         try:
             person = Person.query.filter_by(id=id).first()
+            marker = TransactionCounter(type="SA-LO",year= date.year,month=date.month)
+            self.db.session.add(marker)
+            ref_no = f"SA-LO{marker.ref_no}"
             if not person:
                 raise ValueError("Person not found.")
             if person:
@@ -967,6 +1004,9 @@ class Queries:
     def repay_loan_company(self, id, amount, date, ref_no, description=None):
         try:
             person = Person.query.filter_by(employee_id=id).first()
+            marker = TransactionCounter(type="CO-LO",year= date.year,month=date.month)
+            self.db.session.add(marker)
+            ref_no = f"CO-LO{marker.ref_no}"
             if not person:
                 raise ValueError("Person not found.")
 
@@ -1006,9 +1046,12 @@ class Queries:
             self.db.session.rollback()
             return str(e)
 
-    def company_payment(self, company_id, amount, description, ref_no, bank_id):
+    def company_payment(self, company_id, amount,date, description, ref_no, bank_id):
         try:
             company = Company.query.filter_by(id=company_id).first()
+            marker = TransactionCounter(type="CO",year= date.year,month=date.month)
+            self.db.session.add(marker)
+            ref_no = f"CO{marker.ref_no}"
             if not company:
                 raise ValueError("Company not found.")
             if company:
@@ -1163,6 +1206,8 @@ class Queries:
     def get_accounts_receivable(self):
         persons = Person.query.all()
         total = sum([p.loan_balance for p in persons if p.loan_balance])
+        log_report(persons)
+        log_report([p.loan_balance for p in persons if p.loan_balance])
         return total
 
     def get_accounts_payable(self):
