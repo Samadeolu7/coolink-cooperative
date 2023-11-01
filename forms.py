@@ -131,7 +131,7 @@ class JournalForm(FlaskForm):
     description = StringField("Description")
     main_account = SelectField(
         "Select Account",
-        choices=[('savings', "Savings"), ('loan', "Loan"), ('company', "Company")],
+        choices=[('company', "Company")],
     )  # change name to sub-account
     bank = SelectField("Bank", choices=[], coerce=int)
     ref_no = StringField("Reference Number")

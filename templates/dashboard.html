@@ -99,11 +99,16 @@
         <div class="head-wrap">
 
             <div class="head-title">
+                <div class='left'>
                 <span>Employee-id: {{person.employee_id}}</span>
                 <h1>Welcome, {{ person.name }}!</h1>
-                <!-- <div class="user-info">
-                    <i class="fa-solid fa-user"></i>
-                </div> -->
+                </div>
+                <div class="right">
+                    <form action="{{ url_for('search') }}" method="POST" class="search-form">
+                        <input type="text" name="ref_no" id="search" placeholder="Search by Ref_No">
+                        <button type="submit" class="search-btn">Search</button>
+                    </form>
+                </div> 
             </div>
 
         </div>
@@ -253,60 +258,6 @@
     <!-- Add selectize.js JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.13.3/js/standalone/selectize.min.js"></script>
     <!-- Add the JavaScript for handling search suggestions -->
-    <script>
-        $(document).ready(function () {
-            var selectizeInput = $(
-                '#searchForm input[name="search_query"]'
-            ).selectize({
-                valueField: "value",
-                labelField: "label",
-                searchField: "label",
-                create: false,
-                maxItems: 5,
-                render: {
-                    option: function (item, escape) {
-                        return "<div>" + escape(item.label) + "</div>";
-                    },
-                },
-                load: function (query, callback) {
-                    if (!query.length) return callback();
-                    $.getJSON("/search_suggestions", { query: query }, function (data) {
-                        var suggestions = [];
-                        data.companies.forEach(function (company) {
-                            suggestions.push({
-                                value: "/company/" + company[0],
-                                label: company[1] + " (Company)",
-                            });
-                        });
-                        data.persons.forEach(function (person) {
-                            suggestions.push({
-                                value: "/person/" + person[0],
-                                label: person[1] + " (Person)",
-                            });
-                        });
-                        callback(suggestions);
-                    });
-                },
-                onChange: function (value) {
-                    if (value) {
-                        window.location.href = value;
-                    }
-                },
-            });
-
-            // Prevent form submission when selecting an item
-            $("#searchForm").on("submit", function (event) {
-                event.preventDefault();
-                var selectedOption = selectizeInput[0].selectize.getValue();
-                if (selectedOption) {
-                    window.location.href = selectedOption;
-                }
-            });
-        });
-
-    </script>
-
-
     
 </body>
 {%endblock%}

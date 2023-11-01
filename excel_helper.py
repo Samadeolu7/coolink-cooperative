@@ -97,32 +97,40 @@ def start_up(filename):
     return zip_filename
 
 
-def send_upload_to_savings(filename,ref_no, description, date):
+def send_upload_to_savings(filename, ref_no, description, date):
     df = process_excel(filename)
-    error =[]
-    for index, row in df.iterrows():
-        test=query.save_amount_company(
-            row["COY"], row["Amount"], date, ref_no, description
-        )
-        if test != True:
-            error.append(test)
-    
-    if len(error) > 0:
-        return error
-    else:
-        return True
+    report_file_path = f"upload/report/savings_upload_report_{date}.csv"
+
+    with open(report_file_path, "a", newline="") as file:
+        writer = csv.writer(file)
+        for index, row in df.iterrows():
+            test = query.save_amount_company(
+                row["COY"], row["Amount"], date, ref_no, description
+            )
+            writer.writerow(test)
+
+    return report_file_path
+
 
 
 def send_upload_to_loan_repayment(filename,ref_no, description, date):
     df = process_excel(filename)
-    for index, row in df.iterrows():
-        query.repay_loan_company(
-            row["COY"],
-            row["Amount"],
-            date,
-            ref_no,
-            description,
-        )
+
+    report_file_path = f"upload/report/loan_upload_report_{date}.csv"
+
+    with open(report_file_path, "a", newline="") as file:
+        writer = csv.writer(file)
+        for index, row in df.iterrows():
+            test = query.repay_loan_company(
+                row["COY"],
+                row["Amount"],
+                date,
+                ref_no,
+                description,
+            )
+            writer.writerow(test)
+
+    return report_file_path
 
 
 # Function to generate the repayment schedule

@@ -308,11 +308,15 @@ class Queries:
         try:
             person = Person.query.filter_by(id=id).first()
             if person:
+                marker = TransactionCounter(type ="LA",year=date.year,month=date.month)
+                self.db.session.add(marker)
+                ref_no = f"LA{marker.ref_no}"
                 form_payment = LoanFormPayment(
                     name=person.name,
                     loan_amount=amount,
                     person=person,
                     guarantors=guarantors,
+                    ref_no=ref_no,
                 )
                 self.db.session.add(form_payment)
 
@@ -668,7 +672,7 @@ class Queries:
             self.db.session.add(marker)
             ref_no = f"CO-SA{marker.ref_no}"
             if not person:
-                raise ValueError("Person not found.")
+                return 'error, person not found',employee_id
             if person:
                 company = person.company
                 person.available_balance += float(amount)
@@ -702,10 +706,10 @@ class Queries:
                 self.db.session.add(company_payment)
 
                 self.db.session.commit()
-                return True
+                return 'success',employee_id
         except Exception as e:
             self.db.session.rollback()
-            return str(e)
+            return "error",str(e)
 
     def make_loan_request(
         self,
@@ -1008,7 +1012,7 @@ class Queries:
             self.db.session.add(marker)
             ref_no = f"CO-LO{marker.ref_no}"
             if not person:
-                raise ValueError("Person not found.")
+                return 'error, person not found',id
 
             if person:
                 company = person.company
@@ -1041,10 +1045,10 @@ class Queries:
                 self.db.session.add(company_payment)
                 self.db.session.commit()
 
-                return True
+                return 'success',id
         except Exception as e:
             self.db.session.rollback()
-            return str(e)
+            return 'error',str(e)
 
     def company_payment(self, company_id, amount,date, description, ref_no, bank_id):
         try:
@@ -1118,6 +1122,54 @@ class Queries:
             return self.get_companies()
 
     # queries
+    def get_transactions_with_ref_no(self, ref_no):
+        
+        savings_transaction = SavingPayment.query.filter_by(ref_no=ref_no).all()
+        if not savings_transaction:
+            savings_transaction = []
+        loan_transaction = LoanPayment.query.filter_by(ref_no=ref_no).all()
+        if not loan_transaction:
+            loan_transaction = []
+        company_transaction = CompanyPayment.query.filter_by(ref_no=ref_no).all()
+        if not company_transaction:
+            company_transaction = []
+        income_transaction = IncomePayment.query.filter_by(ref_no=ref_no).all()
+        if not income_transaction:
+            income_transaction = []
+        expense_transaction = ExpensePayment.query.filter_by(ref_no=ref_no).all()
+        if not expense_transaction:
+            expense_transaction = []
+        asset_transaction = AssetPayment.query.filter_by(ref_no=ref_no).all()
+        if not asset_transaction:
+            asset_transaction = []
+        liability_transaction = LiabilityPayment.query.filter_by(ref_no=ref_no).all()
+        if not liability_transaction:
+            liability_transaction = []
+        investment_transaction = InvestmentPayment.query.filter_by(ref_no=ref_no).all()
+        if not investment_transaction:
+            investment_transaction = []
+        # pre_loan_transaction = LoanFormPayment.query.filter_by(ref_no=ref_no).all() or []
+        loan = Loan.query.filter_by(ref_no=ref_no).first() 
+        if not loan:
+            loan = []
+        bank_transaction = BankPayment.query.filter_by(ref_no=ref_no).all()
+        if not bank_transaction:
+            bank_transaction = []
+        transactions = (
+            savings_transaction
+            + loan_transaction
+            + company_transaction
+            + bank_transaction
+            + income_transaction
+            + expense_transaction
+            + asset_transaction
+            + liability_transaction
+            + investment_transaction
+            + loan
+        )
+        log_report(transactions)
+        return transactions
+    
     def get_companies(self):
         company = Company.query.all()
 

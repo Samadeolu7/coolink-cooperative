@@ -507,14 +507,43 @@
     margin-bottom: 10px;
 }
 
-/* .special-dash .section-2 .head-wrap {
-    margin: 20px;
-    padding: 20px;
-    width: 90%;
-    border-radius: 20px;
-    background-color: #fff;
-    height: 62vh;
-} */
+.special-dash .section-2 .head-wrap .head-title .left, .special-dash .section-2 .head-wrap .head-title .right {
+    display: inline-block;
+    vertical-align: top;
+}
+.special-dash .section-2 .head-wrap .head-title .left {
+    margin-right: 500px; /* Adjust the value to set the desired gap */
+}
+
+.special-dash .section-2 .head-wrap .head-title .right form {
+    margin: 0; /* Adjust margin as needed */
+    padding: 0; /* Adjust padding as needed */
+}
+
+.special-dash .section-2 .head-wrap .head-title .right #search {
+    width: 250px; /* Set the desired width for the input field */
+    padding: 10px; /* Add padding for better visual appeal */
+    border: 1px solid #ccc; /* Add a border */
+    border-radius: 4px; /* Add border radius for rounded corners */
+}
+
+.special-dash .section-2 .head-wrap .head-title .right .search-btn {
+    background-color: #007bff; /* Background color for the button */
+    color: #fff; /* Text color for the button */
+    border: none; /* Remove button border */
+    padding: 10px 15px; /* Add padding for better visual appeal */
+    border-radius: 4px; /* Add border radius for rounded corners */
+    cursor: pointer; /* Add a pointer cursor on hover */
+    /* Add more styles as needed, such as hover effects */
+}
+
+.special-dash .section-2 .head-wrap .head-title .right .search-btn:hover {
+    background-color: #0056b3; /* Change the background color on hover */
+}
+
+
+
+
 
 .special-dash .section-2 .identity {
     margin-bottom: 1.5em;

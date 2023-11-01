@@ -50,6 +50,9 @@ query = Queries(db)
 login_manager = LoginManager()
 
 login_manager.init_app(app)
+login_manager.login_view = "login"
+login_manager.login_message = "You must be logged in to access this page."
+
 
 
 @login_manager.user_loader
@@ -1081,13 +1084,10 @@ def upload_savings():
             # Save the uploaded file
             file.save(f'upload/{file.filename}')
             # Process the uploaded file
-            test = send_upload_to_savings(file,form.ref_no.data, form.description.data, form.date.data)
-            if test==True:
-                flash("Savings updated successfully!", "success")
-            else:
-                flash(test, "error")
+            report = send_upload_to_savings(file,form.ref_no.data, form.description.data, form.date.data)
+            
+            return redirect(url_for("download", file_path=report))
 
-            return redirect(url_for("get_payments"))
     else:
         flash(form.errors, "error")
 
@@ -1107,13 +1107,15 @@ def upload_loan():
             # Save the uploaded file
             file.save(f'upload/{file.filename}')
             # Process the uploaded file
-            send_upload_to_loan_repayment(
+            report = send_upload_to_loan_repayment(
                 file.filename,form.ref_no.data , form.description.data, form.date.data
             )
-            flash("Savings updated successfully!", "success")
+            return redirect(url_for("download", file_path=report))
+        else:
+            flash("No file selected.", "error")
+    else:
+        flash(form.errors, "error")
 
-            return redirect("/dashboard")
-        
     form.date.data = pd.to_datetime("today")
     return render_template("forms/upload.html", form=form, route_type="loan")
 
@@ -1652,20 +1654,183 @@ def get_person_info(person_id):
     return person.to_json()
 
 
-@app.route("/search_suggestions", methods=["GET"])
-def search_suggestions():
-    query = request.args.get("query", "")
-    # Perform the search query using Flask-SQLAlchemy
-    # For example, search the Company and Person models for the given query
-    companies_results = Company.query.filter(Company.name.ilike(f"%{query}%")).all()
-    persons_results = Person.query.filter(Person.name.ilike(f"%{query}%")).all()
+@app.route("/search", methods=["POST"])
+@login_required
+@role_required(["Admin", "Secretary", "Sub-Admin"])
+def search():
+    ref_no = request.form.get("ref_no")
+    log_report(ref_no)
+    transactions = query.get_transactions_with_ref_no(ref_no)
+    log_report(transactions)
+    #check if SavingsPayment is in transactions
+    
+    if ref_no[0]=='J':
+        account_key = {'assets':1,'expenses':2,'investments':3,'liabilities':4}
+        form = LedgerPaymentForm()
+        form.ref_no.render_kw = {"readonly": True}
+        form.ref_no.data = ref_no
+        form.main_account.render_kw = {"readonly": True}
+        form.main_account.data = account_key[transactions[0].main]if transactions[0].amount >0 else account_key[transactions[1].main]
+        form.main_account_2.render_kw = {"readonly": True}
+        form.main_account_2.data = account_key[transactions[1].main]if transactions[0].amount < 0 else account_key[transactions[1].main]
+        form.sub_account.render_kw = {"readonly": True}
+        form.sub_account.data = transactions[0].main.name if transactions[0].amount >0 else transactions[1].main.name
+        form.sub_account_2.render_kw = {"readonly": True}
+        form.sub_account_2.data = transactions[1].main.name if transactions[0].amount < 0 else transactions[1].main.name
+        form.amount.render_kw = {"readonly": True}
+        form.amount.data = abs(transactions[0].amount)
+        form.date.render_kw = {"readonly": True}
+        form.date.data = transactions[0].date
+        form.description.render_kw = {"readonly": True}
+        form.description.data = transactions[0].description
+        
+        return render_template("forms/ledger_payment.html", form=form)
+    elif 'SA-LO' in ref_no:
+        form = RepayLoanForm()
+        form.ref_no.render_kw = {"readonly": True}
+        form.ref_no.data = ref_no
+        form.person.render_kw = {"readonly": True}
+        form.person.data = transactions[0].payer.name
+        form.amount.render_kw = {"readonly": True}
+        form.amount.data = abs(transactions[0].amount)
+        form.date.render_kw = {"readonly": True}
+        form.date.data = transactions[0].date
+        form.description.render_kw = {"readonly": True}
+        form.description.data = transactions[0].description
+        form.loan_balance.render_kw = {"readonly": True}
+        form.loan_balance.data = transactions[1].balance
+        return render_template("forms/repay_loan.html", form=form)
 
-    suggestions = {
-        "companies": [[company.id, company.name] for company in companies_results],
-        "persons": [[person.id, person.name] for person in persons_results],
-    }
+    elif 'BR' in ref_no:
+        form = MakePaymentForm()
+        form.ref_no.render_kw = {"readonly": True}
+        form.ref_no.data = ref_no
+        form.person_id.render_kw = {"readonly": True}
+        form.person_id.data = transactions[0].payer.name
+        form.amount.render_kw = {"readonly": True}
+        form.amount.data = abs(transactions[0].amount)
+        form.date.render_kw = {"readonly": True}
+        form.date.data = transactions[0].date
+        form.description.render_kw = {"readonly": True}
+        form.description.data = transactions[0].description
+        form.bank.render_kw = {"readonly": True}
+        form.bank.choices = [(1,transactions[1].main.name)]
+        log_report(transactions[1].main.name)
+        form.payment_type.render_kw = {"readonly": True}
+        form.payment_type.data = 'Savings' if transactions[0].payer else 'Loan'  
+        return render_template("forms/make_payment.html", form=form)
+    
+    elif 'LA' in ref_no:
+        pass
 
-    return jsonify(suggestions)
+    elif 'IN' in ref_no:
+        pass
+
+    elif 'EX' in ref_no:
+        form = ExpenseForm()
+        form.ref_no.render_kw = {"readonly": True}
+        form.ref_no.data = ref_no
+        form.amount.render_kw = {"readonly": True}
+        form.amount.data = abs(transactions[0].amount)
+        form.date.render_kw = {"readonly": True}
+        form.date.data = transactions[0].date
+        form.description.render_kw = {"readonly": True}
+        form.description.data = transactions[0].description
+        form.sub_account.render_kw = {"readonly": True}
+        form.sub_account.data = transactions[0].main.name
+        form.main_account.render_kw = {"readonly": True}
+        form.main_account.data = 'Expense'
+        return render_template("forms/expense.html", form=form)
+    
+    elif 'AS' in ref_no:
+        form = ExpenseForm()
+        form.ref_no.render_kw = {"readonly": True}
+        form.ref_no.data = ref_no
+        form.amount.render_kw = {"readonly": True}
+        form.amount.data = abs(transactions[0].amount)
+        form.date.render_kw = {"readonly": True}
+        form.date.data = transactions[0].date
+        form.description.render_kw = {"readonly": True}
+        form.description.data = transactions[0].description
+        form.sub_account.render_kw = {"readonly": True}
+        form.sub_account.data = transactions[0].main.name
+        form.main_account.render_kw = {"readonly": True}
+        form.main_account.data = 'Asset'
+        return render_template("forms/expense.html", form=form)
+    
+    elif 'LI' in ref_no:
+        form = ExpenseForm()
+        form.ref_no.render_kw = {"readonly": True}
+        form.ref_no.data = ref_no
+        form.amount.render_kw = {"readonly": True}
+        form.amount.data = abs(transactions[0].amount)
+        form.date.render_kw = {"readonly": True}
+        form.date.data = transactions[0].date
+        form.description.render_kw = {"readonly": True}
+        form.description.data = transactions[0].description
+        form.sub_account.render_kw = {"readonly": True}
+        form.sub_account.data = transactions[0].main.name
+        form.main_account.render_kw = {"readonly": True}
+        form.main_account.data = 'Liability'
+        return render_template("forms/expense.html", form=form)
+    
+    elif 'IV' in ref_no:
+        form = ExpenseForm()
+        form.ref_no.render_kw = {"readonly": True}
+        form.ref_no.data = ref_no
+        form.amount.render_kw = {"readonly": True}
+        form.amount.data = abs(transactions[0].amount)
+        form.date.render_kw = {"readonly": True}
+        form.date.data = transactions[0].date
+        form.description.render_kw = {"readonly": True}
+        form.description.data = transactions[0].description
+        form.sub_account.render_kw = {"readonly": True}
+        form.sub_account.data = transactions[0].main.name
+        form.main_account.render_kw = {"readonly": True}
+        form.main_account.data = 'Investment'
+        return render_template("forms/expense.html", form=form)
+
+    elif 'WD' in ref_no:
+        form = WithdrawalForm()
+        form.ref_no.render_kw = {"readonly": True}
+        form.ref_no.data = ref_no
+        form.amount.render_kw = {"readonly": True}
+        form.amount.data = abs(transactions[0].amount)
+        form.date.render_kw = {"readonly": True}
+        form.date.data = transactions[0].date
+        form.description.render_kw = {"readonly": True}
+        form.description.data = transactions[0].description
+        form.bank_id.render_kw = {"readonly": True}
+        form.bank_id.data = transactions[1].main.name
+        form.person.render_kw = {"readonly": True}
+        form.person.data = transactions[0].payer.name
+        return render_template("forms/withdrawal.html", form=form)
+    
+    elif 'CO-SA' in ref_no:
+        pass
+
+    elif 'CO-LO' in ref_no:
+        pass
+
+    elif 'CO' in ref_no:
+        form = JournalForm()
+        form.ref_no.render_kw = {"readonly": True}
+        form.ref_no.data = ref_no
+        form.amount.render_kw = {"readonly": True}
+        form.amount.data = abs(transactions[0].amount)
+        form.date.render_kw = {"readonly": True}
+        form.date.data = transactions[0].date
+        form.description.render_kw = {"readonly": True}
+        form.description.data = transactions[0].description
+        form.main_account.render_kw = {"readonly": True}
+        form.main_account.data = 'Company'
+        form.sub_account.render_kw = {"readonly": True}
+        form.sub_account.data = transactions[0].main.name
+        return render_template("forms/journal.html", form=form)
+
+    else:
+        flash("No results found", "error")
+        return redirect(url_for("dashboard"))
 
 
 @app.route("/get_sub_accounts/<int:main_account_id>")

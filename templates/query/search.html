@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!--<body id="person">
+    <div id="loan-details" class="print-content">
+    <h1>Search Results</h1>
+    {% if transactions %}
+        <ul>
+            {% for transaction in transactions %}
+
+            {% if transaction.start_date%}
+
+                <div class="info-card">
+                    <div class="info-item">
+                        <span class="label">ID:</span>
+                        <span class="value">{{transaction.id}}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Member:</span>
+                        <span class="value">{{ transaction.person.name }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Reference Number:</span>
+                        <span class="value">{{ transaction.ref_no }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Loan Balance:</span>
+                        <span class="value">{{ transaction.person.loan_balance | currency }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Total Loan Amount:</span>
+                        <span class="value">{{ transaction.amount | currency }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Date:</span>
+                        <span class="value">{{ transaction.start_date }}</span>
+                    </div>
+
+                </div>
+                {% endif %}
+                {% if transaction.bank_balance %}
+                <div class="info-card">
+                    <div class="info-item">
+                        <span class="label">ID:</span>
+                        <span class="value">{{transaction.id}}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Amount:</span>
+                        <span class="value">{{ transaction.amount }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Description:</span>
+                        <span class="value">{{ transaction.description }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Reference Number:</span>
+                        <span class="value">{{ transaction.ref_no }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Date:</span>
+                        <span class="value">{{ transaction.date }}</span>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="info-card">
+                    <div class="info-item">
+                        <span class="label">ID:</span>
+                        <span class="value">{{transaction.id}}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Amount:</span>
+                        <span class="value">{{ transaction.amount }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Description:</span>
+                        <span class="value">{{ transaction.description }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Reference Number:</span>
+                        <span class="value">{{ transaction.ref_no }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Balance:</span>
+                        <span class="value">{{ transaction.balance | currency }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">Date:</span>
+                        <span class="value">{{ transaction.date }}</span>
+                    </div>
+                </div>
+
+                    {% endfor %}  
+                    
+                  
+                
+                <div class="action-buttons">
+                    <button class="print-button" onclick="window.print()">Print</button>
+                </div>
+        </ul>
+    {% else %}
+        <p>No transactions found.</p>
+    {% endif %}
+    </div>
+</body>-->
+<body id="person">
+    <table class="tab-content">
+        <tbody>
+            <tr>
+                <th>Date</th>
+                <th>Ref_No</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Description</th>
+  
+            </tr>
+            {%for transaction in transactions%}
+            <tr>
+                <td>{{transaction.date}}</td>
+                <td>{{transaction.ref_no}}</td>
+                <td>{{transaction.type}}</td>
+                <td>{{transaction.amount}}</td>
+                <td>{{transaction.description}}</td>
+
+            </tr>
+            {%endfor%}
+        </tbody>
+    </table>
+</body>
+{% endblock %}

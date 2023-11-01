@@ -23,7 +23,7 @@ class Company(db.Model):
     name = db.Column(db.String(100), nullable=False, unique=True)
     balance_bfd = db.Column(db.Float, default=0.0)
     amount_accumulated = db.Column(db.Float, default=0.0)
-    payments_made = db.relationship("BankPayment", backref="company_payer", lazy=True)
+    payments_made = db.relationship("CompanyPayment", backref="main", lazy=True)
     employees = db.relationship("Person", backref="company", lazy=True)
 
     def to_json(self):
@@ -299,7 +299,7 @@ class Bank(db.Model):
     name = db.Column(db.String, nullable=False, unique=True)
     balance_bfd = db.Column(db.Float, default=0.0)
     new_balance = db.Column(db.Float, default=0.0)
-    payments = db.relationship("BankPayment", backref="bank")
+    payments = db.relationship("BankPayment", backref="main")
 
     def to_json(self):
         return {
@@ -355,7 +355,7 @@ class Expense(db.Model):
     description = db.Column(db.String, nullable=True)
     balance_bfd = db.Column(db.Float, default=0.0)
     balance = db.Column(db.Float, default=0.0)
-    payments = db.relationship("ExpensePayment", backref="expense")
+    payments = db.relationship("ExpensePayment", backref="main")
 
     def to_json(self):
         return {
@@ -406,7 +406,7 @@ class Asset(db.Model):
     balance_bfd = db.Column(db.Float, default=0.0)
     description = db.Column(db.String, nullable=True)
     balance = db.Column(db.Float, default=0.0)
-    payments = db.relationship("AssetPayment", backref="asset")
+    payments = db.relationship("AssetPayment", backref="main")
 
     def to_json(self):
         return {
@@ -457,7 +457,7 @@ class Income(db.Model):
     description = db.Column(db.String, nullable=True)
     balance_bfd = db.Column(db.Float, default=0.0)
     balance = db.Column(db.Float, default=0.0)
-    payments = db.relationship("IncomePayment", backref="income")
+    payments = db.relationship("IncomePayment", backref="main")
 
     def to_json(self):
         return {
@@ -508,7 +508,7 @@ class Investment(db.Model):
     description = db.Column(db.String, nullable=True)
     balance = db.Column(db.Float, default=0.0)
     balance_bfd = db.Column(db.Float, default=0.0)
-    payments = db.relationship("InvestmentPayment", backref="investment")
+    payments = db.relationship("InvestmentPayment", backref="main")
 
     def to_json(self):
         return {
@@ -559,7 +559,7 @@ class Liability(db.Model):
     description = db.Column(db.String, nullable=True)
     balance = db.Column(db.Float, default=0.0)
     balance_bfd = db.Column(db.Float, default=0.0)
-    payments = db.relationship("LiabilityPayment", backref="liability")
+    payments = db.relationship("LiabilityPayment", backref="main")
 
     def to_json(self):
         return {
@@ -663,6 +663,7 @@ class LoanFormPayment(db.Model):
     loan = db.Column(db.Boolean, default=False)
     failed = db.Column(db.Boolean, default=False)
     loan_amount = db.Column(db.Float, default=0.0)
+    # ref_no = db.Column(db.String)
     
     # Define a relationship with Person to access the person associated with this loan
     person = db.relationship("Person", backref="loan_form_payment")
