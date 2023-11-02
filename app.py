@@ -1108,7 +1108,7 @@ def upload_loan():
             file.save(f'upload/{file.filename}')
             # Process the uploaded file
             report = send_upload_to_loan_repayment(
-                file.filename,form.ref_no.data , form.description.data, form.date.data
+                file,form.ref_no.data , form.description.data, form.date.data
             )
             return redirect(url_for("download", file_path=report))
         else:
