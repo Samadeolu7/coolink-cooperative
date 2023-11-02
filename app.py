@@ -1684,6 +1684,7 @@ def search():
         form.description.render_kw = {"readonly": True}
         form.description.data = transactions[0].description
         
+        
         return render_template("forms/ledger_payment.html", form=form)
     elif 'SA-LO' in ref_no:
         form = RepayLoanForm()
@@ -1721,10 +1722,12 @@ def search():
         return render_template("forms/make_payment.html", form=form)
     
     elif 'LA' in ref_no:
-        pass
+        flash("No Support for this transaction", "error")
+        return redirect(url_for("dashboard"))
 
     elif 'IN' in ref_no:
-        pass
+        flash("No Support for this transaction", "error")
+        return redirect(url_for("dashboard"))
 
     elif 'EX' in ref_no:
         form = ExpenseForm()
@@ -1740,6 +1743,9 @@ def search():
         form.sub_account.data = transactions[0].main.name
         form.main_account.render_kw = {"readonly": True}
         form.main_account.data = 'Expense'
+        form.bank.render_kw = {"readonly": True}
+        form.bank.choices = [(1,transactions[1].main.name)]
+
         return render_template("forms/expense.html", form=form)
     
     elif 'AS' in ref_no:
@@ -1756,6 +1762,8 @@ def search():
         form.sub_account.data = transactions[0].main.name
         form.main_account.render_kw = {"readonly": True}
         form.main_account.data = 'Asset'
+        form.bank.render_kw = {"readonly": True}
+        form.bank.choices = [(1,transactions[1].main.name)]
         return render_template("forms/expense.html", form=form)
     
     elif 'LI' in ref_no:
@@ -1772,6 +1780,8 @@ def search():
         form.sub_account.data = transactions[0].main.name
         form.main_account.render_kw = {"readonly": True}
         form.main_account.data = 'Liability'
+        form.bank.render_kw = {"readonly": True}
+        form.bank.choices = [(1,transactions[1].main.name)]
         return render_template("forms/expense.html", form=form)
     
     elif 'IV' in ref_no:
@@ -1788,6 +1798,9 @@ def search():
         form.sub_account.data = transactions[0].main.name
         form.main_account.render_kw = {"readonly": True}
         form.main_account.data = 'Investment'
+        form.bank.render_kw = {"readonly": True}
+        form.bank.choices = [(1,transactions[1].main.name)]
+
         return render_template("forms/expense.html", form=form)
 
     elif 'WD' in ref_no:
@@ -1801,16 +1814,18 @@ def search():
         form.description.render_kw = {"readonly": True}
         form.description.data = transactions[0].description
         form.bank_id.render_kw = {"readonly": True}
-        form.bank_id.data = transactions[1].main.name
+        form.bank_id.choices = [(1,transactions[1].main.name)]
         form.person.render_kw = {"readonly": True}
         form.person.data = transactions[0].payer.name
         return render_template("forms/withdrawal.html", form=form)
     
     elif 'CO-SA' in ref_no:
-        pass
+        flash("No Support for this transaction", "error")
+        return redirect(url_for("dashboard"))
 
     elif 'CO-LO' in ref_no:
-        pass
+        flash("No Support for this transaction", "error")
+        return redirect(url_for("dashboard"))
 
     elif 'CO' in ref_no:
         form = JournalForm()
@@ -1826,6 +1841,8 @@ def search():
         form.main_account.data = 'Company'
         form.sub_account.render_kw = {"readonly": True}
         form.sub_account.data = transactions[0].main.name
+        form.bank.render_kw = {"readonly": True}
+        form.bank.choices = [(1,transactions[1].main.name)]
         return render_template("forms/journal.html", form=form)
 
     else:

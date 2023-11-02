@@ -121,19 +121,14 @@ def send_upload_to_savings(filename, ref_no, description, date):
 
 def send_upload_to_loan_repayment(filename,ref_no, description, date):
     df = process_excel(filename)
-
-    report_file_path = f"upload/report/loan_upload_report_{date}.csv"
+    date_now = datetime.now()
+    date_str = re.sub(r'[^0-9a-zA-Z]+', '_', str(date_now))
+    report_file_path = f"upload/report/loan_upload_report_{date_str}.csv"
 
     with open(report_file_path, "a", newline="") as file:
         writer = csv.writer(file)
         for index, row in df.iterrows():
-            test = query.repay_loan_company(
-                row["COY"],
-                row["Amount"],
-                date,
-                ref_no,
-                description,
-            )
+            test = query.repay_loan_company(row["COY"],row["Amount"],date,ref_no,description)
             writer.writerow(test)
 
     return report_file_path
