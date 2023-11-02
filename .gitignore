@@ -9,5 +9,7 @@ new_dash
 /upload
 *.zip
 *.log
+/instance
 *.db
+*.sqlite3
 *.pid

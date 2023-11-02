@@ -668,12 +668,15 @@ class Queries:
     def save_amount_company(self, employee_id, amount, date, ref_no, description=None):
         try:
             person = Person.query.filter_by(employee_id=employee_id).first()
+            log_report(4)
             marker = TransactionCounter(type="CO-SA",year= date.year,month=date.month)
             self.db.session.add(marker)
             ref_no = f"CO-SA{marker.ref_no}"
             if not person:
+                
                 return 'error, person not found',employee_id
             if person:
+                log_report(5)
                 company = person.company
                 person.available_balance += float(amount)
 
@@ -706,6 +709,7 @@ class Queries:
                 self.db.session.add(company_payment)
 
                 self.db.session.commit()
+                log_report(6)
                 return 'success',employee_id
         except Exception as e:
             self.db.session.rollback()

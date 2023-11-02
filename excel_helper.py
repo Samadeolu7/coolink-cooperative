@@ -1,3 +1,4 @@
+import re
 import pandas as pd, os, csv, zipfile
 from flask import Flask
 from models import db, Person
@@ -6,6 +7,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment
 from filters import format_currency
 from sqlalchemy.orm import Session
+from datetime import datetime
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///cooperative.db"
@@ -52,8 +54,7 @@ def create_excel(type, type_id):
 
 def process_excel(filename):
     dataframe = pd.read_excel(filename)
-    rows_to_update = dataframe.iloc[10:]
-    return rows_to_update
+    return dataframe
 
 
 def start_up(filename):
@@ -99,11 +100,16 @@ def start_up(filename):
 
 def send_upload_to_savings(filename, ref_no, description, date):
     df = process_excel(filename)
-    report_file_path = f"upload/report/savings_upload_report_{date}.csv"
-
+    log_report(1)
+    date_now = datetime.now()
+    date_str = re.sub(r'[^0-9a-zA-Z]+', '_', str(date_now))
+    report_file_path = f"upload/report/savings_upload_report_{date_str}.csv"
+  
     with open(report_file_path, "a", newline="") as file:
         writer = csv.writer(file)
+        log_report(2)
         for index, row in df.iterrows():
+            log_report(row["COY"])
             test = query.save_amount_company(
                 row["COY"], row["Amount"], date, ref_no, description
             )
