@@ -699,7 +699,7 @@ class Queries:
                     amount=float(amount),
                     date=date,
                     exact_date=datetime.utcnow(),
-                    description='savings for {person.employee_id}',
+                    description=f'savings for {person.employee_id}',
                     ref_no=ref_no,
                     company_id=company.id,
                     balance=company.amount_accumulated,
