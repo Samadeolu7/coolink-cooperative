@@ -74,7 +74,7 @@ Company Report
                 <td>{{ payment.description}}</td>
                 <td>{{ payment.ref_no}}</td>
                 <td>{{ payment.amount | currency }}</td>
-                <td>{{ payment.company_balance | currency}}</td>
+                <td>{{ payment.balance | currency}}</td>
                 <!-- Add more columns as needed -->
             </tr>
             {% endfor %}

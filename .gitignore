@@ -6,3 +6,8 @@ report.txt
 *.csv
 *.xlsx
 new_dash
+/upload
+*.zip
+*.log
+*.db
+*.pid
