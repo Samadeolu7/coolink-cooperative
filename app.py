@@ -731,8 +731,10 @@ def ledger_payment():
     investments = [
         (investment.id, investment.name) for investment in Investment.query.all()
     ]
-    form.sub_account.choices = assets + expenses + investments + liabilities
-    form.sub_account_2.choices = assets + expenses + investments + liabilities
+    savings = [(person.id, person.name) for person in query.get_persons()]
+    loans = [(loan.id, loan.person.name) for loan in query.get_loans()]
+    form.sub_account.choices = assets + expenses + investments + liabilities + savings + loans
+    form.sub_account_2.choices = assets + expenses + investments + liabilities + savings + loans
 
     if request.method == "POST":
         if form.validate_on_submit():
@@ -960,6 +962,7 @@ def approval():
 
     return render_template("admin/approval.html", loans=loans, withdrawals=withdrawals)
 
+
 @app.route("/loan/reject/<int:loan_id>")     
 @login_required
 @role_required(["Admin","Sub-Admin"])
@@ -974,8 +977,7 @@ def reject_loan(loan_id):
     if test == True:
         flash("Loan rejected successfully.", "success")
     else:
-        flash(test, "error")
-        
+        flash(test, "error")        
 
     return redirect(url_for("approval"))
 
@@ -1857,9 +1859,18 @@ def get_sub_accounts(main_account_id):
     sub_accounts = query.sub_accounts(main_account_id)
 
     # Create a list of dictionaries with 'id' and 'name' keys
-    sub_account_options = [
-        {"id": sub_account.id, "name": sub_account.name,"balance":sub_account.balance} for sub_account in sub_accounts
-    ]
+    if main_account_id == 5:
+        sub_account_options = [
+            {"id": sub_account.id, "name": sub_account.name,"balance":sub_account.available_balance} for sub_account in sub_accounts
+        ]
+    elif main_account_id == 6:
+        sub_account_options = [
+            {"id": sub_account.id, "name": sub_account.person.name,"balance":sub_account.person.loan_balance} for sub_account in sub_accounts
+        ]
+    else:
+        sub_account_options = [
+            {"id": sub_account.id, "name": sub_account.name,"balance":sub_account.balance} for sub_account in sub_accounts
+        ]
 
     return jsonify(sub_account_options)
 @app.route("/get_sub_journals/<journal>/")

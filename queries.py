@@ -250,37 +250,91 @@ class Queries:
                 2:(Expense,ExpensePayment),
                 3:(Investment,InvestmentPayment),
                 4:(Liability,LiabilityPayment),
+                5:(Person,SavingPayment),
+                6:(Loan,LoanPayment),
             }
             debit = dict[id][0].query.filter_by(id=sub_id).first()
             marker = TransactionCounter(type ="JV",year=datetime.utcnow().year,month=datetime.utcnow().month)
             self.db.session.add(marker)
             ref_no = f"JV{marker.ref_no}"
-            debit.balance -= float(amount)
-            debit_payment = dict[id][1](
+            if id == 5:
+                debit.available_balance -= float(amount)
+                debit_payment = dict[id][1](
                     amount=float(amount),
                     date=date,
                     exact_date=datetime.utcnow(),
                     description=description,
                     ref_no=ref_no,
-                    balance=debit.balance,
-                    main_id=id,
+                    balance=debit.total_balance,
+                    person_id=debit.id,
                     year=self.year,
                 )
+            elif id == 6:
+                debit.person.loan_balance -= float(amount)
+                debit_payment = dict[id][1](
+                    amount=float(amount),
+                    date=date,
+                    exact_date=datetime.utcnow(),
+                    description=description,
+                    ref_no=ref_no,
+                    balance=debit.person.loan_balance,
+                    person_id=debit.person_id,
+                    year=self.year,
+                )
+            else:
+                debit.balance -= float(amount)
+                debit_payment = dict[id][1](
+                        amount=float(amount),
+                        date=date,
+                        exact_date=datetime.utcnow(),
+                        description=description,
+                        ref_no=ref_no,
+                        balance=debit.balance,
+                        main_id=id,
+                        year=self.year,
+                    )
 
             self.db.session.add(debit_payment)
 
-            credit = dict[id_2][0].query.filter_by(id=sub_id_2).first()
-            credit.balance += float(amount)
-            credit_payment = dict[id_2][1](
+            if id_2 == 5:
+                credit = dict[id_2][0].query.filter_by(id=sub_id_2).first()
+                credit.available_balance += float(amount)
+                credit_payment = dict[id_2][1](
                     amount=float(-amount),
                     date=date,
                     exact_date=datetime.utcnow(),
                     description=description,
                     ref_no=ref_no,
-                    balance= credit.balance,
-                    main_id=id,
+                    balance= credit.total_balance,
+                    person_id=credit.id,
                     year=self.year,
                 )
+            elif id_2 == 6:
+                credit = dict[id_2][0].query.filter_by(id=sub_id_2).first()
+                credit.person.loan_balance += float(amount)
+                credit_payment = dict[id_2][1](
+                    amount=float(-amount),
+                    date=date,
+                    exact_date=datetime.utcnow(),
+                    description=description,
+                    ref_no=ref_no,
+                    balance= credit.person.loan_balance,
+                    person_id=credit.person_id,
+                    year=self.year,
+                )
+            else:
+                credit = dict[id_2][0].query.filter_by(id=sub_id_2).first()
+                credit.balance += float(amount)
+                credit_payment = dict[id_2][1](
+                        amount=float(-amount),
+                        date=date,
+                        exact_date=datetime.utcnow(),
+                        description=description,
+                        ref_no=ref_no,
+                        balance= credit.balance,
+                        main_id=id,
+                        year=self.year,
+                    )
 
             self.db.session.add(credit_payment)
             self.db.session.commit()
@@ -1113,6 +1167,14 @@ class Queries:
 
         elif ledger == 3:
             sub_accounts = Investment.query.all()
+            return sub_accounts
+        
+        elif ledger == 5:
+            sub_accounts = self.get_persons()
+            return sub_accounts
+        
+        elif ledger == 6:
+            sub_accounts = self.get_loans()
             return sub_accounts
 
     def sub_journal(self, journal):

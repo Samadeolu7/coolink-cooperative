@@ -149,12 +149,12 @@ class LedgerPaymentForm(FlaskForm):
     description = StringField("Description")
     main_account = SelectField(
         "Select Account",
-        choices=[(1, "Asset"), (2, "Expense"), (3, "Investment"), (4, "Liability")],
+        choices=[(1, "Asset"), (2, "Expense"), (3, "Investment"), (4, "Liability"), (5, "Savings"), (6, "Loan")],
         coerce=int,
     )  # change name to sub-account
     main_account_2 = SelectField(
         "Select Account",
-        choices=[(1, "Asset"), (2, "Expense"), (3, "Investment"), (4, "Liability")],
+        choices=[(1, "Asset"), (2, "Expense"), (3, "Investment"), (4, "Liability"), (5, "Savings"), (6, "Loan")],
         coerce=int,
     ) 
     ref_no = StringField("Reference Number")
