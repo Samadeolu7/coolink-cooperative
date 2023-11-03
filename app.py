@@ -731,8 +731,8 @@ def ledger_payment():
     investments = [
         (investment.id, investment.name) for investment in Investment.query.all()
     ]
-    savings = [(person.id, person.name) for person in query.get_persons()]
-    loans = [(loan.id, loan.person.name) for loan in query.get_loans()]
+    savings = [(person.id,f'{person.name}, {person.employee_id}') for person in query.get_persons()]
+    loans = [(loan.id, f'{loan.person.name}, {loan.person.employee_id}') for loan in query.get_loans()]
     form.sub_account.choices = assets + expenses + investments + liabilities + savings + loans
     form.sub_account_2.choices = assets + expenses + investments + liabilities + savings + loans
 
@@ -1861,11 +1861,11 @@ def get_sub_accounts(main_account_id):
     # Create a list of dictionaries with 'id' and 'name' keys
     if main_account_id == 5:
         sub_account_options = [
-            {"id": sub_account.id, "name": sub_account.name,"balance":sub_account.available_balance} for sub_account in sub_accounts
+            {"id": sub_account.id, "name": f'{sub_account.name}, {sub_account.employee_id}',"balance":sub_account.available_balance} for sub_account in sub_accounts
         ]
     elif main_account_id == 6:
         sub_account_options = [
-            {"id": sub_account.id, "name": sub_account.person.name,"balance":sub_account.person.loan_balance} for sub_account in sub_accounts
+            {"id": sub_account.id, "name":f'{sub_account.person.name}, {sub_account.person.employee_id}',"balance":sub_account.person.loan_balance} for sub_account in sub_accounts
         ]
     else:
         sub_account_options = [

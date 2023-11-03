@@ -260,7 +260,7 @@ class Queries:
             if id == 5:
                 debit.available_balance -= float(amount)
                 debit_payment = dict[id][1](
-                    amount=float(amount),
+                    amount=-float(amount),
                     date=date,
                     exact_date=datetime.utcnow(),
                     description=description,
@@ -272,7 +272,7 @@ class Queries:
             elif id == 6:
                 debit.person.loan_balance -= float(amount)
                 debit_payment = dict[id][1](
-                    amount=float(amount),
+                    amount=-float(amount),
                     date=date,
                     exact_date=datetime.utcnow(),
                     description=description,
