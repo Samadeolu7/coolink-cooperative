@@ -260,7 +260,7 @@ class Queries:
             if id == 5:
                 debit.available_balance -= float(amount)
                 debit_payment = dict[id][1](
-                    amount=-float(amount),
+                    amount=float(-amount),
                     date=date,
                     exact_date=datetime.utcnow(),
                     description=description,
@@ -272,7 +272,7 @@ class Queries:
             elif id == 6:
                 debit.person.loan_balance -= float(amount)
                 debit_payment = dict[id][1](
-                    amount=-float(amount),
+                    amount=float(-amount),
                     date=date,
                     exact_date=datetime.utcnow(),
                     description=description,
@@ -281,10 +281,22 @@ class Queries:
                     person_id=debit.person_id,
                     year=self.year,
                 )
+                if debit.person.loan_balance == 0:
+                    debit.person.loan.is_paid = True
+                    for contribution in debit.person.loan.guarantor_contributions:
+                        person = contribution.guarantor
+                        person.available_balance += float(
+                            contribution.contribution_amount
+                        )
+                        person.balance_withheld -= float(
+                            contribution.contribution_amount
+                        )
+
+                self.db.session.commit()
             else:
                 debit.balance -= float(amount)
                 debit_payment = dict[id][1](
-                        amount=float(amount),
+                        amount=float(-amount),
                         date=date,
                         exact_date=datetime.utcnow(),
                         description=description,
@@ -300,7 +312,7 @@ class Queries:
                 credit = dict[id_2][0].query.filter_by(id=sub_id_2).first()
                 credit.available_balance += float(amount)
                 credit_payment = dict[id_2][1](
-                    amount=float(-amount),
+                    amount=float(amount),
                     date=date,
                     exact_date=datetime.utcnow(),
                     description=description,
@@ -313,7 +325,7 @@ class Queries:
                 credit = dict[id_2][0].query.filter_by(id=sub_id_2).first()
                 credit.person.loan_balance += float(amount)
                 credit_payment = dict[id_2][1](
-                    amount=float(-amount),
+                    amount=float(amount),
                     date=date,
                     exact_date=datetime.utcnow(),
                     description=description,
@@ -326,7 +338,7 @@ class Queries:
                 credit = dict[id_2][0].query.filter_by(id=sub_id_2).first()
                 credit.balance += float(amount)
                 credit_payment = dict[id_2][1](
-                        amount=float(-amount),
+                        amount=float(amount),
                         date=date,
                         exact_date=datetime.utcnow(),
                         description=description,
@@ -1057,6 +1069,18 @@ class Queries:
                     year=self.year,
                 )
                 self.db.session.add(loan_payment)
+                if person.loan_balance == 0:
+                    person.loan.is_paid = True
+                    for contribution in person.loan.guarantor_contributions:
+                        person = contribution.guarantor
+                        person.available_balance += float(
+                            contribution.contribution_amount
+                        )
+                        person.balance_withheld -= float(
+                            contribution.contribution_amount
+                        )
+
+                self.db.session.commit()
                 self.db.session.commit()
                 return True
         except Exception as e:
@@ -1102,7 +1126,18 @@ class Queries:
 
                 self.db.session.add(company_payment)
                 self.db.session.commit()
+                if person.loan_balance == 0:
+                    person.loan.is_paid = True
+                    for contribution in person.loan.guarantor_contributions:
+                        person = contribution.guarantor
+                        person.available_balance += float(
+                            contribution.contribution_amount
+                        )
+                        person.balance_withheld -= float(
+                            contribution.contribution_amount
+                        )
 
+                self.db.session.commit()
                 return 'success',id
         except Exception as e:
             self.db.session.rollback()
