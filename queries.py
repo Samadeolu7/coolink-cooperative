@@ -378,7 +378,6 @@ class Queries:
                     loan_amount=amount,
                     person=person,
                     guarantors=guarantors,
-                    ref_no=ref_no,
                 )
                 self.db.session.add(form_payment)
 
