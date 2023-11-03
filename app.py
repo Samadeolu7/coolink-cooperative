@@ -554,12 +554,14 @@ def update_loan(loan_id):
                 guarantor_2 = query.get_person(guarantor_2)
                 guarantors.append(guarantor_2)
 
+            if guarantor=='None' and guarantor_2 == 'None':
+                guarantor = query.get_person(int(form.name.data))
+                guarantors.append(guarantor)
+
             if guarantor == guarantor_2:
                 flash('You cant pick the same person twice')
                 return render_template("forms/register_loan.html", form=form) 
 
-            elif guarantor=='None' and guarantor_2 == 'None':
-                guarantor = query.get_person(form.name.data)  
 
             # Update the loan record in the database
             test = query.update_loan(loan.id,loan.amount,guarantors=guarantors)  # Replace with your logic to update the loan
