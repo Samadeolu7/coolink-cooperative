@@ -251,6 +251,7 @@ class ResetPasswordForm(FlaskForm):
 
 class EditProfileForm(FlaskForm):
     person = SelectField("Select Person", coerce=int, validators=[DataRequired()])
+    employee_id = StringField("Employee ID", validators=[DataRequired()])
     email = StringField("Email", validators=[Email()])
     phone_no = StringField("Phone No", validators=[DataRequired()])
     company_id = SelectField("Bank", choices=[], coerce=int)

@@ -663,7 +663,7 @@ class LoanFormPayment(db.Model):
     loan = db.Column(db.Boolean, default=False)
     failed = db.Column(db.Boolean, default=False)
     loan_amount = db.Column(db.Float, default=0.0)
-    # ref_no = db.Column(db.String)
+    ref_no = db.Column(db.String)
     
     # Define a relationship with Person to access the person associated with this loan
     person = db.relationship("Person", backref="loan_form_payment")

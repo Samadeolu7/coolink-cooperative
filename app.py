@@ -768,19 +768,16 @@ def ledger_payment():
 def journal():
     form = JournalForm()
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
-    loans = [(loan.id, loan.person.name) for loan in query.get_loans()]
-    
-    savings = [(person.id, person.name) for person in query.get_persons()]
     companies = [
         (company.id, company.name) for company in query.get_companies()
     ]
    
-    form.sub_account.choices = loans + savings + companies
+    form.sub_account.choices = companies
     form.date.data = pd.to_datetime("today")
     if request.method == "POST":
         if form.validate_on_submit():
             # Handle existing expense selection
-            query.add_journal_transaction(
+            test = query.add_journal_transaction(
                 form.main_account.data,
                 form.sub_account.data,
                 form.amount.data,
@@ -789,8 +786,12 @@ def journal():
                 form.bank.data,
                 form.description.data,
             )
-            flash("Transaction submitted successfully.", "success")
-            return redirect(url_for("dashboard"))
+            if test == True:
+                flash("Transaction submitted successfully.", "success")
+                return redirect(url_for("dashboard"))
+            else:
+                flash(f'error{test}','error')
+                return redirect(url_for('journal'))
         else:
             flash(form.errors, "error")
 
@@ -1061,16 +1062,30 @@ def edit_profile():
     ]
     if form.validate_on_submit():
         user = current_user
-        if query.edit_profile(
-            form.person.data, form.email.data, form.phone_no.data, form.company_id.data
-        ):
+        test= query.edit_profile(
+            form.person.data, form.employee_id.data, form.email.data, form.phone_no.data, form.company_id.data
+        )
+        if test == True:
             flash("Profile updated successfully!", "success")
+            return redirect(url_for("dashboard"))
         else:
-            flash("An error occurred while updating the profile.", "error")
+            flash(test, "error")
+            return redirect(url_for("edit_profile"))
 
     return render_template("forms/edit_profile.html", form=form)
 
 
+@app.route("/get_person_role/<person_id>", methods=["GET", "POST"])
+@login_required
+def get_person_role(person_id):
+    person = query.get_person(person_id)
+    
+    return jsonify(
+        {
+            "name": person.name,
+            "role": person.role.name,
+        }
+    )
 # upload
 
 

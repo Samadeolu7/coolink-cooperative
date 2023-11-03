@@ -45,6 +45,14 @@ Edit Person
                 </div>
 
                 <div class="form-label">
+                    <label for="employee_id" class_='input-label'>Employee ID:</label>
+                </div>
+
+                <div class="form-box">
+                    {{ form.employee_id(class_="input") }}
+                </div>
+
+                <div class="form-label">
                     <label for="email" class_='input-label'>Email:</label>
                 </div>
 
@@ -80,6 +88,7 @@ Edit Person
             const emailInput = document.querySelector('#email');
             const phoneNoInput = document.querySelector('#phone_no');
             const companyIdInput = document.querySelector('#company_id');
+            const employee_idInput = document.querySelector('#employee_id');
 
             selectPerson.addEventListener('change', () => {
                 const selectedPersonId = selectPerson.value;
@@ -89,6 +98,7 @@ Edit Person
                         emailInput.value = personInfo.email;
                         phoneNoInput.value = personInfo.phone_no;
                         companyIdInput.value = personInfo.company_id;
+                        employee_idInput.value = personInfo.employee_id;
                     })
                     .catch(error => console.error('Error fetching person info:', error));
             });

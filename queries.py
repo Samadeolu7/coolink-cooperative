@@ -121,11 +121,12 @@ class Queries:
         else:
             return False
 
-    def edit_profile(self, person_id, email, phone_no, company_id):
+    def edit_profile(self, person_id, employee_id, email, phone_no, company_id):
         try:
             # Get the user's person record based on the selected person_id
             person = Person.query.get(person_id)
             # Update user's profile information
+            person.employee_id = employee_id
             person.email = email
             person.phone_no = phone_no
             person.company_id = company_id
@@ -134,9 +135,9 @@ class Queries:
 
             return True  # Indicate success
         except Exception as e:
-            print(e)  # Handle or log the error
+              # Handle or log the error
             db.session.rollback()  # Rollback changes on error
-            return False  # Indicate failure
+            return str(e)  # Indicate failure
 
     def get_user(self, identifier):
         return Person.query.filter(
@@ -361,12 +362,7 @@ class Queries:
     def add_journal_transaction(
         self, id, sub_id, amount, date, ref_no, bank_id, description
     ):
-        if id == "savings":
-            self.save_amount(sub_id, amount, date, ref_no, bank_id, description)
-        elif id == "loan":
-            self.repay_loan(sub_id, amount, date, bank_id, ref_no, description)
-        elif id == "company":
-            self.company_payment(sub_id, amount, date, description, ref_no, bank_id)
+       return self.company_payment(sub_id, amount, date, description, ref_no, bank_id)
 
     def registeration_payment(
         self, id, amount, date, ref_no, bank_id, description, loan=False, guarantors=[]
