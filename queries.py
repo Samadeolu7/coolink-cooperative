@@ -729,7 +729,7 @@ class Queries:
     def save_amount_company(self, employee_id, amount, date, ref_no, description=None):
         try:
             person = Person.query.filter_by(employee_id=employee_id).first()
-            log_report(4)
+     
             marker = TransactionCounter(type="CO-SA",year= date.year,month=date.month)
             self.db.session.add(marker)
             ref_no = f"CO-SA{marker.ref_no}"
@@ -737,7 +737,7 @@ class Queries:
                 
                 return 'error, person not found',employee_id
             if person:
-                log_report(5)
+   
                 company = person.company
                 person.available_balance += float(amount)
 
@@ -770,7 +770,7 @@ class Queries:
                 self.db.session.add(company_payment)
 
                 self.db.session.commit()
-                log_report(6)
+  
                 return 'success',employee_id
         except Exception as e:
             self.db.session.rollback()
@@ -1006,7 +1006,6 @@ class Queries:
                 self.db.session.add(bank_payment)
                 gc = GuarantorContribution.query.filter_by(loan=loan).first()
 
-                fk_loan = gc.loan
                 if person.loan_balance == 0:
                     loan.is_paid = True
                     for contribution in loan.guarantor_contributions:
@@ -1263,7 +1262,7 @@ class Queries:
             + investment_transaction
             + loan
         )
-        log_report(transactions)
+  
         return transactions
     
     def get_companies(self):
@@ -1354,8 +1353,6 @@ class Queries:
     def get_accounts_receivable(self):
         persons = Person.query.all()
         total = sum([p.loan_balance for p in persons if p.loan_balance])
-        log_report(persons)
-        log_report([p.loan_balance for p in persons if p.loan_balance])
         return total
 
     def get_accounts_payable(self):

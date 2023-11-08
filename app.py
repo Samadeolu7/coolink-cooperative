@@ -1678,9 +1678,7 @@ def get_person_info(person_id):
 @role_required(["Admin", "Secretary", "Sub-Admin"])
 def search():
     ref_no = request.form.get("ref_no")
-    log_report(ref_no)
     transactions = query.get_transactions_with_ref_no(ref_no)
-    log_report(transactions)
     #check if SavingsPayment is in transactions
     
     if ref_no[0]=='J':
@@ -1735,7 +1733,6 @@ def search():
         form.description.data = transactions[0].description
         form.bank.render_kw = {"readonly": True}
         form.bank.choices = [(1,transactions[1].main.name)]
-        log_report(transactions[1].main.name)
         form.payment_type.render_kw = {"readonly": True}
         form.payment_type.data = 'Savings' if transactions[0].payer else 'Loan'  
         return render_template("forms/make_payment.html", form=form)

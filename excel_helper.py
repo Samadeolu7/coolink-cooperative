@@ -100,16 +100,13 @@ def start_up(filename):
 
 def send_upload_to_savings(filename, ref_no, description, date):
     df = process_excel(filename)
-    log_report(1)
     date_now = datetime.now()
     date_str = re.sub(r'[^0-9a-zA-Z]+', '_', str(date_now))
     report_file_path = f"upload/report/savings_upload_report_{date_str}.csv"
   
     with open(report_file_path, "a", newline="") as file:
         writer = csv.writer(file)
-        log_report(2)
         for index, row in df.iterrows():
-            log_report(row["COY"])
             test = query.save_amount_company(
                 row["COY"], row["Amount"], date, ref_no, description
             )
