@@ -659,7 +659,7 @@ def make_income():
             bank_id = form.bank.data
             ref_no = form.ref_no.data
 
-            income = Income.query.get(id=id)
+            income = Income.query.get(id)
 
             query.add_income(
                 income,
