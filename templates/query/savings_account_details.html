@@ -40,6 +40,7 @@ Savings Details
                 <td>{{ person.balance_withheld | currency }}</td>
             
         </table>
+    {% if person.guarantor_contributions %}
 
     {% for contribution in person.guarantor_contributions %}
     
@@ -87,6 +88,7 @@ Savings Details
         </div>
     </div>
         {% endfor %}  
+    {% endif %}
       
     
     <div class="action-buttons">
