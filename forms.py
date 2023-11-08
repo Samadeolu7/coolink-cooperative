@@ -126,7 +126,7 @@ class JournalForm(FlaskForm):
     sub_account = SelectField(
         "Sub-Select Account", choices=[], coerce=int
     )  # change name to main account
-    amount = IntegerField("Amount", validators=[DataRequired()])
+    amount = FloatField("Amount", validators=[DataRequired()])
     date = DateField("Date", validators=[DataRequired()])
     description = StringField("Description")
     main_account = SelectField(
@@ -186,7 +186,7 @@ class WithdrawalForm(FlaskForm):
     description = StringField("Description")
     ref_no = StringField("Ref Number", validators=[DataRequired()])
     date = DateField("Date", validators=[DataRequired()])
-    amount = IntegerField(
+    amount = FloatField(
         "Withdraw Amount", validators=[DataRequired()]
     )
     bank_id = SelectField("Select Person", coerce=int, validators=[DataRequired()])

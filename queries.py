@@ -1147,7 +1147,7 @@ class Queries:
             if not company:
                 raise ValueError("Company not found.")
             if company:
-                company.amount_acumulated -= float(amount)
+                company.amount_accumulated -= float(amount)
                 company_payment = CompanyPayment(
                     amount=-amount,
                     date=datetime.utcnow(),
