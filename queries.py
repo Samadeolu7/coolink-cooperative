@@ -1161,7 +1161,7 @@ class Queries:
 
             bank = Bank.query.filter_by(id=bank_id).first()
             if bank:
-                bank.balance += float(amount)
+                bank.new_balance += float(amount)
                 bank_payment = BankPayment(
                     amount=amount,
                     date=datetime.utcnow(),
