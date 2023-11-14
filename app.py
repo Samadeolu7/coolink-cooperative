@@ -353,8 +353,9 @@ def make_payment():
             amount = form.amount.data
             payment_type = form.payment_type.data
             description = form.description.data
-            selected_person_id = form.person_id.data
-            selected_person = query.get_person_by_name(selected_person_id)
+            selected_person = form.person_id.data
+            selected_person = query.get_person_by_name(selected_person)
+            selected_person_id = selected_person.id
             date = form.date.data
             bank_id = form.bank.data
             ref_no = form.ref_no.data
