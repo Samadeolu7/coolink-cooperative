@@ -73,7 +73,7 @@ class MakePaymentForm(FlaskForm):
         validators=[DataRequired()],
     )
     bank = SelectField("Bank", coerce=int, validators=[DataRequired()])
-    person_id = SelectField("Person", coerce=int, validators=[DataRequired()])
+    person_id = StringField("Person", validators=[DataRequired()])
     description = StringField("Description")
     ref_no = StringField("Ref Number", validators=[DataRequired()])
     submit = SubmitField("Submit")

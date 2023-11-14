@@ -345,10 +345,7 @@ def reset_password():
 @role_required(["Admin", "Secretary"])
 def make_payment():
     form = MakePaymentForm()
-    form.person_id.choices = [
-        (person.id, (f"{person.name} ({person.employee_id})"))
-        for person in query.get_persons()
-    ]
+    people = query.get_persons()
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
     if request.method == "POST":
         if form.validate_on_submit():
@@ -357,7 +354,7 @@ def make_payment():
             payment_type = form.payment_type.data
             description = form.description.data
             selected_person_id = form.person_id.data
-            selected_person = Person.query.get(selected_person_id)
+            selected_person = query.get_person_by_name(selected_person_id)
             date = form.date.data
             bank_id = form.bank.data
             ref_no = form.ref_no.data
@@ -394,7 +391,7 @@ def make_payment():
 
         return redirect(url_for("get_person", person_id=selected_person_id))
 
-    return render_template("forms/payment.html", form=form)
+    return render_template("forms/payment.html", form=form,people=people)
 
 #repay loan with savings
 @app.route("/repay_loan", methods=["GET", "POST"])
@@ -1225,6 +1222,24 @@ def get_loan():
     
     filtered_payments = filter_payments(start_date, end_date, loans)
     return render_template("query/loans.html", loans=filtered_payments, form=form)
+
+
+@app.route("/loan_status/<loan_id>", methods=["GET", "POST"])
+@login_required
+@role_required(["Admin"])
+def loan_status(loan_id):
+    loan = Loan.query.get(loan_id)
+    if loan.is_paid == False:
+        loan.is_paid = True
+        db.session.commit()
+        flash("Loan status updated successfully.", "success")
+    else:
+        loan.is_paid = False
+        db.session.commit()
+        flash("Loan status updated successfully.", "success")
+
+    return redirect(url_for("get_loan"))
+
 
 @app.route("/loan_details/<person_id>", methods=["GET", "POST"])
 @login_required

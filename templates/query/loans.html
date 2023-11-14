@@ -41,6 +41,9 @@ Loan Information
             <th>Start Date</th>
             <th>Due Date</th>
             <th>Is Paid</th>
+            {% if current_user.role.name == 'Admin' %}
+            <th>Change Loan Status</th>
+            {% endif %}
         </tr>
 
         {% for loan in loans %}
@@ -53,6 +56,9 @@ Loan Information
             <td>{{ loan.start_date }}</td>
             <td>{{ loan.end_date }}</td>
             <td>{{ loan.is_paid }}</td>
+            {% if current_user.role.name == 'Admin' %}
+            <td><a href="{{url_for('loan_status',loan_id=loan.id)}}">Change</a></td>
+            {% endif %}
         </tr>
         {% endfor %}
     </tbody>
