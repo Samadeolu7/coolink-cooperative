@@ -20,7 +20,7 @@ def log_report(report):
 
 def sanitize(value):
 
-    value = re.sub(r'[\/:*?"<>|]', '', value)    
+    value = re.sub(r'[(\/:*?"<>|)]', '', value)    
     return value
 
 # processing input functions
