@@ -309,15 +309,16 @@ def role_assignment():
 @role_required(["Admin", "Secretary"])
 def reset_password():
     form = ResetPasswordForm()
+    people = query.get_persons()
     if current_user.role.name == "Admin":
-        form.person.choices = [
-            (person.id, f"{person.name}({person.employee_id})")
-            for person in query.get_persons()
+        people = [
+            person
+            for person in people
         ]
     else:
-        form.person.choices = [
-            (person.id, f"{person.name}({person.employee_id})")
-            for person in query.get_persons()
+        people = [
+            person
+            for person in people
             if person.role.name == "User"
         ]
 
@@ -325,7 +326,7 @@ def reset_password():
         try:
             person_id = form.person.data
             password = query.generate_password()
-            person = query.get_person(person_id)
+            person = query.get_person_by_name(person_id)
             person.password = query.hash_password(password)
             db.session.commit()
             from csv_helper import write_credentials_to_file
@@ -337,7 +338,7 @@ def reset_password():
         flash(f"Succesfully reset {person.name}'s password", "success")
 
         return redirect(url_for("download", file_path=file.name))
-    return render_template("admin/reset_password.html", form=form)
+    return render_template("admin/reset_password.html", form=form, people=people)
 
 
 @app.route("/make_payment", methods=["GET", "POST"])

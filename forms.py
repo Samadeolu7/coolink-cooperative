@@ -245,7 +245,7 @@ class LedgerForm(FlaskForm):
 
 
 class ResetPasswordForm(FlaskForm):
-    person = SelectField("Select Person", choices=[], validators=[DataRequired()])
+    person = StringField("Select Person", validators=[DataRequired()])
     submit = SubmitField("Reset Password")
 
 
