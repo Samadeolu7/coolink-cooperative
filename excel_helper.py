@@ -19,9 +19,25 @@ def log_report(report):
         f.write(f"{report}\n")
 
 def sanitize(value):
+    illegal_characters = re.compile(r'[\\\/\*\?\[\]:"]')
 
-    value = re.sub(r'[(\/:*?"<>|)]', '', value)    
-    return value
+    # Replace illegal characters with underscores
+    sanitized_text = re.sub(illegal_characters, '_', value)
+
+    # Ensure the name does not exceed 31 characters
+    if len(sanitized_text) > 31:
+        sanitized_text = sanitized_text[:28] + "..."
+
+    # Ensure the name is not blank
+    if sanitized_text == "":
+        sanitized_text = "Sheet"
+
+    # Ensure the name does not start or end with a single quote
+    if sanitized_text[0] == "'" or sanitized_text[-1] == "'":
+        sanitized_text = "_" + sanitized_text[1:-1] + "_"
+
+    return sanitized_text
+
 
 # processing input functions
 def create_excel(type, type_id):
