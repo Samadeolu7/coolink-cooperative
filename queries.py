@@ -283,8 +283,8 @@ class Queries:
                     year=self.year,
                 )
                 if debit.person.loan_balance <= 1000:
-                    debit.person.loan.is_paid = True
-                    for contribution in debit.person.loan.guarantor_contributions:
+                    debit.person.last_loan().is_paid = True
+                    for contribution in debit.person.last_loan().guarantor_contributions:
                         person = contribution.guarantor
                         person.available_balance += float(
                             contribution.contribution_amount
@@ -1064,8 +1064,8 @@ class Queries:
                 )
                 self.db.session.add(loan_payment)
                 if person.loan_balance <= 1000:
-                    person.loan.is_paid = True
-                    for contribution in person.loan.guarantor_contributions:
+                    person.last_loan().is_paid = True
+                    for contribution in person.last_loan().guarantor_contributions:
                         person = contribution.guarantor
                         person.available_balance += float(
                             contribution.contribution_amount
@@ -1121,8 +1121,8 @@ class Queries:
                 self.db.session.add(company_payment)
                 self.db.session.commit()
                 if person.loan_balance <= 1000:
-                    person.loan.is_paid = True
-                    for contribution in person.loan.guarantor_contributions:
+                    person.last_loan().is_paid = True
+                    for contribution in person.last_loan().guarantor_contributions:
                         person = contribution.guarantor
                         person.available_balance += float(
                             contribution.contribution_amount
