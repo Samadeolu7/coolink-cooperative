@@ -18,6 +18,10 @@ def log_report(report):
     with open("report.txt", "a", encoding="utf-8") as f:
         f.write(f"{report}\n")
 
+def sanitize(value):
+
+    value = re.sub(r'[\/:*?"<>|]', '', value)    
+    return value
 
 # processing input functions
 def create_excel(type, type_id):
@@ -438,7 +442,7 @@ def create_payments_excel(person):
         payment_row = [
             payment.date.strftime("%Y-%m-%d"),
             payment.ref_no,
-            payment.description,
+            sanitize(payment.description),
             format_currency(payment.amount),
             format_currency(payment.balance),
         ]
@@ -500,7 +504,7 @@ def create_loan_excel(person):
         payment_row = [
             payment.date.strftime("%Y-%m-%d"),
             payment.ref_no,
-            payment.description,
+            sanitize(payment.description),
             format_currency(payment.amount),
             format_currency(payment.balance),
         ]
@@ -550,7 +554,7 @@ def create_all_savings_excel():
         payment_row = [
             payment.date.strftime("%Y-%m-%d"),
             payment.ref_no,
-            payment.description,
+            sanitize(payment.description),
             format_currency(payment.amount),
         ]
         sheet.append(payment_row)
@@ -632,7 +636,7 @@ def create_banks_excel(bank):
         payment_row = [
             payment.date.strftime("%Y-%m-%d"),
             payment.ref_no,
-            payment.description,
+            sanitize(payment.description),
             format_currency(payment.amount),
             format_currency(payment.bank_balance),
         ]
@@ -673,7 +677,7 @@ def create_income_excel():
     for payment in query.get_income():
         payment_row = [
             payment.name,
-            payment.description,
+            sanitize(payment.description),
             format_currency(payment.balance),
         ]
         sheet.append(payment_row)
@@ -683,7 +687,7 @@ def create_income_excel():
     for payment in query.get_expenses():
         payment_row = [
             payment.name,
-            payment.description,
+            sanitize(payment.description),
             format_currency(payment.balance),
         ]
         sheet.append(payment_row)
