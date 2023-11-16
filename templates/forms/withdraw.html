@@ -38,8 +38,11 @@ Make Withdrawal
                 </div>
 
                 <div class="form-box">
-                {{ form.person (class_="input")}}
-                <br></div>
+                    {{ form.person(class_="input", id="customInput", autocomplete="off") }} <br>
+                </div>
+                <div class="dropdown-content" id="dropdownContent">
+                    <!-- Options will be dynamically added here -->
+                </div>
 
                 <div class="form-label">
                 {{ form.balance.label(class_='input-label')  }} <br>
@@ -95,57 +98,70 @@ Make Withdrawal
             </form>
         </div>
     </div>
+<script>
+    // Get the list of people from the Django template
+    var people = [
+        {% for person in people %}
+        ['{{ person.name }}', '{{ person.employee_id }}', '{{ person.available_balance| currency }}'],
+        {% endfor %}
+    ];
 
-        <script>
-            const selectPerson = document.getElementById("person");
-            const balanceField = document.getElementById("balance");
+    var input = document.getElementById('customInput');
+    var dropdownContent = document.getElementById('dropdownContent');
+    var balanceField = document.getElementById("balance");
 
-            function updateBalance() {
-                const selectedPersonId = selectPerson.value;
+    input.addEventListener('input', function () {
+        // Clear previous options
+        dropdownContent.innerHTML = '';
 
-                // Make an AJAX request to the server to get the balance of the selected person
-                const xhr = new XMLHttpRequest();
-                xhr.open('GET', `/get_balance/${selectedPersonId}`, true);
-                xhr.onreadystatechange = function () {
-                    if (xhr.readyState === XMLHttpRequest.DONE) {
-                        if (xhr.status === 200) {
-                            // Update the balance field with the retrieved balance
-                            const data = JSON.parse(xhr.responseText);
-    
-                        // Update the balance field with the retrieved balance
-                            balanceField.value = data.balance;
-                        } else {
-                            // Handle errors here (e.g., server error, person not found)
-                            balanceField.value = '';
-                        }
-                    }
-                };
-                xhr.send();
-            }
+        // Filter people based on user input
+        var inputValue = input.value.toLowerCase();
+        var filteredPeople = people.filter(function (person) {
+            return person[0].toLowerCase().includes(inputValue);
+        });
 
-            // Add event listener to update balance field when person selection changes
-            selectPerson.addEventListener("change", updateBalance);
+        // Add filtered options to the dropdown
+        filteredPeople.forEach(function (person) {
+            var option = document.createElement('div');
+            option.className = 'dropdown-option';
+            option.textContent = person.slice(0, 2).join(' - '); // Join only the first two values
+            option.addEventListener('click', function () {
+                input.value = person[0];
+                balanceField.value = person[2]; // Set the balance field with the person's balance
+                console.log(balanceField.value);
+                dropdownContent.style.display = 'none';
+            });
+            dropdownContent.appendChild(option);
+        });
 
-            // Call the function initially to set the initial balance value
-            updateBalance();
-            // Frontend validation to prevent withdrawal more than available balance
-            function validateForm() {
-                const availableBalance = parseFloat(balanceField.value);
-                const withdrawalAmount = parseFloat(amountField.value);
+        // Display the dropdown if there are matching options
+        dropdownContent.style.display = filteredPeople.length > 0 ? 'block' : 'none';
+    });
 
-                if (isNaN(withdrawalAmount) || withdrawalAmount <= 0) {
-                    alert("Please enter a valid withdrawal amount.");
-                    return false;
-                }
+    // Hide the dropdown when clicking outside of it
+    document.addEventListener('click', function (event) {
+        if (!event.target.matches('.custom-dropdown')) {
+            dropdownContent.style.display = 'none';
+        }
+    });
 
-                if (withdrawalAmount > availableBalance) {
-                    alert("Withdrawal amount cannot exceed the available balance.");
-                    return false;
-                }
+    // Frontend validation to prevent withdrawal more than available balance
+    function validateForm() {
+        const availableBalance = parseFloat(balanceField.value);
+        const withdrawalAmount = parseFloat(amountField.value);
 
-                return true;
-            }
-        </script>
-</body>
+        if (isNaN(withdrawalAmount) || withdrawalAmount <= 0) {
+            alert("Please enter a valid withdrawal amount.");
+            return false;
+        }
+
+        if (withdrawalAmount > availableBalance) {
+            alert("Withdrawal amount cannot exceed the available balance.");
+            return false;
+        }
+
+        return true;
+    }
+</script></body>
 
 {%endblock%}

@@ -181,7 +181,7 @@ class IncomeForm(FlaskForm):
 
 
 class WithdrawalForm(FlaskForm):
-    person = SelectField("Select Person", coerce=int, validators=[DataRequired()])
+    person = StringField("Select Person", validators=[DataRequired()])
     balance = StringField("Available Balance", render_kw={"readonly": True})
     description = StringField("Description")
     ref_no = StringField("Ref Number", validators=[DataRequired()])
@@ -206,7 +206,7 @@ class RepayLoanForm(FlaskForm):
 
 
 class RoleAssignmentForm(FlaskForm):
-    person = SelectField("Select Person", choices=[], validators=[DataRequired()])
+    person = StringField("Select Person", validators=[DataRequired()])
     role = SelectField("Role", choices=[], validators=[DataRequired()])
     submit = SubmitField("Assign Role")
 

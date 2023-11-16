@@ -283,14 +283,14 @@ def role_assignment():
     form = RoleAssignmentForm()
 
     # Populate the choices for the person and role select fields
-    form.person.choices = [(person.id, person.name) for person in Person.query.all()]
+    people = [person for person in Person.query.all()]
     form.role.choices = [(role.id, role.name) for role in Role.query.all()]
     if request.method == "POST":
         if form.validate_on_submit():
             person_id = form.person.data
             role_id = form.role.data
 
-            person = Person.query.get(person_id)
+            person = query.get_person_by_name(person_id)
             role = Role.query.get(role_id)
 
             if person and role:
@@ -301,7 +301,7 @@ def role_assignment():
                 return redirect(url_for("dashboard"))
         flash(f"Error in field {form.errors}", "error")
 
-    return render_template("admin/role_assignment.html", form=form)
+    return render_template("admin/role_assignment.html", form=form,people=people)
 
 
 @app.route("/reset_password", methods=["GET", "POST"])
@@ -804,9 +804,9 @@ def journal():
 def request_withdrawal():
     form = WithdrawalForm()
     if current_user.role.name == "User" or current_user.role.name == "Sub-Admin":
-        form.person.choices = [(current_user.id, current_user.name)]
+        people = [current_user]
     else:
-        form.person.choices = [(person.id, person.name) for person in query.get_persons()]
+        people = [person for person in query.get_persons()]
     form.bank_id.choices = [(bank.id, bank.name) for bank in query.get_banks()]
 
 
@@ -819,7 +819,7 @@ def request_withdrawal():
             bank_id = form.bank_id.data
             date = form.date.data
 
-            person = query.get_person(person_id)
+            person = query.get_person_by_name(person_id)
 
             if amount > person.available_balance:
                 flash("Amount cannot be greater than available balance.", "error")
@@ -846,7 +846,7 @@ def request_withdrawal():
             flash(form.errors, "error")
 
     form.date.data = pd.to_datetime("today")
-    return render_template("forms/withdraw.html", form=form)
+    return render_template("forms/withdraw.html", form=form,people=people)
 
 @app.route("/withdraw/reject/<int:request_id>")
 @login_required
