@@ -365,7 +365,7 @@ class Queries:
        return self.company_payment(sub_id, amount, date, description, ref_no, bank_id)
 
     def registeration_payment(
-        self, id, amount, date, ref_no, bank_id, description, loan=False, guarantors=[]
+        self, id, amount, date,collateral=None, guarantors=[],
     ):
         try:
             person = Person.query.filter_by(id=id).first()
@@ -378,6 +378,7 @@ class Queries:
                     loan_amount=amount,
                     person=person,
                     guarantors=guarantors,
+                    collateral=collateral,
                 )
                 self.db.session.add(form_payment)
 
@@ -438,6 +439,21 @@ class Queries:
                 return True
             else:
                 return "You have already given consent"
+        except Exception as e:
+            db.session.rollback()
+            return str(e)
+        
+    def add_collateral(self, name, person, value, description):
+        try:
+            collateral = Collateral(
+                person_id=person.id,
+                name=name,
+                value=value,
+                description=description,
+            )
+            db.session.add(collateral)
+            db.session.commit()
+            return True
         except Exception as e:
             db.session.rollback()
             return str(e)
@@ -1310,6 +1326,11 @@ class Queries:
     def get_loans(self):
         loans = Loan.query.order_by(Loan.id.desc()).all()
         return loans
+    
+    def get_collaterals(self):
+        collaterals = Collateral.query.all()
+        collaterals = [c for c in collaterals if not c.loan_id]
+        return collaterals
 
     def get_loan(self, person_id):
         person = Person.query.filter_by(id=person_id).first()

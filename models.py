@@ -203,6 +203,30 @@ class SavingPayment(db.Model):
         }
 
 
+class Collateral(db.Model):
+    __tablename__ = "collaterals"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+    description = db.Column(db.String, nullable=True)
+    person_id = db.Column(
+        db.Integer, db.ForeignKey("persons.id"), nullable=False, index=True
+    )
+    loan_id = db.Column(
+        db.Integer, db.ForeignKey("loans.id"), nullable=True, index=True
+    )
+    value = db.Column(db.Float, nullable=False)
+
+    def to_json(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "person_id": self.person_id,
+            "loan_id": self.loan_id,
+            "value": self.value,
+        }
+    
 class Loan(db.Model):
     __tablename__ = "loans"
 
@@ -667,6 +691,8 @@ class LoanFormPayment(db.Model):
     
     # Define a relationship with Person to access the person associated with this loan
     person = db.relationship("Person", backref="loan_form_payment")
+
+    collateral_id = db.Column(db.Integer, db.ForeignKey('collaterals.id'), nullable=True)
     
     guarantors = db.relationship("Person", secondary=loan_payment_guarantor_association)
     guarantor_amount = db.Column(db.Float, default=0.0)
@@ -746,8 +772,6 @@ class IncomePerYear(db.Model):
     debit = db.Column(db.Float, default=0.0)
     year = db.Column(db.Integer, nullable=False)
 
-
-from sqlalchemy import event
 
 def log_report(target):
     with open('report.txt', 'a') as f:

@@ -268,10 +268,19 @@ class RegisterLoanForm(FlaskForm):
     )
     guarantor = SelectField("Select Guarantor")
     guarantor_2 = SelectField("Select Guarantor")
+    collateral = SelectField("Select Collateral")
     date = DateField("Date", validators=[DataRequired()])
     bank = SelectField("Bank", coerce=int, validators=[DataRequired()])
     description = StringField("Description")
     ref_no = StringField("Ref Number")
+    submit = SubmitField("Submit")
+
+
+class CollateralForm(FlaskForm):
+    name = StringField("Name", validators=[DataRequired()])
+    owner = StringField("Owner", validators=[DataRequired()])
+    description = StringField("Description", validators=[DataRequired()])
+    value = DecimalField("Value", validators=[DataRequired()])
     submit = SubmitField("Submit")
 
 class ConsentForm(FlaskForm):

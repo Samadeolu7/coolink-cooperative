@@ -452,7 +452,7 @@ def register_loan():
         ]
     form.guarantor.choices = [(None,None)] + [(person.id, f'{person.name},{person.employee_id}') for person in query.get_persons() ]
     form.guarantor_2.choices =[(None,None)] + [(person.id,f'{person.name},{person.employee_id}') for person in query.get_persons() ]
-
+    form.collateral.choices = [(None,None)] + [(collateral.id, f'{collateral.name}') for collateral in query.get_collaterals() ]
 
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
     form.fee.data = int(query.loan_application_fee)
@@ -470,16 +470,23 @@ def register_loan():
             ref_no = form.ref_no.data
             guarantors= []
             guarantor = form.guarantor.data
+            guarantor_2 = form.guarantor_2.data
+            collateral = form.collateral.data
             loan_unpaid = Loan.query.filter_by(person_id=id,is_paid=False).first()
             if loan_unpaid:
                 flash("You have an unpaid loan","error")
                 return redirect(url_for("register_loan"))
             
+            if collateral != "None":
+                collateral = Collateral.query.get(collateral)
+                if collateral.value < amount:
+                    flash("Collateral value is less than loan amount","error")
+                    return redirect(url_for("register_loan"))
+            
             if guarantor!="None" :
                 guarantor = query.get_person(guarantor)
                 guarantors.append(guarantor)
 
-            guarantor_2 = form.guarantor_2.data   
             if guarantor_2 !="None":   
                 guarantor_2 = query.get_person(guarantor_2)
                 guarantors.append(guarantor_2)
@@ -493,7 +500,7 @@ def register_loan():
                 return redirect(url_for("register_loan")) 
 
             test = query.registeration_payment(
-                id, amount, date, ref_no, bank_id, description, loan=True, guarantors=guarantors
+                id, amount, date, guarantors=guarantors,collateral=collateral.id
             )
             if test == True:
                 flash("Registration submitted successfully.", "success")
@@ -1026,6 +1033,37 @@ def approve_loan(loan_id):
             
 
         return render_template("admin/approval.html")
+    
+
+#add collateral
+@app.route("/collateral", methods=["GET", "POST"])
+@login_required
+@role_required(["Admin", "Secretary"])
+def create_collateral():
+    form = CollateralForm()
+    people = [person for person in query.get_persons()]
+    if request.method == "POST":
+        if form.validate_on_submit():
+            name = form.name.data
+            person = form.owner.data
+            description = form.description.data
+            value = form.value.data
+            person = query.get_person_by_name(person)
+            if person :
+                query.add_collateral(
+                    name=name,
+                    person_id=person.id,
+                    value=value,
+                    description=description
+                )
+                flash("Collateral added successfully.", "success")
+                return redirect(url_for("dashboard"))
+            else:
+                flash(f"Error in field {form.errors}", "error")
+        else:
+            flash(f"Error in field {form.errors}", "error")
+
+    return render_template("forms/collateral.html", form=form, people=people)
 
 
 
