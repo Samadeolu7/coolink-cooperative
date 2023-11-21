@@ -734,8 +734,11 @@ def ledger_payment():
     ]
     savings = [(person.id,f'{person.name}, {person.employee_id}') for person in query.get_persons()]
     loans = [(loan.id, f'{loan.person.name}, {loan.person.employee_id}') for loan in query.get_loans()]
-    form.sub_account.choices = assets + expenses + investments + liabilities + savings + loans
-    form.sub_account_2.choices = assets + expenses + investments + liabilities + savings + loans
+    companies = [
+        (company.id, company.name) for company in query.get_companies()
+    ]
+    form.sub_account.choices = assets + expenses + investments + liabilities + savings + loans + companies
+    form.sub_account_2.choices = assets + expenses + investments + liabilities + savings + loans + companies
 
     if request.method == "POST":
         if form.validate_on_submit():
@@ -1893,6 +1896,10 @@ def get_sub_accounts(main_account_id):
     if main_account_id == 5:
         sub_account_options = [
             {"id": sub_account.id, "name": f'{sub_account.name}, {sub_account.employee_id}',"balance":sub_account.available_balance} for sub_account in sub_accounts
+        ]
+    elif main_account_id == 7:
+        sub_account_options = [
+            {"id": sub_account.id, "name":f'{sub_account.name}',"balance":sub_account.amount_accumulated} for sub_account in sub_accounts
         ]
     elif main_account_id == 6:
         sub_account_options = [

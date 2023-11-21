@@ -253,12 +253,27 @@ class Queries:
                 4:(Liability,LiabilityPayment),
                 5:(Person,SavingPayment),
                 6:(Loan,LoanPayment),
+                7:(Company,CompanyPayment)
             }
             debit = dict[id][0].query.filter_by(id=sub_id).first()
             marker = TransactionCounter(type ="JV",year=datetime.utcnow().year,month=datetime.utcnow().month)
             self.db.session.add(marker)
             ref_no = f"JV{marker.ref_no}"
-            if id == 5:
+
+            if id == 7:
+                debit.amount_accumulated += float(amount)
+                debit_payment = dict[id][1](
+                    amount=float(amount),
+                    date=date,
+                    exact_date=datetime.utcnow(),
+                    description=description,
+                    ref_no=ref_no,
+                    balance=debit.amount_accumulated,
+                    company_id=debit.id,
+                    year=self.year,
+                )
+
+            elif id == 5:
                 debit.available_balance -= float(amount)
                 debit_payment = dict[id][1](
                     amount=float(-amount),
@@ -293,7 +308,6 @@ class Queries:
                             contribution.contribution_amount
                         )
 
-                self.db.session.commit()
             else:
                 debit.balance -= float(amount)
                 debit_payment = dict[id][1](
@@ -309,7 +323,21 @@ class Queries:
 
             self.db.session.add(debit_payment)
 
-            if id_2 == 5:
+            if id_2 == 7:
+                credit = dict[id_2][0].query.filter_by(id=sub_id_2).first()
+                credit.amount_accumulated -= float(amount)
+                credit_payment = dict[id_2][1](
+                    amount=float(-amount),
+                    date=date,
+                    exact_date=datetime.utcnow(),
+                    description=description,
+                    ref_no=ref_no,
+                    balance= credit.amount_accumulated,
+                    company_id=credit.id,
+                    year=self.year,
+                )
+
+            elif id_2 == 5:
                 credit = dict[id_2][0].query.filter_by(id=sub_id_2).first()
                 credit.available_balance += float(amount)
                 credit_payment = dict[id_2][1](
@@ -1204,6 +1232,10 @@ class Queries:
         
         elif ledger == 6:
             sub_accounts = self.get_loans()
+            return sub_accounts
+        
+        elif ledger == 7:
+            sub_accounts = self.get_companies()
             return sub_accounts
 
     def sub_journal(self, journal):
