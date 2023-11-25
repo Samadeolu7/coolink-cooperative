@@ -61,17 +61,34 @@ Register for Loan
               <br>
           </div>
 
+          <div class="form-label" id='collateral-label'>
+            {{ form.collateral.label(class_='input-label') }} <br>
+        </div>
+
+        <div class="form-box" id ='collateral-box'>
+            {{ form.collateral(class_="input") }}
+            <br>
+        </div>
+
           <div class="form-label" id='guarantor-label'>
               {{ form.guarantor.label(class_='input-label') }} <br>
           </div>
 
           <div class="form-box" id ='guarantor-box'>
-              {{ form.guarantor(class_="input") }}
+              {{ form.guarantor(class_="input",id="customInput", autocomplete="off") }}
               <br>
+            
+            <div class="dropdown-content" id="dropdownContent">
+                <!-- Options will be dynamically added here -->
+            </div>
           </div>
 
           <div class="form-label" id = 'guarantor-2-label'>
-              {{ form.guarantor_2.label(class_='input-label') }} <br>
+              {{ form.guarantor_2.label(class_='input-label', id="customInput1", autocomplete="off") }} <br>
+    
+            <div class="dropdown-content" id="dropdownContent1">
+                <!-- Options will be dynamically added here -->
+            </div>
           </div>
 
           <div class="form-box" id = 'guarantor-2-box'>
@@ -156,16 +173,29 @@ Register for Loan
                 $("#guarantor-box").show();
                 $("#guarantor-2-label").hide();
                 $("#guarantor-2-box").hide();
+                $("#collateral-label").hide();
+                $("#collateral-box").hide();
             } else if (numGuarantors === 2) {
                 $("#guarantor-label").show();
                 $("#guarantor-box").show();
                 $("#guarantor-2-label").show();
                 $("#guarantor-2-box").show();
-            } else {
+                $("#collateral-label").hide();
+                $("#collateral-box").hide();
+            } else if(numGuarantors === 3) {
                 $("#guarantor-label").hide();
                 $("#guarantor-box").hide();
                 $("#guarantor-2-label").hide();
                 $("#guarantor-2-box").hide();
+                $("#collateral-label").show();
+                $("#collateral-box").show();
+            }else {
+                $("#guarantor-label").hide();
+                $("#guarantor-box").hide();
+                $("#guarantor-2-label").hide();
+                $("#guarantor-2-box").hide();
+                $("#collateral-label").hide();
+                $("#collateral-box").hide();
             }
         }
 
@@ -186,6 +216,30 @@ Register for Loan
             });
         });
 
+        $("#name").on("change", function () {
+            var personName = $(this).val();
+
+            // Make an AJAX request to your endpoint to get the collaterals.
+            $.get("/get_collateral/" + personName, function (data) {
+                // Clear the existing options in the collateral field.
+                $("#collateral").empty();
+                console.log(data);
+
+                // Create a currency formatter.
+                var formatter = new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'NGN', // Replace 'USD' with the actual currency code.
+                });
+
+                // Add the new options to the collateral field.
+                data.forEach(function (collateral) {
+                    var value = formatter.format(collateral.value);
+                    var option = new Option(collateral.name + " -- " + value, collateral.id);
+                    $("#collateral").append(option);
+                });
+            });
+        });
+
         // Listen for changes in the "No of Guarantors" field.
         $("#no_of_guarantors").on("change", function () {
             toggleGuarantorFields();
@@ -195,6 +249,88 @@ Register for Loan
         toggleGuarantorFields();
     });
 </script>
+
+
+<script>
+    // Get the list of people from the Django template
+    var people = [
+    {% for person in people %}
+    ['{{ person.name }}', '{{ person.employee_id }}'],
+    {% endfor %}
+    ];
+    
+    var input = document.getElementById('customInput');
+    var dropdownContent = document.getElementById('dropdownContent');
+    var input1 = document.getElementById('customInput1');
+    var dropdownContent1 = document.getElementById('dropdownContent1');
+    
+    input.addEventListener('input', function () {
+    // Clear previous options
+    dropdownContent.innerHTML = '';
+    
+    // Filter people based on user input
+    var inputValue = input.value.toLowerCase();
+    var filteredPeople = people.filter(function (person) {
+    return person[0].toLowerCase().includes(inputValue);
+    });
+    
+    // Add filtered options to the dropdown
+    filteredPeople.forEach(function (person) {
+    var option = document.createElement('div');
+    option.className = 'dropdown-option';
+    option.textContent = person.join(' - ');
+    option.addEventListener('click', function () {
+        input.value = person[0];
+        dropdownContent.style.display = 'none';
+    });
+    dropdownContent.appendChild(option);
+    });
+    
+    // Display the dropdown if there are matching options
+    dropdownContent.style.display = filteredPeople.length > 0 ? 'block' : 'none';
+    });
+    
+    // Hide the dropdown when clicking outside of it
+    document.addEventListener('click', function (event) {
+    if (!event.target.matches('.custom-dropdown')) {
+    dropdownContent.style.display = 'none';
+    }
+    });
+
+    input1.addEventListener('input', function () {
+    // Clear previous options
+    dropdownContent1.innerHTML = '';
+
+    // Filter people based on user input
+    var inputValue = input1.value.toLowerCase();
+    var filteredPeople = people.filter(function (person) {
+    return person[0].toLowerCase().includes(inputValue);
+    });
+
+    // Add filtered options to the dropdown
+    filteredPeople.forEach(function (person) {
+    var option = document.createElement('div');
+    option.className = 'dropdown-option';
+    option.textContent = person.join(' - ');
+    option.addEventListener('click', function () {
+        input1.value = person[0];
+        dropdownContent1.style.display = 'none';
+    });
+    dropdownContent1.appendChild(option);
+    });
+
+    // Display the dropdown if there are matching options
+    dropdownContent1.style.display = filteredPeople.length > 0 ? 'block' : 'none';
+    });
+
+    // Hide the dropdown when clicking outside of it
+    document.addEventListener('click', function (event) {
+    if (!event.target.matches('.custom-dropdown')) {
+    dropdownContent1.style.display = 'none';
+    }
+    });
+
+    </script>
   
 </body>
 {% endblock %}

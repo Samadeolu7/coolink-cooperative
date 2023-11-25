@@ -16,7 +16,11 @@ Loan Collateral
 {%block content%}
 <body id="form">
   <div class="full-form-content">
-
+    <div class="form-wrapper" id="long-form">
+        <form method="POST">
+            {{ form.hidden_tag() }}
+  
+            <h1>Add Collateral</h1>
 
     <div class="form-label">
         {{ form.name.label(class_='input-label') }} <br>
@@ -65,12 +69,7 @@ Loan Collateral
 </div>
 </div>
 </body>
-<div class="custom-dropdown">
-<input type="text" id="customInput" placeholder="Choose a person">
-<div class="dropdown-content" id="dropdownContent">
-<!-- Options will be dynamically added here -->
-</div>
-</div>
+
 
 <script>
 // Get the list of people from the Django template

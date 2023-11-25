@@ -264,10 +264,10 @@ class RegisterLoanForm(FlaskForm):
     amount = DecimalField("Amount", validators=[DataRequired()])
     remaining_amount = DecimalField("Remaining Amount")
     no_of_guarantors = SelectField(
-        "No of Guarantors", choices=[(0,'0'),(1, "1"), (2, "2")]
+        "No of Guarantors", choices=[(0,'0'),(1, "1"), (2, "2"), (3, "Collateral")]
     )
-    guarantor = SelectField("Select Guarantor")
-    guarantor_2 = SelectField("Select Guarantor")
+    guarantor = StringField("Select Guarantor")
+    guarantor_2 = StringField("Select Guarantor")
     collateral = SelectField("Select Collateral")
     date = DateField("Date", validators=[DataRequired()])
     bank = SelectField("Bank", coerce=int, validators=[DataRequired()])

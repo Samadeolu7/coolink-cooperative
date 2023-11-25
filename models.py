@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import validates
 from sqlalchemy import desc
+from flask_migrate import Migrate
 import os
 
 load_dotenv()
@@ -14,6 +15,8 @@ load_dotenv()
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")  # Replace with your database URI
 db = SQLAlchemy(app)
+
+migrate = Migrate(app, db)
 
 salt = os.getenv("SALT")
 class Company(db.Model):
@@ -203,30 +206,7 @@ class SavingPayment(db.Model):
         }
 
 
-class Collateral(db.Model):
-    __tablename__ = "collaterals"
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, nullable=False)
-    description = db.Column(db.String, nullable=True)
-    person_id = db.Column(
-        db.Integer, db.ForeignKey("persons.id"), nullable=False, index=True
-    )
-    loan_id = db.Column(
-        db.Integer, db.ForeignKey("loans.id"), nullable=True, index=True
-    )
-    value = db.Column(db.Float, nullable=False)
-
-    def to_json(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "description": self.description,
-            "person_id": self.person_id,
-            "loan_id": self.loan_id,
-            "value": self.value,
-        }
-    
 class Loan(db.Model):
     __tablename__ = "loans"
 
@@ -667,7 +647,7 @@ loan_payment_guarantor_association = db.Table(
 class GuarantorContribution(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     loan_form_payment_id = db.Column(db.Integer, db.ForeignKey('loan_form_payment.id', ondelete='SET NULL'))
-    guarantor_id = db.Column(db.Integer, db.ForeignKey('persons.id'))
+    guarantor_id = db.Column(db.Integer, db.ForeignKey('persons.id'),nullable=True)
     contribution_amount = db.Column(db.Float, default=0.0)
     
     # Make the loan_id relationship nullable
@@ -675,10 +655,33 @@ class GuarantorContribution(db.Model):
     
     # Define a relationship with Person to access the guarantor
     guarantor = db.relationship("Person", foreign_keys=[guarantor_id], backref="guarantor_contributions")
+
+    collateral_id = db.Column(db.Integer, db.ForeignKey('collaterals.id', name='fk_collateral_id'), nullable=True)
+    collateral = db.relationship("Collateral", foreign_keys=[collateral_id], backref="guarantor_contributions")
     
     # Define a relationship with Loan, making it nullable
     loan = db.relationship("Loan", backref="guarantor_contributions")
 
+class Collateral(db.Model):
+    __tablename__ = "collaterals"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+    description = db.Column(db.String, nullable=True)
+    person_id = db.Column(
+        db.Integer, db.ForeignKey("persons.id"), nullable=False, index=True
+    )
+    value = db.Column(db.Float, nullable=False)
+
+    def to_json(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "person_id": self.person_id,
+            "value": self.value,
+        }
+    
 
 class LoanFormPayment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -687,12 +690,11 @@ class LoanFormPayment(db.Model):
     loan = db.Column(db.Boolean, default=False)
     failed = db.Column(db.Boolean, default=False)
     loan_amount = db.Column(db.Float, default=0.0)
-    # ref_no = db.Column(db.String)
-    
+
     # Define a relationship with Person to access the person associated with this loan
     person = db.relationship("Person", backref="loan_form_payment")
 
-    collateral_id = db.Column(db.Integer, db.ForeignKey('collaterals.id'), nullable=True)
+    collateral_id = db.Column(db.Integer, db.ForeignKey('collaterals.id', name='fk_collateral_id'), nullable=True)
     
     guarantors = db.relationship("Person", secondary=loan_payment_guarantor_association)
     guarantor_amount = db.Column(db.Float, default=0.0)
@@ -719,8 +721,6 @@ class LoanFormPayment(db.Model):
         self.consent = 0
         self.guarantor_amount = 0
         self.is_approved = False
-
-
 
         # Delete associated GuarantorContribution records
         for contribution in GuarantorContribution.query.filter_by(loan_form_payment_id=self.id).all():

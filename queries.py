@@ -282,18 +282,8 @@ class Queries:
                     person_id=debit.person_id,
                     year=self.year,
                 )
-                if debit.person.loan_balance <= 1000:
-                    debit.person.last_loan().is_paid = True
-                    for contribution in debit.person.last_loan().guarantor_contributions:
-                        person = contribution.guarantor
-                        person.available_balance += float(
-                            contribution.contribution_amount
-                        )
-                        person.balance_withheld -= float(
-                            contribution.contribution_amount
-                        )
+                self.update_loan_and_balance(debit.person.last_loan())
 
-                self.db.session.commit()
             else:
                 debit.balance -= float(amount)
                 debit_payment = dict[id][1](
@@ -381,6 +371,14 @@ class Queries:
                     collateral=collateral,
                 )
                 self.db.session.add(form_payment)
+                
+                if collateral:
+                    collateral = Collateral.query.filter_by(id=collateral).first()
+                    contrubution = GuarantorContribution(
+                        loan_form_payment=form_payment,
+                        collateral=collateral,
+                        contribution_amount=collateral.value,
+                    )
 
                 self.db.session.commit()
                 return True
@@ -391,7 +389,7 @@ class Queries:
             else:
                 return str(e)
 
-    def update_loan(self, loan_id, amount, guarantors=[]):
+    def update_loan(self, loan_id, amount, guarantors=[],collateral=None):
         try:
             loan = LoanFormPayment.query.get(loan_id)
 
@@ -404,6 +402,7 @@ class Queries:
                 loan.guarantors.clear()
                 for guarantor in guarantors:
                     loan.guarantors.append(guarantor)
+                loan.collateral = collateral
 
                 self.db.session.commit()
                 return True
@@ -1022,22 +1021,27 @@ class Queries:
                 self.db.session.add(bank_payment)
                 gc = GuarantorContribution.query.filter_by(loan=loan).first()
 
-                if person.loan_balance <= 1000:
-                    loan.is_paid = True
-                    for contribution in loan.guarantor_contributions:
-                        person = contribution.guarantor
-                        person.available_balance += float(
-                            contribution.contribution_amount
-                        )
-                        person.balance_withheld -= float(
-                            contribution.contribution_amount
-                        )
+                self.update_loan_and_balance(loan)
 
                 self.db.session.commit()
                 return True
         except Exception as e:
             self.db.session.rollback()
             return str(e)
+        
+    def update_loan_and_balance(self,loan):
+        if loan.person.loan_balance <= 1000:
+            loan.is_paid = True
+            for contribution in loan.guarantor_contributions:
+                if contribution.guarantor:
+                    person = contribution.guarantor
+                    person.available_balance += float(contribution.contribution_amount)
+                    person.balance_withheld -= float(contribution.contribution_amount)
+                elif contribution.collateral:
+                    collateral = contribution.collateral
+                    #delete collateral
+                    self.db.session.delete(collateral)
+            return True
 
     def repay_loan_with_savings(
         self, id, amount, date, bank_id, ref_no, description=None
@@ -1079,18 +1083,7 @@ class Queries:
                     year=self.year,
                 )
                 self.db.session.add(loan_payment)
-                if person.loan_balance <= 1000:
-                    person.last_loan().is_paid = True
-                    for contribution in person.last_loan().guarantor_contributions:
-                        person = contribution.guarantor
-                        person.available_balance += float(
-                            contribution.contribution_amount
-                        )
-                        person.balance_withheld -= float(
-                            contribution.contribution_amount
-                        )
-
-                self.db.session.commit()
+                self.update_loan_and_balance(person.last_loan())
                 self.db.session.commit()
                 return True
         except Exception as e:
@@ -1135,17 +1128,7 @@ class Queries:
                 )
 
                 self.db.session.add(company_payment)
-                self.db.session.commit()
-                if person.loan_balance <= 1000:
-                    person.last_loan().is_paid = True
-                    for contribution in person.last_loan().guarantor_contributions:
-                        person = contribution.guarantor
-                        person.available_balance += float(
-                            contribution.contribution_amount
-                        )
-                        person.balance_withheld -= float(
-                            contribution.contribution_amount
-                        )
+                self.update_loan_and_balance(person.last_loan())
 
                 self.db.session.commit()
                 return 'success',id

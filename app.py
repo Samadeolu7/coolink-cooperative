@@ -38,6 +38,7 @@ from dateutil.relativedelta import relativedelta
 from dotenv import load_dotenv
 import os
 import pandas as pd, json, csv
+from flask_migrate import Migrate
 
 load_dotenv()
 
@@ -53,7 +54,7 @@ login_manager.init_app(app)
 login_manager.login_view = "login"
 login_manager.login_message = "You must be logged in to access this page."
 
-
+migrate = Migrate(app, db)
 
 @login_manager.user_loader
 def load_user(person_id):
@@ -450,8 +451,7 @@ def register_loan():
             (person.id, (f"{person.name} ({person.employee_id})"))
             for person in query.get_persons()
         ]
-    form.guarantor.choices = [(None,None)] + [(person.id, f'{person.name},{person.employee_id}') for person in query.get_persons() ]
-    form.guarantor_2.choices =[(None,None)] + [(person.id,f'{person.name},{person.employee_id}') for person in query.get_persons() ]
+    people =[(person.id, f'{person.name},{person.employee_id}') for person in query.get_persons() ]
     form.collateral.choices = [(None,None)] + [(collateral.id, f'{collateral.name}') for collateral in query.get_collaterals() ]
 
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
@@ -484,11 +484,11 @@ def register_loan():
                     return redirect(url_for("register_loan"))
             
             if guarantor!="None" :
-                guarantor = query.get_person(guarantor)
+                guarantor = query.get_person_by_name(guarantor)
                 guarantors.append(guarantor)
 
             if guarantor_2 !="None":   
-                guarantor_2 = query.get_person(guarantor_2)
+                guarantor_2 = query.get_person_by_name(guarantor_2)
                 guarantors.append(guarantor_2)
 
             if guarantor=='None' and guarantor_2 == 'None':
@@ -519,7 +519,7 @@ def register_loan():
             return redirect(url_for("dashboard"))
         flash(form.errors, "error")
     form.date.data = pd.to_datetime("today")
-    return render_template("forms/register_loan.html", form=form)
+    return render_template("forms/register_loan.html", form=form,people=people)
 
 
 @app.route("/forms/update_loan/<int:loan_id>", methods=["GET", "POST"])
@@ -551,6 +551,14 @@ def update_loan(loan_id):
             guarantors = []
             
             guarantor = form.guarantor.data
+            if form.collateral.data != "None":
+                collateral = Collateral.query.get(collateral)
+                if collateral.value < loan.amount:
+                    flash("Collateral value is less than loan amount","error")
+                    return redirect(url_for("register_loan"))
+                else:
+                    loan.collateral = collateral
+                
             if guarantor != "None":
                 guarantor = query.get_person(guarantor)
                 guarantors.append(guarantor)
@@ -1050,14 +1058,18 @@ def create_collateral():
             value = form.value.data
             person = query.get_person_by_name(person)
             if person :
-                query.add_collateral(
+                test = query.add_collateral(
                     name=name,
-                    person_id=person.id,
+                    person=person,
                     value=value,
                     description=description
                 )
-                flash("Collateral added successfully.", "success")
-                return redirect(url_for("dashboard"))
+                if test == True:
+                    flash("Collateral added successfully.", "success")
+                    return redirect(url_for("dashboard"))
+                else:
+                    flash(test, "error")
+                    return redirect(url_for("create_collateral"))
             else:
                 flash(f"Error in field {form.errors}", "error")
         else:
@@ -1699,6 +1711,17 @@ def forgot_password():
 # API endpoints
 
 from flask import jsonify
+
+@app.route("/get_collateral/<int:person_id>")
+@login_required
+@role_required(["Admin", "Secretary"])
+def get_collateral(person_id):
+    collaterals = query.get_collaterals()
+    collateral = [c.to_json()
+                   for c in collaterals if person_id == c.person_id]
+    log_report(collateral)
+    return jsonify(collateral)
+
 
 @app.route("/get_loan_data/<int:person_id>")
 @login_required
