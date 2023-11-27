@@ -6,7 +6,7 @@ from flask_login import UserMixin
 from dotenv import load_dotenv
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import validates
-from sqlalchemy import desc
+from sqlalchemy import desc, func
 from flask_migrate import Migrate
 import os
 
@@ -706,7 +706,12 @@ class LoanFormPayment(db.Model):
 
 
     def move_to_loan(self):
+        log_report(self.consent)
+        log_report(len(self.guarantors))
         if self.consent==len(self.guarantors):
+            log_report(self.guarantor_amount)
+            log_report(self.person.available_balance)
+            log_report(self.loan_amount )
 
             if self.guarantor_amount+self.person.available_balance >= self.loan_amount:
                 self.loan = True
@@ -719,25 +724,33 @@ class LoanFormPayment(db.Model):
         
     def loan_failed(self):
         self.consent = 0
-        self.guarantor_amount = 0
         self.is_approved = False
 
         # Delete associated GuarantorContribution records
         for contribution in GuarantorContribution.query.filter_by(loan_form_payment_id=self.id).all():
             contribution.guarantor.available_balance += contribution.contribution_amount
-
- 
             contribution.guarantor.balance_withheld -= contribution.contribution_amount
             id = contribution.id
-  
-            contribution=GuarantorContribution.query.get(id)
+            contribution = GuarantorContribution.query.get(id)
             db.session.delete(contribution)
 
         self.guarantor_contributions = []
         self.guarantors = []
 
+        # Invalidate the guarantor_amount cache
+        if hasattr(self, '_guarantor_amount'):
+            del self._guarantor_amount
+
         self.failed = True
         db.session.commit()
+    
+    @property
+    def guarantor_amount(self):
+        if hasattr(self, '_guarantor_amount'):
+            return self._guarantor_amount
+
+        self._guarantor_amount = db.session.query(func.sum(GuarantorContribution.contribution_amount)).filter(GuarantorContribution.loan_form_payment_id == self.id).scalar() or 0
+        return self._guarantor_amount
 
 
 class Constants(db.Model):

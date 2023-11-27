@@ -476,6 +476,7 @@ def register_loan():
             if loan_unpaid:
                 flash("You have an unpaid loan","error")
                 return redirect(url_for("register_loan"))
+            log_report(f"collateral: {collateral}, {guarantor},{guarantor_2}")
             
             if collateral != "None":
                 collateral = Collateral.query.get(collateral)
@@ -483,17 +484,16 @@ def register_loan():
                     flash("Collateral value is less than loan amount","error")
                     return redirect(url_for("register_loan"))
             
-            if guarantor!="None" :
+            if guarantor!= None :
                 guarantor = query.get_person_by_name(guarantor)
                 guarantors.append(guarantor)
 
-            if guarantor_2 !="None":   
+            if guarantor_2 !=None:   
                 guarantor_2 = query.get_person_by_name(guarantor_2)
                 guarantors.append(guarantor_2)
 
-            if guarantor=='None' and guarantor_2 == 'None':
-                guarantor = query.get_person(int(form.name.data))
-                guarantors.append(guarantor)
+            if guarantor ==None and guarantor_2 == None:
+                pass
 
             elif guarantor == guarantor_2:
                 flash('You cant pick the same person twice')
@@ -511,9 +511,11 @@ def register_loan():
                     flash("Income submitted successfully.", "success")
                     return redirect(url_for("dashboard"))
                 else:
-                    flash(test, "error")
+                    log_report(test_2)
+                    flash(test_2, "error")
             
             else:
+                log_report(test)
                 flash(f"something went wrong.{test}", "error")
                 return redirect(url_for("register_loan"))
             return redirect(url_for("dashboard"))
@@ -539,6 +541,7 @@ def update_loan(loan_id):
 
     form.guarantor.choices = [(None, None)] + [(person.id, f'{person.name}, {person.employee_id}') for person in query.get_persons()]
     form.guarantor_2.choices = [(None, None)] + [(person.id, f'{person.name}, {person.employee_id}') for person in query.get_persons()]
+    form.collateral.choices = [(None,None)] + [(collateral.id, f'{collateral.name}') for collateral in query.get_collaterals() ]
 
     if request.method == "POST":
         if form.validate_on_submit():
@@ -549,7 +552,8 @@ def update_loan(loan_id):
             loan.bank_id = form.bank.data
             loan.ref_no = form.ref_no.data
             guarantors = []
-            
+            collateral = form.collateral.data
+           
             guarantor = form.guarantor.data
             if form.collateral.data != "None":
                 collateral = Collateral.query.get(collateral)
@@ -559,22 +563,22 @@ def update_loan(loan_id):
                 else:
                     loan.collateral = collateral
                 
-            if guarantor != "None":
+            if guarantor != None:
                 guarantor = query.get_person(guarantor)
                 guarantors.append(guarantor)
             
             guarantor_2 = form.guarantor_2.data
-            if guarantor_2 != "None":
+            if guarantor_2 != None:
                 guarantor_2 = query.get_person(guarantor_2)
                 guarantors.append(guarantor_2)
 
-            if guarantor=='None' and guarantor_2 == 'None':
-                guarantor = query.get_person(int(form.name.data))
-                guarantors.append(guarantor)
+            if guarantor!=None and guarantor_2 != None:
+                pass
 
-            if guarantor == guarantor_2:
+            elif guarantor == guarantor_2:
                 flash('You cant pick the same person twice')
-                return render_template("forms/register_loan.html", form=form) 
+                return render_template("forms/register_loan.html", form=form)
+            
 
 
             # Update the loan record in the database
@@ -593,9 +597,11 @@ def update_loan(loan_id):
     form.amount.data = loan.loan_amount
     if loan.guarantors:
 
-        form.guarantor.data = loan.guarantors[0] # Replace with your logic to retrieve guarantor_id
+        form.guarantor.data = loan.guarantors[0] 
         if len(loan.guarantors) == 2:
-            form.guarantor_2.data = loan.guarantor[1] # Replace with your logic to retrieve guarantor_2_id
+            form.guarantor_2.data = loan.guarantor[1]
+    if loan.collateral_id:
+        form.collateral.data = loan.collateral_id
 
     form.ref_no.render_kw = {'readonly': True}
     form.fee.render_kw = {'readonly': True}
@@ -1302,7 +1308,8 @@ def get_loan_details(person_id):
     # Filter payments based on date range
     start_date = form.start_date.data
     end_date = form.end_date.data
-    guarantors = [p.guarantor.name for p in loans.guarantor_contributions]
+    guarantors = [p.guarantor.name for p in loans.guarantor_contributions if p.guarantor]
+    collaterals = [p.collateral.name for p in loans.guarantor_contributions if p.collateral]
     admin = query.get_person(loans.approved_by)
     sub_admin = query.get_person(loans.sub_approved_by)
     
@@ -1409,7 +1416,6 @@ def loan_account(person_id):
         end_date = form.end_date.data
         filtered_payments = filter_payments(start_date, end_date, payments)
         approved = query.get_person(loan.approved_by)
-        guarantors = [p.guarantor.name for p in loan.guarantor_contributions]
         return render_template(
             "query/loan_account.html",
             payments=filtered_payments,
@@ -1417,7 +1423,6 @@ def loan_account(person_id):
             loan=loan,
             form=form,
             approved=approved,
-            guarantors=guarantors
         )
     else:
         return redirect(url_for("loan_account", person_id=user.id))

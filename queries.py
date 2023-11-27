@@ -363,12 +363,16 @@ class Queries:
                 marker = TransactionCounter(type ="LA",year=date.year,month=date.month)
                 self.db.session.add(marker)
                 ref_no = f"LA{marker.ref_no}"
+                if None in guarantors:
+                    guarantors.remove(None)
+                    if None in guarantors:
+                        guarantors.remove(None)
                 form_payment = LoanFormPayment(
                     name=person.name,
                     loan_amount=amount,
                     person=person,
-                    guarantors=guarantors,
-                    collateral=collateral,
+                    guarantors=guarantors if guarantors != None else [],
+                    collateral_id=collateral,
                 )
                 self.db.session.add(form_payment)
                 
@@ -379,8 +383,11 @@ class Queries:
                         collateral=collateral,
                         contribution_amount=collateral.value,
                     )
+                    self.db.session.add(contrubution)
+                form_payment.move_to_loan()
 
                 self.db.session.commit()
+
                 return True
         except Exception as e:
             self.db.session.rollback()
@@ -389,20 +396,27 @@ class Queries:
             else:
                 return str(e)
 
-    def update_loan(self, loan_id, amount, guarantors=[],collateral=None):
+    def update_loan(self, loan_id, amount, guarantors=[], collateral=None):
         try:
             loan = LoanFormPayment.query.get(loan_id)
 
             if loan:
                 # Update the loan record with the new values
                 loan.loan_amount = amount
+                loan.failed = False
 
                 # Clear existing guarantors and add new ones
-                loan.failed = False
                 loan.guarantors.clear()
-                for guarantor in guarantors:
-                    loan.guarantors.append(guarantor)
-                loan.collateral = collateral
+                for guarantor_id in guarantors:
+                    guarantor = Person.query.get(guarantor_id)
+                    if guarantor:
+                        loan.guarantors.append(guarantor)
+
+                # Update collateral
+                if collateral:
+                    collateral_record = Collateral.query.get(collateral)
+                    if collateral_record:
+                        loan.collateral = collateral_record
 
                 self.db.session.commit()
                 return True
@@ -427,12 +441,8 @@ class Queries:
                 db.session.add(contribution)
                 person.available_balance -= float(amount)
                 person.balance_withheld += float(amount)
-                # Update the guarantor_amount
-                loan.guarantor_amount += float(amount)
                 loan.consent += 1
                 loan.move_to_loan()
-
-                # Create a new GuarantorContribution record to track the contribution
 
                 db.session.commit()
                 return True
@@ -1312,7 +1322,7 @@ class Queries:
     
     def get_collaterals(self):
         collaterals = Collateral.query.all()
-        collaterals = [c for c in collaterals if not c.loan_id]
+        collaterals = [c for c in collaterals if not c.guarantor_contributions]
         return collaterals
 
     def get_loan(self, person_id):
