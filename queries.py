@@ -837,7 +837,6 @@ class Queries:
                     is_approved=True,
                 )
                 self.db.session.add(loan)
-                self.db.session.commit()
                 for contribution in pre_loan.guarantor_contributions:
                     contribution.loan = loan
                 pre_loan.is_approved = True
@@ -877,7 +876,6 @@ class Queries:
             if pre_loan:
                 pre_loan.is_approved = False
                 pre_loan.admin_approved = False
-                self.db.session.commit()
             # delete loan
             self.db.session.delete(loan)
             self.db.session.commit()
@@ -1103,7 +1101,6 @@ class Queries:
                         )
 
                 self.db.session.commit()
-                self.db.session.commit()
                 return True
         except Exception as e:
             self.db.session.rollback()
@@ -1147,7 +1144,6 @@ class Queries:
                 )
 
                 self.db.session.add(company_payment)
-                self.db.session.commit()
                 if person.loan_balance <= 1000:
                     person.last_loan().is_paid = True
                     for contribution in person.last_loan().guarantor_contributions:
@@ -1415,6 +1411,19 @@ class Queries:
         liability = Liability.query.all()
         total = sum(l.balance for l in liability if l.balance)
         return total
+    
+    def search_all_payment_tables(self, ref_no):
+        savings = [payment.to_json() for payment in SavingPayment.query.filter_by(ref_no=ref_no).all()]
+        loans = [payment.to_json() for payment in LoanPayment.query.filter_by(ref_no=ref_no).all()]
+        companies = [payment.to_json() for payment in CompanyPayment.query.filter_by(ref_no=ref_no).all()]
+        banks = [payment.to_json() for payment in BankPayment.query.filter_by(ref_no=ref_no).all()]
+        incomes = [payment.to_json() for payment in IncomePayment.query.filter_by(ref_no=ref_no).all()]
+        expenses = [payment.to_json() for payment in ExpensePayment.query.filter_by(ref_no=ref_no).all()]
+        assets = [payment.to_json() for payment in AssetPayment.query.filter_by(ref_no=ref_no).all()]
+        liabilities = [payment.to_json() for payment in LiabilityPayment.query.filter_by(ref_no=ref_no).all()]
+        investments = [payment.to_json() for payment in InvestmentPayment.query.filter_by(ref_no=ref_no).all()]
+        return savings, loans, companies, banks, incomes, expenses, assets, liabilities, investments
+
 
     @staticmethod
     def get_liabilities_per_year(year):
@@ -1486,7 +1495,6 @@ class Queries:
                 year=year,
             )
             self.db.session.add(balance_sheet)
-            self.db.session.commit()
 
             for person in Person.query.all():
                 person.balance_bfd = person.available_balance + person.balance_withheld

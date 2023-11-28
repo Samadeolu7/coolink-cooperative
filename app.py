@@ -1374,6 +1374,28 @@ def loan_account(person_id):
         )
     else:
         return redirect(url_for("loan_account", person_id=user.id))
+    
+
+
+@app.route('/admin-search', methods=['GET'])
+@login_required
+@role_required(["Admin"])
+def admin_search():
+    ref_no = request.args.get('ref_no')
+    savings, loans, companies, banks, incomes, expenses, assets, liabilities, investments = query.search_all_payment_tables(ref_no)
+    result = {
+        'savings': savings,
+        'loans': loans,
+        'companies': companies,
+        'banks': banks,
+        'incomes': incomes,
+        'expenses': expenses,
+        'assets': assets,
+        'liabilities': liabilities,
+        'investments': investments,
+
+    }
+    return jsonify(result)
 
 
 @app.route("/banks_report")
