@@ -1100,7 +1100,7 @@ class Queries:
                     year=self.year,
                 )
                 self.db.session.add(loan_payment)
-                self.update_loan_and_balance(person.last_loan())
+                self.update_loan_and_balance(person.last_loan(),amount)
                 self.db.session.commit()
                 return True
         except Exception as e:
