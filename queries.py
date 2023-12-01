@@ -253,7 +253,8 @@ class Queries:
                 4:(Liability,LiabilityPayment),
                 5:(Person,SavingPayment),
                 6:(Loan,LoanPayment),
-                7:(Company,CompanyPayment)
+                7:(Company,CompanyPayment),
+                8:(Income,IncomePayment)
             }
             debit = dict[id][0].query.filter_by(id=sub_id).first()
             marker = TransactionCounter(type ="JV",year=datetime.utcnow().year,month=datetime.utcnow().month)
@@ -307,6 +308,19 @@ class Queries:
                         person.balance_withheld -= float(
                             contribution.contribution_amount
                         )
+            
+            elif id == 8:
+                debit.balance -= float(amount)
+                debit_payment = dict[id][1](
+                        amount=float(-amount),
+                        date=date,
+                        exact_date=datetime.utcnow(),
+                        description=description,
+                        ref_no=ref_no,
+                        balance=debit.balance,
+                        income_id=id,
+                        year=self.year,
+                    )
 
             else:
                 debit.balance -= float(amount)
@@ -363,6 +377,20 @@ class Queries:
                     person_id=credit.person_id,
                     year=self.year,
                 )
+
+            elif id_2 == 8:
+                credit = dict[id_2][0].query.filter_by(id=sub_id_2).first()
+                credit.balance += float(amount)
+                credit_payment = dict[id_2][1](
+                        amount=float(amount),
+                        date=date,
+                        exact_date=datetime.utcnow(),
+                        description=description,
+                        ref_no=ref_no,
+                        balance= credit.balance,
+                        income_id=id,
+                        year=self.year,
+                    )
             else:
                 credit = dict[id_2][0].query.filter_by(id=sub_id_2).first()
                 credit.balance += float(amount)
@@ -1224,6 +1252,10 @@ class Queries:
         
         elif ledger == 7:
             sub_accounts = self.get_companies()
+            return sub_accounts
+        
+        elif ledger == 8:
+            sub_accounts = Income.query.all()
             return sub_accounts
 
     def sub_journal(self, journal):

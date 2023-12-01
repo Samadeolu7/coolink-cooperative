@@ -737,8 +737,9 @@ def ledger_payment():
     companies = [
         (company.id, company.name) for company in query.get_companies()
     ]
-    form.sub_account.choices = assets + expenses + investments + liabilities + savings + loans + companies
-    form.sub_account_2.choices = assets + expenses + investments + liabilities + savings + loans + companies
+    income = [(income.id, income.name) for income in query.get_income()]
+    form.sub_account.choices = assets + expenses + investments + liabilities + savings + loans + companies + income
+    form.sub_account_2.choices = assets + expenses + investments + liabilities + savings + loans + companies + income
 
     if request.method == "POST":
         if form.validate_on_submit():
