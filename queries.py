@@ -308,6 +308,16 @@ class Queries:
                         person.balance_withheld -= float(
                             contribution.contribution_amount
                         )
+                else:
+                    percentage = amount / debit.person.last_loan().amount * 100
+                    for contribution in debit.person.last_loan().guarantor_contributions:
+                        person = contribution.guarantor
+                        amount_to_be_paid = float(
+                            contribution.contribution_amount
+                        ) * percentage
+                        person.available_balance += amount_to_be_paid
+                        person.balance_withheld -= amount_to_be_paid
+                        contribution.contribution_amount -= amount_to_be_paid
             
             elif id == 8:
                 debit.balance -= float(amount)
@@ -1076,8 +1086,17 @@ class Queries:
                     person = contribution.guarantor
                     person.available_balance += float(contribution.contribution_amount)
                     person.balance_withheld -= float(contribution.contribution_amount)
+            person = loan.person
+            withheld = person.balance_withheld
+            for contrib in person.guarantor_contributions:
+                withheld-=contrib.contribution_amount
+            person.available_balance += withheld
+            person.balance_withheld -= withheld
+
+
         else:
             percentage = amount/loan.amount * 100
+            total_contrib = 0
             for contribution in loan.guarantor_contributions:
                 if contribution.guarantor:
                     person = contribution.guarantor
@@ -1085,6 +1104,13 @@ class Queries:
                     person.available_balance += amount_to_be_paid
                     person.balance_withheld -= amount_to_be_paid
                     contribution.contribution_amount -= amount_to_be_paid
+                    total_contrib += contribution.contribution_amount
+            person_contrib = loan.person.loan_balance-total_contrib
+            amount_to_be_paid = person_contrib * percentage
+            person = loan.person
+            person.available_balance += amount_to_be_paid
+            person.balance_withheld -= amount_to_be_paid
+
         return True
         
 
