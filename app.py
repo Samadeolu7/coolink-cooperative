@@ -1553,7 +1553,7 @@ def balance_sheet():
     total_liabilities = query.get_total_liabilities()
     
     accounts_payable = query.get_accounts_payable()
-    total_equity = accounts_payable + net_income + total_expense
+    total_equity = accounts_payable + net_income
     total_liabilities_and_equity = total_liabilities + total_equity
     current_year = os.getenv("CURRENT_YEAR")
     query_year = query.year
