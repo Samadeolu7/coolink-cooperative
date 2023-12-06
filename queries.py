@@ -1079,6 +1079,7 @@ class Queries:
             return str(e)
         
     def update_loan_and_balance(self,loan,amount):
+        amount = float(amount)
         if loan.person.loan_balance <= 1000:
             loan.is_paid = True
             for contribution in loan.guarantor_contributions:
