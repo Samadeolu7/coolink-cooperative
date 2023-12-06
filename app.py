@@ -760,6 +760,7 @@ def ledger_payment():
                 return redirect(url_for("dashboard"))
             else:
                 flash(f'error{test}','error')
+                log_report(f'error{test}')
                 return redirect(url_for('ledger_payment'))
         else:
             flash(form.errors, "error")
