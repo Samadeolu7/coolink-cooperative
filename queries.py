@@ -1109,8 +1109,9 @@ class Queries:
             person_contrib = loan.person.loan_balance-total_contrib
             amount_to_be_paid = person_contrib * percentage
             person = loan.person
-            person.available_balance += amount_to_be_paid
-            person.balance_withheld -= amount_to_be_paid
+            if person.balance_withheld >= amount_to_be_paid:
+                person.available_balance += amount_to_be_paid
+                person.balance_withheld -= amount_to_be_paid
 
         return True
         
