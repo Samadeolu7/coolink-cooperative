@@ -328,7 +328,7 @@ class Queries:
                         description=description,
                         ref_no=ref_no,
                         balance=debit.balance,
-                        income_id=id,
+                        income_id=sub_id,
                         year=self.year,
                     )
 
@@ -341,7 +341,7 @@ class Queries:
                         description=description,
                         ref_no=ref_no,
                         balance=debit.balance,
-                        main_id=id,
+                        main_id=sub_id,
                         year=self.year,
                     )
 
@@ -398,7 +398,7 @@ class Queries:
                         description=description,
                         ref_no=ref_no,
                         balance= credit.balance,
-                        income_id=id,
+                        income_id=sub_id_2,
                         year=self.year,
                     )
             else:
@@ -411,7 +411,7 @@ class Queries:
                         description=description,
                         ref_no=ref_no,
                         balance= credit.balance,
-                        main_id=id,
+                        main_id=sub_id_2,
                         year=self.year,
                     )
 
