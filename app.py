@@ -438,7 +438,6 @@ def repay_loan():
     return render_template("forms/repay_loan.html", form=form)
 
 
-
 @app.route("/forms/register", methods=["GET", "POST"])
 @login_required
 def register_loan():
@@ -755,8 +754,12 @@ def ledger_payment():
     ]
     savings = [(person.id,f'{person.name}, {person.employee_id}') for person in query.get_persons()]
     loans = [(loan.id, f'{loan.person.name}, {loan.person.employee_id}') for loan in query.get_loans()]
-    form.sub_account.choices = assets + expenses + investments + liabilities + savings + loans
-    form.sub_account_2.choices = assets + expenses + investments + liabilities + savings + loans
+    companies = [
+        (company.id, company.name) for company in query.get_companies()
+    ]
+    income = [(income.id, income.name) for income in query.get_income()]
+    form.sub_account.choices = assets + expenses + investments + liabilities + savings + loans + companies + income
+    form.sub_account_2.choices = assets + expenses + investments + liabilities + savings + loans + companies + income
 
     if request.method == "POST":
         if form.validate_on_submit():
@@ -777,6 +780,7 @@ def ledger_payment():
                 return redirect(url_for("dashboard"))
             else:
                 flash(f'error{test}','error')
+                log_report(f'error{test}')
                 return redirect(url_for('ledger_payment'))
         else:
             flash(form.errors, "error")
@@ -1308,7 +1312,7 @@ def get_loan_details(person_id):
     # Filter payments based on date range
     start_date = form.start_date.data
     end_date = form.end_date.data
-    guarantors = [p.guarantor.name for p in loans.guarantor_contributions if p.guarantor]
+    guarantors = [p.guarantor.name for p in loans.guarantor_contributions if p.guarantor != None if p.guarantor]
     collaterals = [p.collateral.name for p in loans.guarantor_contributions if p.collateral]
     admin = query.get_person(loans.approved_by)
     sub_admin = query.get_person(loans.sub_approved_by)
@@ -1416,6 +1420,7 @@ def loan_account(person_id):
         end_date = form.end_date.data
         filtered_payments = filter_payments(start_date, end_date, payments)
         approved = query.get_person(loan.approved_by)
+        guarantors = [p.guarantor.name for p in loan.guarantor_contributions if p.guarantor != None]
         return render_template(
             "query/loan_account.html",
             payments=filtered_payments,
@@ -1426,6 +1431,28 @@ def loan_account(person_id):
         )
     else:
         return redirect(url_for("loan_account", person_id=user.id))
+    
+
+
+@app.route('/admin-search', methods=['GET'])
+@login_required
+@role_required(["Admin"])
+def admin_search():
+    ref_no = request.args.get('ref_no')
+    savings, loans, companies, banks, incomes, expenses, assets, liabilities, investments = query.search_all_payment_tables(ref_no)
+    result = {
+        'savings': savings,
+        'loans': loans,
+        'companies': companies,
+        'banks': banks,
+        'incomes': incomes,
+        'expenses': expenses,
+        'assets': assets,
+        'liabilities': liabilities,
+        'investments': investments,
+
+    }
+    return jsonify(result)
 
 
 @app.route("/banks_report")
@@ -1582,7 +1609,7 @@ def balance_sheet():
     total_liabilities = query.get_total_liabilities()
     
     accounts_payable = query.get_accounts_payable()
-    total_equity = accounts_payable + net_income + total_expense
+    total_equity = accounts_payable + net_income
     total_liabilities_and_equity = total_liabilities + total_equity
     current_year = os.getenv("CURRENT_YEAR")
     query_year = query.year
@@ -1743,8 +1770,12 @@ def get_loan_data(person_id):
 def get_balance(person_id):
     selected_person = Person.query.get(person_id)
     if selected_person:
+        balance = selected_person.total_balance
         # Return JSON data with both balance and loan_balance values
-        return jsonify({"balance": format_currency(selected_person.available_balance), "loan_balance": format_currency(selected_person.loan_balance)})
+        for contrib in selected_person.guarantor_contributions:
+            balance-=contrib.amount
+            
+        return jsonify({"balance": format_currency(balance), "loan_balance": format_currency(selected_person.loan_balance)})
     else:
         return jsonify({"balance": None, "loan_balance": None})  # Handle the case when the person is not found
 
@@ -1959,6 +1990,10 @@ def get_sub_accounts(main_account_id):
     if main_account_id == 5:
         sub_account_options = [
             {"id": sub_account.id, "name": f'{sub_account.name}, {sub_account.employee_id}',"balance":sub_account.available_balance} for sub_account in sub_accounts
+        ]
+    elif main_account_id == 7:
+        sub_account_options = [
+            {"id": sub_account.id, "name":f'{sub_account.name}',"balance":sub_account.amount_accumulated} for sub_account in sub_accounts
         ]
     elif main_account_id == 6:
         sub_account_options = [

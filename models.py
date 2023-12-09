@@ -57,12 +57,14 @@ class CompanyPayment(db.Model):
     year = db.Column(db.Integer, nullable=False)
 
     def to_json(self):
+        company = Company.query.get(self.company_id)
         return {
             "id": self.id,
             "amount": self.amount,
             "exact_date": self.exact_date,
             "date": self.date,
             "company_id": self.company_id,
+            "company_name": company.name if company else None,
             "description": self.description,
             "ref_no": self.ref_no,
             "balance": self.balance,
@@ -162,6 +164,7 @@ class WithdrawalRequest(db.Model):
         return {
             "id": self.id,
             "person_id": self.person_id,
+            "person_name": self.person.name,
             "amount": self.amount,
             "description": self.description,
             "ref_no": self.ref_no,
@@ -192,13 +195,17 @@ class SavingPayment(db.Model):
     year = db.Column(db.Integer, nullable=False)
 
     def to_json(self):
+        person = Person.query.get(self.person_id)
+        company = Company.query.get(self.company_id)
         return {
             "id": self.id,
             "amount": self.amount,
             "exact_date": self.exact_date,
             "date": self.date,
             "person_id": self.person_id,
+            "person_name": person.name if person else None,
             "company_id": self.company_id,
+            "company_name": company.name if company else None,
             "description": self.description,
             "ref_no": self.ref_no,
             "balance": self.balance,
@@ -283,6 +290,8 @@ class LoanPayment(db.Model):
     year = db.Column(db.Integer, nullable=False)
 
     def to_json(self):
+        person = Person.query.get(self.person_id)
+        company = Company.query.get(self.company_id)
         return {
             "id": self.id,
             "amount": self.amount,
@@ -293,7 +302,9 @@ class LoanPayment(db.Model):
             "balance": self.balance,
             "bank_id": self.bank_id,
             "person_id": self.person_id,
+            "person_name": person.name if person else None,
             "company_id": self.company_id,
+            "company_name": company.name if company else None,
         }
 
 
@@ -337,13 +348,17 @@ class BankPayment(db.Model):
     year = db.Column(db.Integer, nullable=False)
 
     def to_json(self):
+        person = Person.query.get(self.person_id)
+        company = Company.query.get(self.company_id)
         return {
             "id": self.id,
             "amount": self.amount,
             "exact_date": self.exact_date,
             "date": self.date,
             "person_id": self.person_id,
+            "person_name": person.name if person else None,
             "company_id": self.company_id,
+            "company_name": company.name if company else None,
             "description": self.description,
             "ref_no": self.ref_no,
             "bank_balance": self.bank_balance,
@@ -389,12 +404,14 @@ class ExpensePayment(db.Model):
     year = db.Column(db.Integer, nullable=False)
 
     def to_json(self):
+        expense = Expense.query.get(self.main_id)
         return {
             "id": self.id,
             "amount": self.amount,
             "exact_date": self.exact_date,
             "date": self.date,
             "main_id": self.main_id,
+            "name": expense.name,
             "description": self.description,
             "ref_no": self.ref_no,
             "balance": self.balance,
@@ -440,12 +457,14 @@ class AssetPayment(db.Model):
     year = db.Column(db.Integer, nullable=False)
 
     def to_json(self):
+        asset = Asset.query.get(self.main_id)
         return {
             "id": self.id,
             "amount": self.amount,
             "exact_date": self.exact_date,
             "date": self.date,
             "main_id": self.main_id,
+            "name": asset.name,
             "description": self.description,
             "ref_no": self.ref_no,
             "balance": self.balance,
@@ -491,12 +510,14 @@ class IncomePayment(db.Model):
     year = db.Column(db.Integer, nullable=False)
 
     def to_json(self):
+        income = Income.query.get(self.income_id)
         return {
             "id": self.id,
             "amount": self.amount,
             "exact_date": self.exact_date,
             "date": self.date,
             "main_id": self.main_id,
+            "name": income.name,
             "description": self.description,
             "ref_no": self.ref_no,
             "balance": self.balance,
@@ -542,12 +563,14 @@ class InvestmentPayment(db.Model):
     year = db.Column(db.Integer, nullable=False)
 
     def to_json(self):
+        investment = Investment.query.get(self.main_id)
         return {
             "id": self.id,
             "amount": self.amount,
             "exact_date": self.exact_date,
             "date": self.date,
             "main_id": self.main_id,
+            "name": investment.name,
             "description": self.description,
             "ref_no": self.ref_no,
             "balance": self.balance,
@@ -593,12 +616,14 @@ class LiabilityPayment(db.Model):
     year = db.Column(db.Integer, nullable=False)
 
     def to_json(self):
+        liability = Liability.query.get(self.main_id)
         return {
             "id": self.id,
             "amount": self.amount,
             "exact_date": self.exact_date,
             "date": self.date,
             "main_id": self.main_id,
+            "name": liability.name,
             "description": self.description,
             "ref_no": self.ref_no,
             "balance": self.balance,
@@ -621,19 +646,23 @@ class TransactionCounter(db.Model):
         type = self.type
         year = self.year
         month = self.month
-        
-        # Find the transaction counter for the current year and month
-        counter_record = TransactionCounter.query.filter_by(type=type,year=year, month=month).first()
-        
-        if counter_record is None:
-            # If there's no counter record for the current month, create one
-            counter_record = TransactionCounter(year=year, month=month, counter=1)
-            db.session.add(counter_record)
-        else:
-            # If a counter record exists, increment the counter
-            counter_record.counter += 1
+
+        # Start a new transaction
+        with db.session.begin_nested():
+            # Lock the counter record for the current year and month
+            counter_record = db.session.query(TransactionCounter).with_for_update().filter_by(type=type, year=year, month=month).first()
+
+            if counter_record is None:
+                # If there's no counter record for the current month, create one
+                counter_record = TransactionCounter(type=type, year=year, month=month, counter=1)
+                db.session.add(counter_record)
+            else:
+                # If a counter record exists, increment the counter
+                counter_record.counter += 1
+
+            # Commit the transaction
             db.session.commit()
-        
+
         # Format the reference number with leading zeros for the counter
         return f"{year}{month:02d}-{counter_record.counter:04d}"
 

@@ -37,6 +37,7 @@ Coolink Cooperative Savings Account
             <th>Date</th>
             <th>Name</th>
             <th>Description</th>
+            <th>Ref No</th>
             <th>Amount</th>
             
         </tr>
@@ -48,6 +49,7 @@ Coolink Cooperative Savings Account
                     <a href="{{url_for('savings_account',person_id=payment.payer.id)}}">{{ payment.payer.name}}</a>
                 </td>
                 <td>{{ payment.description}}</td>
+                <td>{{ payment.ref_no}}</td>
                 <td>{{ payment.amount | currency}}</td>
                 
             </tr>

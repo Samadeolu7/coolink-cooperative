@@ -253,12 +253,28 @@ class Queries:
                 4:(Liability,LiabilityPayment),
                 5:(Person,SavingPayment),
                 6:(Loan,LoanPayment),
+                7:(Company,CompanyPayment),
+                8:(Income,IncomePayment)
             }
             debit = dict[id][0].query.filter_by(id=sub_id).first()
             marker = TransactionCounter(type ="JV",year=datetime.utcnow().year,month=datetime.utcnow().month)
             self.db.session.add(marker)
             ref_no = f"JV{marker.ref_no}"
-            if id == 5:
+
+            if id == 7:
+                debit.amount_accumulated += float(amount)
+                debit_payment = dict[id][1](
+                    amount=float(amount),
+                    date=date,
+                    exact_date=datetime.utcnow(),
+                    description=description,
+                    ref_no=ref_no,
+                    balance=debit.amount_accumulated,
+                    company_id=debit.id,
+                    year=self.year,
+                )
+
+            elif id == 5:
                 debit.available_balance -= float(amount)
                 debit_payment = dict[id][1](
                     amount=float(-amount),
@@ -282,7 +298,39 @@ class Queries:
                     person_id=debit.person_id,
                     year=self.year,
                 )
-                self.update_loan_and_balance(debit.person.last_loan())
+                if debit.person.loan_balance <= 1000:
+                    debit.person.last_loan().is_paid = True
+                    for contribution in debit.person.last_loan().guarantor_contributions:
+                        person = contribution.guarantor
+                        person.available_balance += float(
+                            contribution.contribution_amount
+                        )
+                        person.balance_withheld -= float(
+                            contribution.contribution_amount
+                        )
+                else:
+                    percentage = amount / debit.person.last_loan().amount * 100
+                    for contribution in debit.person.last_loan().guarantor_contributions:
+                        person = contribution.guarantor
+                        amount_to_be_paid = float(
+                            contribution.contribution_amount
+                        ) * percentage
+                        person.available_balance += amount_to_be_paid
+                        person.balance_withheld -= amount_to_be_paid
+                        contribution.contribution_amount -= amount_to_be_paid
+            
+            elif id == 8:
+                debit.balance -= float(amount)
+                debit_payment = dict[id][1](
+                        amount=float(-amount),
+                        date=date,
+                        exact_date=datetime.utcnow(),
+                        description=description,
+                        ref_no=ref_no,
+                        balance=debit.balance,
+                        income_id=sub_id,
+                        year=self.year,
+                    )
 
             else:
                 debit.balance -= float(amount)
@@ -293,13 +341,27 @@ class Queries:
                         description=description,
                         ref_no=ref_no,
                         balance=debit.balance,
-                        main_id=id,
+                        main_id=sub_id,
                         year=self.year,
                     )
 
             self.db.session.add(debit_payment)
 
-            if id_2 == 5:
+            if id_2 == 7:
+                credit = dict[id_2][0].query.filter_by(id=sub_id_2).first()
+                credit.amount_accumulated -= float(amount)
+                credit_payment = dict[id_2][1](
+                    amount=float(-amount),
+                    date=date,
+                    exact_date=datetime.utcnow(),
+                    description=description,
+                    ref_no=ref_no,
+                    balance= credit.amount_accumulated,
+                    company_id=credit.id,
+                    year=self.year,
+                )
+
+            elif id_2 == 5:
                 credit = dict[id_2][0].query.filter_by(id=sub_id_2).first()
                 credit.available_balance += float(amount)
                 credit_payment = dict[id_2][1](
@@ -325,6 +387,20 @@ class Queries:
                     person_id=credit.person_id,
                     year=self.year,
                 )
+
+            elif id_2 == 8:
+                credit = dict[id_2][0].query.filter_by(id=sub_id_2).first()
+                credit.balance += float(amount)
+                credit_payment = dict[id_2][1](
+                        amount=float(amount),
+                        date=date,
+                        exact_date=datetime.utcnow(),
+                        description=description,
+                        ref_no=ref_no,
+                        balance= credit.balance,
+                        income_id=sub_id_2,
+                        year=self.year,
+                    )
             else:
                 credit = dict[id_2][0].query.filter_by(id=sub_id_2).first()
                 credit.balance += float(amount)
@@ -335,7 +411,7 @@ class Queries:
                         description=description,
                         ref_no=ref_no,
                         balance= credit.balance,
-                        main_id=id,
+                        main_id=sub_id_2,
                         year=self.year,
                     )
 
@@ -834,7 +910,6 @@ class Queries:
                     is_approved=True,
                 )
                 self.db.session.add(loan)
-                self.db.session.commit()
                 for contribution in pre_loan.guarantor_contributions:
                     contribution.loan = loan
                 pre_loan.is_approved = True
@@ -874,7 +949,6 @@ class Queries:
             if pre_loan:
                 pre_loan.is_approved = False
                 pre_loan.admin_approved = False
-                self.db.session.commit()
             # delete loan
             self.db.session.delete(loan)
             self.db.session.commit()
@@ -1003,7 +1077,7 @@ class Queries:
                 loan = Loan.query.filter_by(person_id=id, is_paid=False).first()
 
                 loan_payment = LoanPayment(
-                    amount=amount,
+                    amount=-amount,
                     date=date,
                     person_id=person.id,
                     exact_date=datetime.utcnow(),
@@ -1031,7 +1105,7 @@ class Queries:
                 self.db.session.add(bank_payment)
                 gc = GuarantorContribution.query.filter_by(loan=loan).first()
 
-                self.update_loan_and_balance(loan)
+                self.update_loan_and_balance(person.last_loan(),amount)
 
                 self.db.session.commit()
                 return True
@@ -1039,7 +1113,8 @@ class Queries:
             self.db.session.rollback()
             return str(e)
         
-    def update_loan_and_balance(self,loan):
+    def update_loan_and_balance(self,loan,amount):
+        amount = float(amount)
         if loan.person.loan_balance <= 1000:
             loan.is_paid = True
             for contribution in loan.guarantor_contributions:
@@ -1047,16 +1122,40 @@ class Queries:
                     person = contribution.guarantor
                     person.available_balance += float(contribution.contribution_amount)
                     person.balance_withheld -= float(contribution.contribution_amount)
-                elif contribution.collateral:
-                    collateral = contribution.collateral
-                    #delete collateral
-                    self.db.session.delete(collateral)
-            return True
+            person = loan.person
+            withheld = person.balance_withheld
+            for contrib in person.guarantor_contributions:
+                withheld-=contrib.contribution_amount
+            person.available_balance += withheld
+            person.balance_withheld -= withheld
+
+
+        else:
+            percentage = amount/loan.amount * 100
+            total_contrib = 0
+            for contribution in loan.guarantor_contributions:
+                if contribution.guarantor:
+                    person = contribution.guarantor
+                    amount_to_be_paid = float(contribution.contribution_amount) * percentage
+                    person.available_balance += amount_to_be_paid
+                    person.balance_withheld -= amount_to_be_paid
+                    contribution.contribution_amount -= amount_to_be_paid
+                    total_contrib += contribution.contribution_amount
+            person_contrib = loan.person.loan_balance-total_contrib
+            amount_to_be_paid = person_contrib * percentage
+            person = loan.person
+            if person.balance_withheld >= amount_to_be_paid:
+                person.available_balance += amount_to_be_paid
+                person.balance_withheld -= amount_to_be_paid
+
+        return True
+        
 
     def repay_loan_with_savings(
         self, id, amount, date, bank_id, ref_no, description=None
     ):
         try:
+            amount = float(amount)
             person = Person.query.filter_by(id=id).first()
             marker = TransactionCounter(type="SA-LO",year= date.year,month=date.month)
             self.db.session.add(marker)
@@ -1066,7 +1165,12 @@ class Queries:
             if person:
                 bank = Bank.query.filter_by(id=bank_id).first()
 
-                person.available_balance -= float(amount)
+                if amount <= person.available_balance:
+                    person.available_balance -= amount
+                else:
+                    remainder = amount - person.available_balance
+                    person.available_balance = 0
+                    person.balance_withheld -= remainder
                 savings_payment = SavingPayment(
                     amount=-amount,
                     date=date,
@@ -1082,7 +1186,7 @@ class Queries:
 
                 person.loan_balance -= float(amount)
                 loan_payment = LoanPayment(
-                    amount=amount,
+                    amount=-amount,
                     date=date,
                     person_id=person.id,
                     exact_date=datetime.utcnow(),
@@ -1093,7 +1197,7 @@ class Queries:
                     year=self.year,
                 )
                 self.db.session.add(loan_payment)
-                self.update_loan_and_balance(person.last_loan())
+                self.update_loan_and_balance(person.last_loan(),amount)
                 self.db.session.commit()
                 return True
         except Exception as e:
@@ -1113,7 +1217,7 @@ class Queries:
                 company = person.company
                 person.loan_balance -= float(amount)
                 loan_payment = LoanPayment(
-                    amount=amount,
+                    amount=-amount,
                     date=date,
                     person_id=person.id,
                     exact_date=datetime.utcnow(),
@@ -1138,7 +1242,7 @@ class Queries:
                 )
 
                 self.db.session.add(company_payment)
-                self.update_loan_and_balance(person.last_loan())
+                self.update_loan_and_balance(person.last_loan(),amount)
 
                 self.db.session.commit()
                 return 'success',id
@@ -1213,6 +1317,14 @@ class Queries:
         
         elif ledger == 6:
             sub_accounts = self.get_loans()
+            return sub_accounts
+        
+        elif ledger == 7:
+            sub_accounts = self.get_companies()
+            return sub_accounts
+        
+        elif ledger == 8:
+            sub_accounts = Income.query.all()
             return sub_accounts
 
     def sub_journal(self, journal):
@@ -1397,6 +1509,19 @@ class Queries:
         liability = Liability.query.all()
         total = sum(l.balance for l in liability if l.balance)
         return total
+    
+    def search_all_payment_tables(self, ref_no):
+        savings = [payment.to_json() for payment in SavingPayment.query.filter_by(ref_no=ref_no).all()]
+        loans = [payment.to_json() for payment in LoanPayment.query.filter_by(ref_no=ref_no).all()]
+        companies = [payment.to_json() for payment in CompanyPayment.query.filter_by(ref_no=ref_no).all()]
+        banks = [payment.to_json() for payment in BankPayment.query.filter_by(ref_no=ref_no).all()]
+        incomes = [payment.to_json() for payment in IncomePayment.query.filter_by(ref_no=ref_no).all()]
+        expenses = [payment.to_json() for payment in ExpensePayment.query.filter_by(ref_no=ref_no).all()]
+        assets = [payment.to_json() for payment in AssetPayment.query.filter_by(ref_no=ref_no).all()]
+        liabilities = [payment.to_json() for payment in LiabilityPayment.query.filter_by(ref_no=ref_no).all()]
+        investments = [payment.to_json() for payment in InvestmentPayment.query.filter_by(ref_no=ref_no).all()]
+        return savings, loans, companies, banks, incomes, expenses, assets, liabilities, investments
+
 
     @staticmethod
     def get_liabilities_per_year(year):
@@ -1468,7 +1593,6 @@ class Queries:
                 year=year,
             )
             self.db.session.add(balance_sheet)
-            self.db.session.commit()
 
             for person in Person.query.all():
                 person.balance_bfd = person.available_balance + person.balance_withheld
