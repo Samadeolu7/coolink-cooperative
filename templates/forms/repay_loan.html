@@ -158,55 +158,44 @@ Repay Loan with Savings
     
             return true;
         }
-    </script>
+        // Get the amount field
+        const amountField = document.getElementById("amount");
 
-    <!--<script>
-        const selectPerson = document.getElementById("person");
-        const balanceField = document.getElementById("balance");
-
-        function updateBalance() {
-            const selectedPersonId = selectPerson.value;
-
-            // Make an AJAX request to the server to get the balance of the selected person
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', `/get_balance/${selectedPersonId}`, true);
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState === XMLHttpRequest.DONE) {
-                    if (xhr.status === 200) {
-                        // Update the balance field with the retrieved balance
-                        balanceField.value = xhr.responseText;
-                    } else {
-                        // Handle errors here (e.g., server error, person not found)
-                        balanceField.value = '';
-                    }
-                }
-            };
-            xhr.send();
+        function flashMessage(message, category) {
+            const flashMessages = document.querySelector('.flash-messages');
+            const messageElement = document.createElement('li');
+            messageElement.className = `fade-out ${category}`;
+            messageElement.textContent = message;
+            flashMessages.appendChild(messageElement);
         }
 
-        // Add event listener to update balance field when person selection changes
-        selectPerson.addEventListener("change", updateBalance);
-
-        // Call the function initially to set the initial balance value
-        updateBalance();
-        // Frontend validation to prevent withdrawal more than available balance
-        function validateForm() {
-            const availableBalance = parseFloat(balanceField.value);
-            const withdrawalAmount = parseFloat(amountField.value);
-
-            if (isNaN(withdrawalAmount) || withdrawalAmount <= 0) {
-                alert("Please enter a valid withdrawal amount.");
+        function validateAmount() {
+            const balanceField = document.getElementById("balance");
+            const availableBalance = parseFloat(balanceField.value.replace(/[₦,]/g, ''));
+            const enteredAmount = parseFloat(amountField.value);
+            if (isNaN(enteredAmount) || enteredAmount <= 0) {
+                flashMessage("Please enter a valid amount.", "error");
                 return false;
             }
-
-            if (withdrawalAmount > availableBalance) {
-                alert("Withdrawal amount cannot exceed the available balance.");
+            if (enteredAmount > availableBalance) {
+                flashMessage("The entered amount cannot exceed the available balance.", "error");
                 return false;
             }
-
             return true;
         }
-    </script>-->
+
+        // Get the form
+        const form = document.querySelector("form");
+
+        // Add an event listener to the form
+        form.addEventListener("submit", function(event) {
+            console.log("Form submitted");
+            if (!validateAmount()) {
+                event.preventDefault();
+            }
+        });
+    </script>
+
 </body>
 
 {%endblock%}

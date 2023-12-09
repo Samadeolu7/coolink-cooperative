@@ -1042,7 +1042,7 @@ class Queries:
                 loan = Loan.query.filter_by(person_id=id, is_paid=False).first()
 
                 loan_payment = LoanPayment(
-                    amount=amount,
+                    amount=-amount,
                     date=date,
                     person_id=person.id,
                     exact_date=datetime.utcnow(),
@@ -1120,6 +1120,7 @@ class Queries:
         self, id, amount, date, bank_id, ref_no, description=None
     ):
         try:
+            amount = float(amount)
             person = Person.query.filter_by(id=id).first()
             marker = TransactionCounter(type="SA-LO",year= date.year,month=date.month)
             self.db.session.add(marker)
@@ -1129,7 +1130,12 @@ class Queries:
             if person:
                 bank = Bank.query.filter_by(id=bank_id).first()
 
-                person.available_balance -= float(amount)
+                if amount <= person.available_balance:
+                    person.available_balance -= amount
+                else:
+                    remainder = amount - person.available_balance
+                    person.available_balance = 0
+                    person.balance_withheld -= remainder
                 savings_payment = SavingPayment(
                     amount=-amount,
                     date=date,
@@ -1145,7 +1151,7 @@ class Queries:
 
                 person.loan_balance -= float(amount)
                 loan_payment = LoanPayment(
-                    amount=amount,
+                    amount=-amount,
                     date=date,
                     person_id=person.id,
                     exact_date=datetime.utcnow(),
@@ -1176,7 +1182,7 @@ class Queries:
                 company = person.company
                 person.loan_balance -= float(amount)
                 loan_payment = LoanPayment(
-                    amount=amount,
+                    amount=-amount,
                     date=date,
                     person_id=person.id,
                     exact_date=datetime.utcnow(),

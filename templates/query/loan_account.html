@@ -77,7 +77,7 @@ COOLINK CO-OPERATIVE LOAN ACCOUNT
                                 <td>{{ payment.date }}</td>
                                 <td>{{ payment.ref_no }}</td>
                                 <td>{{ payment.description }}</td>
-                                <td>{{-payment.amount | currency }}</td>
+                                <td>{{ payment.amount | currency }}</td>
                                 <td>{{ payment.balance | currency }}</td>
                             </tr>
                     {% endfor %}
