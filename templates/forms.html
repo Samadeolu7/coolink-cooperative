@@ -36,7 +36,13 @@ active
                 <a href="{{ url_for('create_person') }}">Create Member</a>
             </div>
         </div>
-        
+        {% if person.role.name == 'Admin' %}
+        <div class="card">
+            <div class="container">
+                <a href="{{ url_for('create_collateral') }}">Create collateral </a>
+            </div>
+        </div>
+        {% endif %}
         <div class="card">
             <div class="container">
                 <a href="{{ url_for('register_loan') }}">Loan Application</a>

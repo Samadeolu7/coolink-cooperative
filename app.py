@@ -571,7 +571,7 @@ def update_loan(loan_id):
                 guarantor_2 = query.get_person(guarantor_2)
                 guarantors.append(guarantor_2)
 
-            if guarantor!=None and guarantor_2 != None:
+            if guarantor==None and guarantor_2 == None:
                 pass
 
             elif guarantor == guarantor_2:

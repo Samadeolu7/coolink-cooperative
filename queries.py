@@ -494,6 +494,8 @@ class Queries:
                     if collateral_record:
                         loan.collateral = collateral_record
 
+                loan.move_to_loan()
+
                 self.db.session.commit()
                 return True
             else:
