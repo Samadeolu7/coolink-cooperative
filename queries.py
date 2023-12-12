@@ -1114,6 +1114,18 @@ class Queries:
                 person.balance_withheld -= amount_to_be_paid
 
         return True
+    
+    def get_person_balance(self,person_id):
+        selected_person = Person.query.get(person_id)
+        if selected_person:
+            balance = selected_person.total_balance
+            # Return JSON data with both balance and loan_balance values
+            for contrib in selected_person.guarantor_contributions:
+                if contrib.guarantor != selected_person:
+                    balance -= contrib.contribution_amount
+            return balance
+        else:
+            return None
         
 
     def repay_loan_with_savings(
@@ -1130,12 +1142,20 @@ class Queries:
             if person:
                 bank = Bank.query.filter_by(id=bank_id).first()
 
-                if amount <= person.available_balance:
-                    person.available_balance -= amount
+                balance = self.get_person_balance(person.id)
+                untouchable_balance = person.total_balance - balance
+                touchable_balance_withheld = person.balance_withheld - untouchable_balance
+
+                if touchable_balance_withheld >= amount:
+                    person.balance_withheld -= amount
                 else:
-                    remainder = amount - person.available_balance
-                    person.available_balance = 0
-                    person.balance_withheld -= remainder
+                    amount -= touchable_balance_withheld
+                    person.balance_withheld -= touchable_balance_withheld
+
+                    if person.available_balance >= amount:
+                        person.available_balance -= amount
+                    else:
+                        raise ValueError("Insufficient funds")
                 savings_payment = SavingPayment(
                     amount=-amount,
                     date=date,

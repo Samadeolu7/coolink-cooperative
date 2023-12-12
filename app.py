@@ -1701,17 +1701,10 @@ def get_loan_data(person_id):
 @app.route("/get_balance/<int:person_id>")
 @login_required
 def get_balance(person_id):
-    selected_person = Person.query.get(person_id)
-    if selected_person:
-        balance = selected_person.total_balance
-        # Return JSON data with both balance and loan_balance values
-        for contrib in selected_person.guarantor_contributions:
-            if contrib.guarantor != selected_person:
-                balance-=contrib.contribution_amount
-            
-        return jsonify({"balance": format_currency(balance), "loan_balance": format_currency(selected_person.loan_balance)})
-    else:
-        return jsonify({"balance": None, "loan_balance": None})  # Handle the case when the person is not found
+    person = query.get_person(person_id)
+    balance = query.get_person_balance(person_id)
+    return jsonify({"balance": format_currency(balance), "loan_balance": format_currency(person.loan_balance)})
+    
 
 
 @app.route("/get_person_info/<person_id>")
