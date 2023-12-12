@@ -1706,7 +1706,8 @@ def get_balance(person_id):
         balance = selected_person.total_balance
         # Return JSON data with both balance and loan_balance values
         for contrib in selected_person.guarantor_contributions:
-            balance-=contrib.contribution_amount
+            if contrib.guarantor != selected_person:
+                balance-=contrib.contribution_amount
             
         return jsonify({"balance": format_currency(balance), "loan_balance": format_currency(selected_person.loan_balance)})
     else:
