@@ -1183,16 +1183,22 @@ class Queries:
                             person.available_balance += person.balance_withheld
                             #subtract the untouchable balance from available balance
                             person.available_balance -= untouchable
+                            log_report(1)
+                            log_report(person.available_balance)
                             #make withheld balance equal to untouchable balance
                             person.balance_withheld = untouchable
                             #subtract the amount paid from available balance
                             person.available_balance -= amount
+                            log_report(2)
+                            log_report(person.available_balance)
                             #condition for when loan isnt cleared
                             if person.loan_balance != amount:
                                 #withold the rest of the amount
                                 remainder = person.loan_balance - amount
                                 #if it remainder is larger than available balance it will raise an error
                                 person.available_balance -= remainder
+                                log_report(3)
+                                log_report(person.available_balance)
                                 person.balance_withheld += remainder
                         else:
                             raise ValueError("Insufficient funds")
@@ -1223,6 +1229,7 @@ class Queries:
                     year=self.year,
                 )
                 self.db.session.add(loan_payment)
+                log_report(4)
                 self.update_loan_and_balance(person.last_loan(),amount)
 
                 self.db.session.commit()
