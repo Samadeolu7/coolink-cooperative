@@ -1118,7 +1118,6 @@ class Queries:
         selected_person = Person.query.get(person_id)
         if selected_person:
             balance = selected_person.total_balance
-            # Return JSON data with both balance and loan_balance values
             for contrib in selected_person.guarantor_contributions:
                 if contrib.guarantor != selected_person:
                     balance -= contrib.contribution_amount
@@ -1157,10 +1156,10 @@ class Queries:
                                     if loan.id == contribution.loan_id:
                                         contribution_amount = contribution.contribution_amount
                                         break
+                
                         # use the contribution amount to pay the loan
                         if contribution_amount >= amount:
                             contribution.contribution_amount -= amount
-                            person.available_balance += amount
                             person.balance_withheld -= amount
                         else:
                             amount -= contribution_amount
@@ -1174,8 +1173,29 @@ class Queries:
                 else:
                     if person.available_balance >= amount:
                         person.available_balance -= amount
+
                     else:
-                        raise ValueError("Insufficient funds")
+                        balance = self.get_person_balance(person.id)
+                        if balance >= amount:
+                            #get balance that might have been used as guarantor for someone else
+                            untouchable = person.total_balance - balance
+                            #add withheld balance to available balance
+                            person.available_balance += person.witheld_balance
+                            #subtract the untouchable balance from available balance
+                            person.available_balance -= untouchable
+                            #make withheld balance equal to untouchable balance
+                            person.witheld_balance = untouchable
+                            #subtract the amount paid from available balance
+                            person.available_balance -= amount
+                            #condition for when loan isnt cleared
+                            if person.loan_balance != amount:
+                                #withold the rest of the amount
+                                remainder = person.loan_balance - amount
+                                #if it remainder is larger than available balance it will raise an error
+                                person.available_balance -= remainder
+                                person.balance_withheld += remainder
+                        else:
+                            raise ValueError("Insufficient funds")
 
                 savings_payment = SavingPayment(
                     amount=-amount,
@@ -1204,6 +1224,7 @@ class Queries:
                 )
                 self.db.session.add(loan_payment)
                 self.update_loan_and_balance(person.last_loan(),amount)
+
                 self.db.session.commit()
                 return True
         except Exception as e:
