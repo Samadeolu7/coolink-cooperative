@@ -1086,12 +1086,12 @@ class Queries:
                     person = contribution.guarantor
                     person.available_balance += float(contribution.contribution_amount)
                     person.balance_withheld -= float(contribution.contribution_amount)
-            person = loan.person
-            withheld = person.balance_withheld
-            for contrib in person.guarantor_contributions:
-                withheld-=contrib.contribution_amount
-            person.available_balance += withheld
-            person.balance_withheld -= withheld
+            # person = loan.person
+            # withheld = person.balance_withheld
+            # for contrib in person.guarantor_contributions:
+            #     withheld+=contrib.contribution_amount
+            # person.available_balance += withheld
+            # person.balance_withheld -= withheld
 
 
         else:
