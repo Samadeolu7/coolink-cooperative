@@ -505,6 +505,10 @@ def register_loan():
                 else:
                     flash(test, "error")
             
+            elif "UniqueViolation" in test:
+                flash("You have an already registed for loan","error")
+                return redirect(url_for("register_loan"))
+            
             else:
                 flash(f"something went wrong.{test}", "error")
                 return redirect(url_for("register_loan"))

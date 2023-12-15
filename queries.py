@@ -1068,7 +1068,6 @@ class Queries:
                     year=self.year,
                 )
                 self.db.session.add(bank_payment)
-                gc = GuarantorContribution.query.filter_by(loan=loan).first()
 
                 self.update_loan_and_balance(person.last_loan(),amount)
 
@@ -1142,27 +1141,42 @@ class Queries:
             if person:
                 bank = Bank.query.filter_by(id=bank_id).first()
 
-                balance = self.get_person_balance(person.id)
-                log_report(f"Balance: {balance}")
-                untouchable_balance = person.total_balance - balance
-                log_report(f"Untouchable Balance: {untouchable_balance}")
-                touchable_balance_withheld = person.balance_withheld - untouchable_balance
-                log_report(f"Touchable Balance Withheld: {touchable_balance_withheld}")
 
-                if touchable_balance_withheld >= amount:
-                    person.balance_withheld -= amount
-                    log_report(f"Balance Withheld: {person.balance_withheld}")
+
+                loan = person.last_loan()
+                log_report(loan)
+                if loan.guarantor:
+                    if person in loan.guarantor:
+                        log_report(loan.guarantor)
+                        # get the contribution amount
+                        for g in loan.guarantor:
+                            log_report(g)
+                            for contribution in g.guarantor_contributions:
+                                log_report(contribution)
+                                if contribution.guarantor == person:
+                                    if loan.id == contribution.loan_id:
+                                        contribution_amount = contribution.contribution_amount
+                                        break
+                        # use the contribution amount to pay the loan
+                        if contribution_amount >= amount:
+                            contribution.contribution_amount -= amount
+                            person.available_balance += amount
+                            person.balance_withheld -= amount
+                        else:
+                            amount -= contribution_amount
+                            person.available_balance += contribution_amount
+                            person.balance_withheld -= contribution_amount
+
+                            if person.available_balance >= amount:
+                                person.available_balance -= amount
+                            else:
+                                raise ValueError("Insufficient funds")
                 else:
-                    amount -= touchable_balance_withheld
-                    log_report(f"Amount: {amount}")
-                    person.balance_withheld -= touchable_balance_withheld
-                    log_report(f"Balance Withheld: {person.balance_withheld}")
-
                     if person.available_balance >= amount:
                         person.available_balance -= amount
-                        log_report(f"Available Balance: {person.available_balance}")
                     else:
                         raise ValueError("Insufficient funds")
+
                 savings_payment = SavingPayment(
                     amount=-amount,
                     date=date,
