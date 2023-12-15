@@ -1180,11 +1180,11 @@ class Queries:
                             #get balance that might have been used as guarantor for someone else
                             untouchable = person.total_balance - balance
                             #add withheld balance to available balance
-                            person.available_balance += person.witheld_balance
+                            person.available_balance += person.withheld_balance
                             #subtract the untouchable balance from available balance
                             person.available_balance -= untouchable
                             #make withheld balance equal to untouchable balance
-                            person.witheld_balance = untouchable
+                            person.withheld_balance = untouchable
                             #subtract the amount paid from available balance
                             person.available_balance -= amount
                             #condition for when loan isnt cleared
