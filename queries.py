@@ -1127,6 +1127,7 @@ class Queries:
             if not person:
                 raise ValueError("Person not found.")
             if person:
+                log_report(f'loan_balance:{ person.loan_balance}')
                 bank = Bank.query.filter_by(id=bank_id).first()
 
                 self.update_loan_and_balance(person.last_loan(),amount)
@@ -1144,7 +1145,7 @@ class Queries:
                     year=self.year,
                 )
                 self.db.session.add(savings_payment)
-
+                log_report(f'loan_balance:{ person.loan_balance}')
                 person.loan_balance -= float(amount)
                 log_report(person.loan_balance)
                 loan_payment = LoanPayment(
