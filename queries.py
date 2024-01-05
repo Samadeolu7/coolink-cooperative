@@ -1145,9 +1145,12 @@ class Queries:
                     year=self.year,
                 )
                 self.db.session.add(savings_payment)
-                log_report(f'loan_balance:{ person.loan_balance}')
-                person.loan_balance -= float(amount)
-                log_report(person.loan_balance)
+                decimal_error_test = person.loan_balance - float(amount)
+                if decimal_error_test < 0 and decimal_error_test > -0.01:
+                    person.loan_balance = 0
+                else:
+                    person.loan_balance -= float(amount)
+                
                 loan_payment = LoanPayment(
                     amount=-amount,
                     date=date,
