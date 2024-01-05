@@ -1095,8 +1095,8 @@ class Queries:
         amount = float(amount)
         if loan.person.loan_balance <= 1000:
             loan.is_paid = True
-        for guarantor in loan.guarantor:
-            contrib_amount = self.contrib_amount(guarantor.id)
+        for guarantor in loan.guarantor_contributions:
+            contrib_amount = self.contrib_amount(guarantor.guarantor_id)
             amount = guarantor.balance_withheld - contrib_amount
             guarantor.available_balance += amount
             guarantor.balance_withheld = contrib_amount
