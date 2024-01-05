@@ -1146,6 +1146,7 @@ class Queries:
                 self.db.session.add(savings_payment)
 
                 person.loan_balance -= float(amount)
+                log_report(person.loan_balance)
                 loan_payment = LoanPayment(
                     amount=-amount,
                     date=date,
@@ -1158,7 +1159,6 @@ class Queries:
                     year=self.year,
                 )
                 self.db.session.add(loan_payment)
-                log_report(4)
                 self.update_loan_and_balance(person.last_loan(),amount)
 
                 self.db.session.commit()
