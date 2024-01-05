@@ -90,6 +90,17 @@ class Person(db.Model, UserMixin):
     payments_made = db.relationship("SavingPayment", backref="payer", lazy=True)
     loan_payments_made = db.relationship("LoanPayment", backref="payer", lazy=True)
 
+    def __init__(self, **kwargs):
+        super(Person, self).__init__(**kwargs)
+
+        # Round the values to 2 decimal places before they're stored
+        self.balance_bfd = round(self.balance_bfd, 2)
+        self.balance_withheld = round(self.balance_withheld, 2)
+        self.available_balance = round(self.available_balance, 2)
+        self.loan_balance = round(self.loan_balance, 2)
+        self.loan_balance_bfd = round(self.loan_balance_bfd, 2)
+
+
     def to_json(self):
         return {
             "id": self.id,
