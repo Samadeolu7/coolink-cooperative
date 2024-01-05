@@ -1129,69 +1129,9 @@ class Queries:
             if person:
                 bank = Bank.query.filter_by(id=bank_id).first()
 
+                self.update_loan_and_balance(person.last_loan(),amount)
 
-
-                loan = person.last_loan()
-                log_report(loan)
-                if loan.guarantor:
-                    if person in loan.guarantor:
-                        log_report(loan.guarantor)
-                        # get the contribution amount
-                        for g in loan.guarantor:
-                            log_report(g)
-                            for contribution in g.guarantor_contributions:
-                                log_report(contribution)
-                                if contribution.guarantor == person:
-                                    if loan.id == contribution.loan_id:
-                                        contribution_amount = contribution.contribution_amount
-                                        break
-                
-                        # use the contribution amount to pay the loan
-                        if contribution_amount >= amount:
-                            contribution.contribution_amount -= amount
-                            person.balance_withheld -= amount
-                        else:
-                            amount -= contribution_amount
-                            person.available_balance += contribution_amount
-                            person.balance_withheld -= contribution_amount
-
-                            if person.available_balance >= amount:
-                                person.available_balance -= amount
-                            else:
-                                raise ValueError("Insufficient funds")
-                else:
-                    if person.available_balance >= amount:
-                        person.available_balance -= amount
-
-                    else:
-                        balance = self.get_person_balance(person.id)
-                        if balance >= amount:
-                            #get balance that might have been used as guarantor for someone else
-                            untouchable = person.total_balance - balance
-                            #add withheld balance to available balance
-                            person.available_balance += person.balance_withheld
-                            #subtract the untouchable balance from available balance
-                            person.available_balance -= untouchable
-                            log_report(1)
-                            log_report(person.available_balance)
-                            #make withheld balance equal to untouchable balance
-                            person.balance_withheld = untouchable
-                            #subtract the amount paid from available balance
-                            person.available_balance -= amount
-                            log_report(2)
-                            log_report(person.available_balance)
-                            #condition for when loan isnt cleared
-                            if person.loan_balance != amount:
-                                #withold the rest of the amount
-                                remainder = person.loan_balance - amount
-                                #if it remainder is larger than available balance it will raise an error
-                                person.available_balance -= remainder
-                                log_report(3)
-                                log_report(person.available_balance)
-                                person.balance_withheld += remainder
-                        else:
-                            raise ValueError("Insufficient funds")
-
+                person.available_balance -= float(amount)
                 savings_payment = SavingPayment(
                     amount=-amount,
                     date=date,
