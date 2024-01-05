@@ -1077,40 +1077,29 @@ class Queries:
             self.db.session.rollback()
             return str(e)
         
+    def contrib_amount(self,person_id):
+        person = Person.query.get(person_id)
+        contribution = 0
+        for contrib in person.guarantor_contributions:
+            contrib_amount = contrib.contribution_amount
+            loan = contrib.loan.amount
+            loan_balance = contrib.loan.person.loan_balance
+            percentage = contrib_amount/loan
+            new_contrib = loan_balance * percentage
+            contrib.contribution_amount = new_contrib
+            contribution += new_contrib
+        return contribution
+
+        
     def update_loan_and_balance(self,loan,amount):
         amount = float(amount)
         if loan.person.loan_balance <= 1000:
             loan.is_paid = True
-            for contribution in loan.guarantor_contributions:
-                if contribution.guarantor:
-                    person = contribution.guarantor
-                    person.available_balance += float(contribution.contribution_amount)
-                    person.balance_withheld -= float(contribution.contribution_amount)
-            # person = loan.person
-            # withheld = person.balance_withheld
-            # for contrib in person.guarantor_contributions:
-            #     withheld+=contrib.contribution_amount
-            # person.available_balance += withheld
-            # person.balance_withheld -= withheld
-
-
-        else:
-            percentage = amount/loan.amount * 100
-            total_contrib = 0
-            for contribution in loan.guarantor_contributions:
-                if contribution.guarantor:
-                    person = contribution.guarantor
-                    amount_to_be_paid = float(contribution.contribution_amount) * percentage
-                    person.available_balance += amount_to_be_paid
-                    person.balance_withheld -= amount_to_be_paid
-                    contribution.contribution_amount -= amount_to_be_paid
-                    total_contrib += contribution.contribution_amount
-            person_contrib = loan.person.loan_balance-total_contrib
-            amount_to_be_paid = person_contrib * percentage
-            person = loan.person
-            if person.balance_withheld >= amount_to_be_paid:
-                person.available_balance += amount_to_be_paid
-                person.balance_withheld -= amount_to_be_paid
+        for guarantor in loan.guarantor:
+            contrib_amount = self.contrib_amount(guarantor.id)
+            amount = guarantor.balance_withheld - contrib_amount
+            guarantor.available_balance += amount
+            guarantor.balance_withheld = contrib_amount
 
         return True
     
