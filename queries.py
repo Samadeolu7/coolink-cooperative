@@ -1097,9 +1097,9 @@ class Queries:
             loan.is_paid = True
         for guarantor in loan.guarantor_contributions:
             contrib_amount = self.contrib_amount(guarantor.guarantor_id)
-            amount = guarantor.balance_withheld - contrib_amount
-            guarantor.available_balance += amount
-            guarantor.balance_withheld = contrib_amount
+            amount = guarantor.guarantor.balance_withheld - contrib_amount
+            guarantor.guarantor.available_balance += amount
+            guarantor.guarantor.balance_withheld = contrib_amount
 
         return True
     
