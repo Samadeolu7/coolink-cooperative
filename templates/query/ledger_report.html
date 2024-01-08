@@ -34,6 +34,15 @@ COOLINK CO-OPERATIVE {{ledger_report.name}} ACCOUNT
                     <th>Amount</th>
                     <th>Balance</th>
                 </tr>
+
+                <tr>
+                    <td> - </td>
+                    <td> - </td>
+                    <td>Balance B/FWD</td>
+                    <td>{{ ledger_report.balance_bfd| currency }}</td>
+                    <td>{{ ledger_report.balance_bfd| currency }}</td>
+                </tr>
+
                 {% for payment in payments %}
                     <tr>
                         <td>{{ payment.date }}</td>
