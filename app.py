@@ -119,12 +119,13 @@ def dashboard():
     for payment in person.loan_form_payment:
         if payment.failed:
             failed_loan = payment
-            if failed_loan.loan_amount > failed_loan.guarantor_amount:
-                message = "Guaranteed amount insuffficient"
-            else:
-                message = "Consent not given"
+            if failed_loan.guarantor_amount not in [0, None]:
+                if failed_loan.loan_amount > failed_loan.guarantor_amount:
+                    message = "Guaranteed amount insuffficient"
+                else:
+                    message = "Consent not given"
 
-            break  # Exit the loop if a failed loan is found
+                break  # Exit the loop if a failed loan is found
  
     return render_template("dashboard.html", person=person, form=form,consents=pre_guarantor,failed_loan=failed_loan,message=message)
 
@@ -1400,7 +1401,8 @@ def admin_search():
         'investments': investments,
 
     }
-    return jsonify(result)
+
+    return render_template('query/search.html', data = result)
 
 
 @app.route("/banks_report")

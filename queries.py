@@ -1473,17 +1473,17 @@ class Queries:
         return total
     
     def search_all_payment_tables(self, ref_no):
-        savings = [payment.to_json() for payment in SavingPayment.query.filter_by(ref_no=ref_no).all()]
-        loans = [payment.to_json() for payment in LoanPayment.query.filter_by(ref_no=ref_no).all()]
-        companies = [payment.to_json() for payment in CompanyPayment.query.filter_by(ref_no=ref_no).all()]
-        banks = [payment.to_json() for payment in BankPayment.query.filter_by(ref_no=ref_no).all()]
-        incomes = [payment.to_json() for payment in IncomePayment.query.filter_by(ref_no=ref_no).all()]
-        expenses = [payment.to_json() for payment in ExpensePayment.query.filter_by(ref_no=ref_no).all()]
-        assets = [payment.to_json() for payment in AssetPayment.query.filter_by(ref_no=ref_no).all()]
-        liabilities = [payment.to_json() for payment in LiabilityPayment.query.filter_by(ref_no=ref_no).all()]
-        investments = [payment.to_json() for payment in InvestmentPayment.query.filter_by(ref_no=ref_no).all()]
+        ref_no_like = f"{ref_no}%"
+        savings = [payment.to_json() for payment in SavingPayment.query.filter(SavingPayment.ref_no.like(ref_no_like)).all()]
+        loans = [payment.to_json() for payment in LoanPayment.query.filter(LoanPayment.ref_no.like(ref_no_like)).all()]
+        companies = [payment.to_json() for payment in CompanyPayment.query.filter(CompanyPayment.ref_no.like(ref_no_like)).all()]
+        banks = [payment.to_json() for payment in BankPayment.query.filter(BankPayment.ref_no.like(ref_no_like)).all()]
+        incomes = [payment.to_json() for payment in IncomePayment.query.filter(IncomePayment.ref_no.like(ref_no_like)).all()]
+        expenses = [payment.to_json() for payment in ExpensePayment.query.filter(ExpensePayment.ref_no.like(ref_no_like)).all()]
+        assets = [payment.to_json() for payment in AssetPayment.query.filter(AssetPayment.ref_no.like(ref_no_like)).all()]
+        liabilities = [payment.to_json() for payment in LiabilityPayment.query.filter(LiabilityPayment.ref_no.like(ref_no_like)).all()]
+        investments = [payment.to_json() for payment in InvestmentPayment.query.filter(InvestmentPayment.ref_no.like(ref_no_like)).all()]
         return savings, loans, companies, banks, incomes, expenses, assets, liabilities, investments
-
 
     @staticmethod
     def get_liabilities_per_year(year):
