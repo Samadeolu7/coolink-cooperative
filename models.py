@@ -523,7 +523,7 @@ class IncomePayment(db.Model):
             "amount": self.amount,
             "exact_date": self.exact_date,
             "date": self.date,
-            "main_id": self.main_id,
+            "main_id": self.income_id,
             "name": income.name,
             "description": self.description,
             "ref_no": self.ref_no,
