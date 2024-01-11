@@ -524,7 +524,7 @@ class IncomePayment(db.Model):
             "exact_date": self.exact_date,
             "date": self.date,
             "main_id": self.income_id,
-            "name": income.name,
+            "name": income.name if income else None,
             "description": self.description,
             "ref_no": self.ref_no,
             "balance": self.balance,

@@ -1,3 +1,4 @@
+from collections import defaultdict
 from flask import (
     Flask,
     render_template,
@@ -1389,6 +1390,17 @@ def loan_account(person_id):
 def admin_search():
     ref_no = request.args.get('ref_no')
     savings, loans, companies, banks, incomes, expenses, assets, liabilities, investments = query.search_all_payment_tables(ref_no)
+    all_payments = savings + loans + companies + banks + incomes + expenses + assets + liabilities + investments
+
+    # Sort the list by ref_no
+    all_payments.sort(key=lambda payment: payment['ref_no'])
+    payments_dict = defaultdict(list)
+
+    # Loop over all payments
+    for payment in all_payments:
+        # Append the payment to the list of payments with the same ref_no
+        payments_dict[payment['ref_no']].append(payment)
+
     result = {
         'savings': savings,
         'loans': loans,
@@ -1402,7 +1414,7 @@ def admin_search():
 
     }
 
-    return render_template('query/search.html', data = result)
+    return render_template('query/search.html', data = result,by_ref_no=payments_dict)
 
 
 @app.route("/banks_report")

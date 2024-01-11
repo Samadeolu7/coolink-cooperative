@@ -1474,15 +1474,16 @@ class Queries:
     
     def search_all_payment_tables(self, ref_no):
         ref_no_like = f"{ref_no}%"
-        savings = [payment.to_json() for payment in SavingPayment.query.filter(SavingPayment.ref_no.like(ref_no_like)).all()]
-        loans = [payment.to_json() for payment in LoanPayment.query.filter(LoanPayment.ref_no.like(ref_no_like)).all()]
-        companies = [payment.to_json() for payment in CompanyPayment.query.filter(CompanyPayment.ref_no.like(ref_no_like)).all()]
-        banks = [payment.to_json() for payment in BankPayment.query.filter(BankPayment.ref_no.like(ref_no_like)).all()]
-        incomes = [payment.to_json() for payment in IncomePayment.query.filter(IncomePayment.ref_no.like(ref_no_like)).all()]
-        expenses = [payment.to_json() for payment in ExpensePayment.query.filter(ExpensePayment.ref_no.like(ref_no_like)).all()]
-        assets = [payment.to_json() for payment in AssetPayment.query.filter(AssetPayment.ref_no.like(ref_no_like)).all()]
-        liabilities = [payment.to_json() for payment in LiabilityPayment.query.filter(LiabilityPayment.ref_no.like(ref_no_like)).all()]
-        investments = [payment.to_json() for payment in InvestmentPayment.query.filter(InvestmentPayment.ref_no.like(ref_no_like)).all()]
+        savings = [{**payment.to_json(), 'transaction_type': 'savings'} for payment in SavingPayment.query.filter(SavingPayment.ref_no.like(ref_no_like)).all()]
+        loans = [{**payment.to_json(), 'transaction_type': 'loans'} for payment in LoanPayment.query.filter(LoanPayment.ref_no.like(ref_no_like)).all()]
+        companies = [{**payment.to_json(), 'transaction_type': 'company'} for payment in CompanyPayment.query.filter(CompanyPayment.ref_no.like(ref_no_like)).all()]
+        banks = [{**payment.to_json(), 'transaction_type': 'banks'} for payment in BankPayment.query.filter(BankPayment.ref_no.like(ref_no_like)).all()]
+        incomes = [{**payment.to_json(), 'transaction_type': f'incomes {payment.main.name}'} for payment in IncomePayment.query.filter(IncomePayment.ref_no.like(ref_no_like)).all() if payment and payment.main]
+        expenses = [{**payment.to_json(), 'transaction_type': f'expenses {payment.main.name}'} for payment in ExpensePayment.query.filter(ExpensePayment.ref_no.like(ref_no_like)).all() if payment and payment.main ]
+        assets = [{**payment.to_json(), 'transaction_type': f'assets {payment.main.name}'} for payment in AssetPayment.query.filter(AssetPayment.ref_no.like(ref_no_like)).all() if payment and payment.main]
+        liabilities = [{**payment.to_json(), 'transaction_type': f'liabilities {payment.main.name}'} for payment in LiabilityPayment.query.filter(LiabilityPayment.ref_no.like(ref_no_like)).all() if payment and payment.main ]
+        investments = [{**payment.to_json(), 'transaction_type': f'investments {payment.main.name}'} for payment in InvestmentPayment.query.filter(InvestmentPayment.ref_no.like(ref_no_like)).all() if payment and payment.main ]
+        
         return savings, loans, companies, banks, incomes, expenses, assets, liabilities, investments
 
     @staticmethod

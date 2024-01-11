@@ -3,8 +3,13 @@
 {% block content %}
 
 <body id="person">
-    {% for key, value in data.items() %}
-    {% if value %}
+    <body id="person">
+        <button id="dataButton">Show Data</button>
+        <button id="refNoButton">Show By Ref No</button>
+    
+        <div id="dataDiv">
+            {% for key, value in data.items() %}
+        {% if value %}
         <h2>{{ key }}</h2>
         <table class="tab-content">
             <thead>
@@ -30,10 +35,48 @@
         </table>
     {% endif %}
     {% endfor %}
-</body>
+</div>
+    
+        <div id="refNoDiv" style="display: none;">
+            {% for key, value in by_ref_no.items() %}
+            {% if value %}
+                <h2>{{ key }}</h2>
+                <table class="tab-content">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Ref_No</th>
+                            <th>Person Name</th>
+                            <th>Amount</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in value %}
+                            <tr>
+                                <td>{{ transaction.date }}</td>
+                                <td>{{ transaction.transaction_type }}</td>
+                                <td>{{ transaction.person_name }}</td>
+                                <td>{{ transaction.amount }}</td>
+                                <td>{{ transaction.description }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+            {% endfor %}
+        </div>
+
+    </body>
 <script>
-    const data = {{ data.items }};
-    console.log("hello");
-    console.log(data);
+    document.getElementById('dataButton').addEventListener('click', function() {
+        document.getElementById('dataDiv').style.display = 'block';
+        document.getElementById('refNoDiv').style.display = 'none';
+    });
+
+    document.getElementById('refNoButton').addEventListener('click', function() {
+        document.getElementById('dataDiv').style.display = 'none';
+        document.getElementById('refNoDiv').style.display = 'block';
+    });
 </script>
 {% endblock %}
