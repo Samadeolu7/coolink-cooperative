@@ -248,7 +248,6 @@ class Loan(db.Model):
     sub_approved_by = db.Column(db.Integer, db.ForeignKey("persons.id"), nullable=True)
     approved_by = db.Column(db.Integer, db.ForeignKey("persons.id"), nullable=True)
 
-
     def to_json(self):
         return {
             "id": self.id,
@@ -654,24 +653,24 @@ class TransactionCounter(db.Model):
         year = self.year
         month = self.month
 
-        # Start a new transaction
-        with db.session.begin_nested():
-            # Lock the counter record for the current year and month
-            counter_record = db.session.query(TransactionCounter).with_for_update().filter_by(type=type, year=year, month=month).first()
+        # Try to get the last transaction with the same type, year, and month
+        counter_record = db.session.query(TransactionCounter).filter_by(type=type, year=year, month=month).order_by(TransactionCounter.counter.desc()).first()
 
-            if counter_record is None:
-                # If there's no counter record for the current month, create one
-                counter_record = TransactionCounter(type=type, year=year, month=month, counter=1)
-                db.session.add(counter_record)
-            else:
-                # If a counter record exists, increment the counter
-                counter_record.counter += 1
+        if counter_record is None:
+            # If there's no such transaction, create a new counter record
+            counter = 1
+            counter_record = TransactionCounter(type=type, year=year, month=month, counter=counter)
+            db.session.add(counter_record)
+        else:
+            # If such a transaction exists, increment the counter
+            counter = counter_record.counter + 1
+            counter_record.counter = counter
 
-            # Commit the transaction
-            db.session.commit()
+        # Commit the transaction
+        db.session.commit()
 
         # Format the reference number with leading zeros for the counter
-        return f"{year}{month:02d}-{counter_record.counter:04d}"
+        return f"{year}{month:02d}-{counter:04d}"
 
 
 loan_payment_guarantor_association = db.Table(

@@ -286,6 +286,20 @@ class Queries:
                     person_id=debit.id,
                     year=self.year,
                 )
+            
+            elif id == 3:
+                debit.balance += float(amount)
+                debit_payment = dict[id][1](
+                    amount=float(amount),
+                    date=date,
+                    exact_date=datetime.utcnow(),
+                    description=description,
+                    ref_no=ref_no,
+                    balance=debit.balance,
+                    main_id=sub_id,
+                    year=self.year,
+                )
+
             elif id == 6:
                 debit.person.loan_balance -= float(amount)
                 debit_payment = dict[id][1](
@@ -372,6 +386,20 @@ class Queries:
                     ref_no=ref_no,
                     balance= credit.total_balance,
                     person_id=credit.id,
+                    year=self.year,
+                )
+            
+            elif id_2 == 3:
+                credit = dict[id_2][0].query.filter_by(id=sub_id_2).first()
+                credit.balance -= float(amount)
+                credit_payment = dict[id_2][1](
+                    amount=float(-amount),
+                    date=date,
+                    exact_date=datetime.utcnow(),
+                    description=description,
+                    ref_no=ref_no,
+                    balance= credit.balance,
+                    main_id=sub_id_2,
                     year=self.year,
                 )
             elif id_2 == 6:
