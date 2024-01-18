@@ -1521,8 +1521,8 @@ def trial_balance():
     expenses = Expense.query.all()
     investments = Investment.query.all()
 
-    incomes = [income for income in incomes if income.balance > 0]
-    expenses = [expense for expense in expenses if expense.balance > 0]
+    incomes = [income for income in incomes ]
+    expenses = [expense for expense in expenses ]
     total_income = sum(income.balance for income in incomes)
     total_expenses = sum(expense.balance for expense in expenses)
     total_fixed_assets = sum(a.balance for a in fixed_assets)

@@ -247,24 +247,28 @@ class Queries:
     def journal_voucher(self, id, id_2, sub_id,sub_id_2, amount, date, ref_no, description,user_id):
         try:
             dict={
-                1:(Asset,AssetPayment),
-                2:(Expense,ExpensePayment),
-                3:(Investment,InvestmentPayment),
-                4:(Liability,LiabilityPayment),
-                5:(Person,SavingPayment),
-                6:(Loan,LoanPayment),
-                7:(Company,CompanyPayment),
-                8:(Income,IncomePayment)
+                1:(Asset,AssetPayment,'debit'),
+                2:(Expense,ExpensePayment,'debit'),
+                3:(Investment,InvestmentPayment,'credit'),
+                4:(Liability,LiabilityPayment,'debit'),
+                5:(Person,SavingPayment,"credit"),
+                6:(Loan,LoanPayment,"debit"),
+                7:(Company,CompanyPayment,"credit"),
+                8:(Income,IncomePayment,"credit")
             }
             debit = dict[id][0].query.filter_by(id=sub_id).first()
             marker = TransactionCounter(type ="JV",year=datetime.utcnow().year,month=datetime.utcnow().month)
             self.db.session.add(marker)
             ref_no = f"JV{marker.ref_no}"
+            if dict[id][2] == 'debit':
+                amount = float(-amount)
+            else:
+                amount = float(amount)
 
             if id == 7:
-                debit.amount_accumulated += float(amount)
+                debit.amount_accumulated += amount
                 debit_payment = dict[id][1](
-                    amount=float(amount),
+                    amount=amount,
                     date=date,
                     exact_date=datetime.utcnow(),
                     description=description,
@@ -275,9 +279,9 @@ class Queries:
                 )
 
             elif id == 5:
-                debit.available_balance -= float(amount)
+                debit.available_balance += (amount)
                 debit_payment = dict[id][1](
-                    amount=float(-amount),
+                    amount=(amount),
                     date=date,
                     exact_date=datetime.utcnow(),
                     description=description,
@@ -288,9 +292,9 @@ class Queries:
                 )
             
             elif id == 3:
-                debit.balance += float(amount)
+                debit.balance += (amount)
                 debit_payment = dict[id][1](
-                    amount=float(amount),
+                    amount=(amount),
                     date=date,
                     exact_date=datetime.utcnow(),
                     description=description,
@@ -301,9 +305,9 @@ class Queries:
                 )
 
             elif id == 6:
-                debit.person.loan_balance -= float(amount)
+                debit.person.loan_balance += (amount)
                 debit_payment = dict[id][1](
-                    amount=float(-amount),
+                    amount=(amount),
                     date=date,
                     exact_date=datetime.utcnow(),
                     description=description,
@@ -334,9 +338,9 @@ class Queries:
                         contribution.contribution_amount -= amount_to_be_paid
             
             elif id == 8:
-                debit.balance -= float(amount)
+                debit.balance += (amount)
                 debit_payment = dict[id][1](
-                        amount=float(-amount),
+                        amount=(amount),
                         date=date,
                         exact_date=datetime.utcnow(),
                         description=description,
@@ -347,7 +351,7 @@ class Queries:
                     )
 
             else:
-                debit.balance -= float(amount)
+                debit.balance += float(amount)
                 debit_payment = dict[id][1](
                         amount=float(-amount),
                         date=date,
@@ -361,11 +365,16 @@ class Queries:
 
             self.db.session.add(debit_payment)
 
+            if dict[id_2][2] == 'debit':
+                amount = float(amount)
+            else:
+                amount = float(-amount)
+
             if id_2 == 7:
                 credit = dict[id_2][0].query.filter_by(id=sub_id_2).first()
-                credit.amount_accumulated -= float(amount)
+                credit.amount_accumulated += (amount)
                 credit_payment = dict[id_2][1](
-                    amount=float(-amount),
+                    amount=amount,
                     date=date,
                     exact_date=datetime.utcnow(),
                     description=description,
@@ -377,9 +386,9 @@ class Queries:
 
             elif id_2 == 5:
                 credit = dict[id_2][0].query.filter_by(id=sub_id_2).first()
-                credit.available_balance += float(amount)
+                credit.available_balance += (amount)
                 credit_payment = dict[id_2][1](
-                    amount=float(amount),
+                    amount=(amount),
                     date=date,
                     exact_date=datetime.utcnow(),
                     description=description,
@@ -391,9 +400,9 @@ class Queries:
             
             elif id_2 == 3:
                 credit = dict[id_2][0].query.filter_by(id=sub_id_2).first()
-                credit.balance -= float(amount)
+                credit.balance += (amount)
                 credit_payment = dict[id_2][1](
-                    amount=float(-amount),
+                    amount=(amount),
                     date=date,
                     exact_date=datetime.utcnow(),
                     description=description,
@@ -404,9 +413,9 @@ class Queries:
                 )
             elif id_2 == 6:
                 credit = dict[id_2][0].query.filter_by(id=sub_id_2).first()
-                credit.person.loan_balance += float(amount)
+                credit.person.loan_balance += (amount)
                 credit_payment = dict[id_2][1](
-                    amount=float(amount),
+                    amount=(amount),
                     date=date,
                     exact_date=datetime.utcnow(),
                     description=description,
@@ -418,9 +427,9 @@ class Queries:
 
             elif id_2 == 8:
                 credit = dict[id_2][0].query.filter_by(id=sub_id_2).first()
-                credit.balance += float(amount)
+                credit.balance += (amount)
                 credit_payment = dict[id_2][1](
-                        amount=float(amount),
+                        amount=(amount),
                         date=date,
                         exact_date=datetime.utcnow(),
                         description=description,
@@ -431,9 +440,9 @@ class Queries:
                     )
             else:
                 credit = dict[id_2][0].query.filter_by(id=sub_id_2).first()
-                credit.balance += float(amount)
+                credit.balance += (amount)
                 credit_payment = dict[id_2][1](
-                        amount=float(amount),
+                        amount=(amount),
                         date=date,
                         exact_date=datetime.utcnow(),
                         description=description,
