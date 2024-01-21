@@ -203,17 +203,13 @@ class SavingPayment(db.Model):
     year = db.Column(db.Integer, nullable=False)
 
     def to_json(self):
-        person = Person.query.get(self.person_id)
-        company = Company.query.get(self.company_id)
         return {
             "id": self.id,
             "amount": self.amount,
             "exact_date": self.exact_date,
             "date": self.date,
             "person_id": self.person_id,
-            "person_name": person.name if person else None,
             "company_id": self.company_id,
-            "company_name": company.name if company else None,
             "description": self.description,
             "ref_no": self.ref_no,
             "balance": self.balance,
@@ -296,8 +292,7 @@ class LoanPayment(db.Model):
     year = db.Column(db.Integer, nullable=False)
 
     def to_json(self):
-        person = Person.query.get(self.person_id)
-        company = Company.query.get(self.company_id)
+
         return {
             "id": self.id,
             "amount": self.amount,
@@ -308,9 +303,7 @@ class LoanPayment(db.Model):
             "balance": self.balance,
             "bank_id": self.bank_id,
             "person_id": self.person_id,
-            "person_name": person.name if person else None,
             "company_id": self.company_id,
-            "company_name": company.name if company else None,
         }
 
 

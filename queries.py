@@ -247,14 +247,14 @@ class Queries:
     def journal_voucher(self, id, id_2, sub_id,sub_id_2, amount, date, ref_no, description,user_id):
         try:
             dict={
-                1:(Asset,AssetPayment,'debit'),
-                2:(Expense,ExpensePayment,'debit'),
+                1:(Asset,AssetPayment,'credit'),
+                2:(Expense,ExpensePayment,'credit'),
                 3:(Investment,InvestmentPayment,'credit'),
-                4:(Liability,LiabilityPayment,'debit'),
-                5:(Person,SavingPayment,"credit"),
-                6:(Loan,LoanPayment,"debit"),
+                4:(Liability,LiabilityPayment,'credit'),
+                5:(Person,SavingPayment,"debit"),
+                6:(Loan,LoanPayment,"credit"),
                 7:(Company,CompanyPayment,"credit"),
-                8:(Income,IncomePayment,"credit")
+                8:(Income,IncomePayment,"debit")
             }
             debit = dict[id][0].query.filter_by(id=sub_id).first()
             marker = TransactionCounter(type ="JV",year=datetime.utcnow().year,month=datetime.utcnow().month)
@@ -365,10 +365,12 @@ class Queries:
 
             self.db.session.add(debit_payment)
 
-            if dict[id_2][2] == 'debit':
-                amount = float(amount)
-            else:
+            if dict[id][2] == 'debit' and dict[id_2][2] == 'debit':
                 amount = float(-amount)
+            elif dict[id][2] == 'credit' and dict[id_2][2] == 'credit':
+                amount = float(-amount)
+            else:
+                amount = float(amount)
 
             if id_2 == 7:
                 credit = dict[id_2][0].query.filter_by(id=sub_id_2).first()
