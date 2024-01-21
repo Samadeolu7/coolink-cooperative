@@ -28,6 +28,7 @@ COOLINK CO-OPERATIVE {{ledger_report.name}} ACCOUNT
         <table class='tab-content'>
             <tbody>
                 <tr>
+                    <th>Payment ID</th>
                     <th>Date</th>
                     <th>Reference Number</th>
                     <th>Description</th>
@@ -38,6 +39,7 @@ COOLINK CO-OPERATIVE {{ledger_report.name}} ACCOUNT
                 <tr>
                     <td> - </td>
                     <td> - </td>
+                    <td> - </td>
                     <td>Balance B/FWD</td>
                     <td>{{ ledger_report.balance_bfd| currency }}</td>
                     <td>{{ ledger_report.balance_bfd| currency }}</td>
@@ -45,6 +47,7 @@ COOLINK CO-OPERATIVE {{ledger_report.name}} ACCOUNT
 
                 {% for payment in payments %}
                     <tr>
+                        <td>{{ payment.id }}</td>
                         <td>{{ payment.date }}</td>
                         <td>{{ payment.ref_no }}</td>
                         <td>{{ payment.description }}</td>
