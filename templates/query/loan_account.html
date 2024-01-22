@@ -56,6 +56,7 @@ COOLINK CO-OPERATIVE LOAN ACCOUNT
         <table class='tab-content'>
             <thead>
                 <tr>
+                    <th>Payment ID</th>
                     <th>Date</th>
                     <th>Refrence Number</th>
                     <th>Description</th>
@@ -68,12 +69,14 @@ COOLINK CO-OPERATIVE LOAN ACCOUNT
                 <tr>
                     <td> - </td>
                     <td> - </td>
+                    <td> - </td>
                     <td>Balance B/FWD</td>
                     <td>{{ person.loan_balance_bfd| currency }}</td>
                     <td>{{ person.loan_balance_bfd| currency }}</td>
                 </tr>
                     {% for payment in payments %}
                             <tr>
+                                <td>{{ payment.id }}</td>
                                 <td>{{ payment.date }}</td>
                                 <td>{{ payment.ref_no }}</td>
                                 <td>{{ payment.description }}</td>
