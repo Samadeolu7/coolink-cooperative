@@ -1132,13 +1132,14 @@ class Queries:
         
     def update_loan_and_balance(self,loan,amount):
         amount = float(amount)
-        if loan.person.loan_balance <= 1000:
-            loan.is_paid = True
-        for guarantor in loan.guarantor_contributions:
-                contrib_amount = self.contrib_amount(guarantor.guarantor_id)
-                amount = guarantor.guarantor.balance_withheld - contrib_amount
-                guarantor.guarantor.available_balance += amount
-                guarantor.guarantor.balance_withheld = contrib_amount
+        if loan:
+            if loan.person.loan_balance <= 1000:
+                loan.is_paid = True
+            for guarantor in loan.guarantor_contributions:
+                    contrib_amount = self.contrib_amount(guarantor.guarantor_id)
+                    amount = guarantor.guarantor.balance_withheld - contrib_amount
+                    guarantor.guarantor.available_balance += amount
+                    guarantor.guarantor.balance_withheld = contrib_amount
         return True
     
     def get_person_balance(self,person_id):
@@ -1204,7 +1205,9 @@ class Queries:
                     year=self.year,
                 )
                 self.db.session.add(loan_payment)
-                self.update_loan_and_balance(person.last_loan(),amount)
+                loan = person.last_loan() if person.last_loan() else None
+
+                self.update_loan_and_balance(loan,amount)
 
                 self.db.session.commit()
                 return True
