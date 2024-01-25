@@ -1135,12 +1135,10 @@ class Queries:
         if loan.person.loan_balance <= 1000:
             loan.is_paid = True
         for guarantor in loan.guarantor_contributions:
-            if guarantor.guarantor != loan.person:
                 contrib_amount = self.contrib_amount(guarantor.guarantor_id)
                 amount = guarantor.guarantor.balance_withheld - contrib_amount
                 guarantor.guarantor.available_balance += amount
                 guarantor.guarantor.balance_withheld = contrib_amount
-
         return True
     
     def get_person_balance(self,person_id):
@@ -1148,7 +1146,7 @@ class Queries:
         if selected_person:
             balance = selected_person.total_balance
             for contrib in selected_person.guarantor_contributions:
-                if contrib.guarantor != selected_person:
+                if contrib.loan.person != selected_person:
                     balance -= contrib.contribution_amount
             return balance
         else:
@@ -1171,7 +1169,10 @@ class Queries:
                 bank = Bank.query.filter_by(id=bank_id).first()
 
                 self.update_loan_and_balance(person.last_loan(),amount)
-
+                total_balance = self.get_person_balance(person.id)
+                diff = total_balance - person.available_balance
+                person.available_balance += diff
+                person.balance_withheld -= diff
                 person.available_balance -= float(amount)
                 savings_payment = SavingPayment(
                     amount=-amount,
