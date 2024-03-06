@@ -860,7 +860,7 @@ def request_withdrawal():
 
 @app.route("/withdraw/reject/<int:request_id>")
 @login_required
-@role_required(["Admin,Sub-Admin"])
+@role_required(["Admin","Sub-Admin"])
 def reject_withdrawal(request_id):
     wr= WithdrawalRequest.query.get(request_id)
     if not wr:
