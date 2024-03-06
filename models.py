@@ -94,11 +94,17 @@ class Person(db.Model, UserMixin):
         super(Person, self).__init__(**kwargs)
 
         # Round the values to 2 decimal places before they're stored
-        self.balance_bfd = round(self.balance_bfd, 2)
-        self.balance_withheld = round(self.balance_withheld, 2)
-        self.available_balance = round(self.available_balance, 2)
-        self.loan_balance = round(self.loan_balance, 2)
-        self.loan_balance_bfd = round(self.loan_balance_bfd, 2)
+        if self.balance_bfd is not None:
+            self.balance_bfd = round(self.balance_bfd, 2)
+        if self.balance_withheld is not None:
+            self.balance_withheld = round(self.balance_withheld, 2)
+        if self.available_balance is not None:
+            self.available_balance = round(self.available_balance, 2)
+        if self.loan_balance is not None:
+            self.loan_balance = round(self.loan_balance, 2)
+        if self.loan_balance_bfd is not None:
+            self.loan_balance_bfd = round(self.loan_balance_bfd, 2)
+
 
 
     def to_json(self):
