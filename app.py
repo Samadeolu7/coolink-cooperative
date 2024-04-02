@@ -1488,7 +1488,7 @@ def debtors_report():
 def individual_bank_report(bank_id):
     # Query the bank and its associated payments
     bank = query.get_bank(bank_id)
-    payments = bank.payments
+    payments = sorted(bank.payments, key=lambda payment: payment.date)
 
     # Calculate the total amount received by the bank
     total_amount = sum(payment.amount for payment in payments)

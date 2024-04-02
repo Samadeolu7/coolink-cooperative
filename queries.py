@@ -1303,7 +1303,13 @@ class Queries:
         except Exception as e:
             self.db.session.rollback()
             return str(e)
+        
 
+    def sort_transactions_by_date(self, transactions):
+        sorted_transactions = transactions.order_by(transactions.date.desc())
+        return sorted_transactions
+    
+    
     # API
     def sub_accounts(self, ledger):
         if ledger == 1:

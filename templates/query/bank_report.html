@@ -36,6 +36,7 @@ Bank Report
             </tr>
         </thead>
         <tbody>
+            {% set balance = [bank.balance_bfd] %}
             {% for payment in payments %}
             <tr>
                 <td>{{ payment.id }}</td> 
@@ -43,8 +44,8 @@ Bank Report
                 <td>{{ payment.description}}</td>
                 <td>{{ payment.ref_no}}</td>
                 <td>{{ payment.amount | currency }}</td>
-                <td>{{ payment.bank_balance | currency}}</td>
-                <!-- Add more columns as needed -->
+                {% set _ = balance.append(balance.pop() + payment.amount) %}
+                <td>{{ balance[0] | currency }}</td>
             </tr>
             {% endfor %}
         </tbody>
