@@ -1273,7 +1273,7 @@ class Queries:
                 company.amount_accumulated -= float(amount)
                 company_payment = CompanyPayment(
                     amount=-amount,
-                    date=datetime.utcnow(),
+                    date=date,
                     exact_date=datetime.utcnow(),
                     description=description,
                     ref_no=ref_no,
@@ -1288,7 +1288,7 @@ class Queries:
                 bank.new_balance += float(amount)
                 bank_payment = BankPayment(
                     amount=amount,
-                    date=datetime.utcnow(),
+                    date=date,
                     exact_date=datetime.utcnow(),
                     description=description,
                     ref_no=ref_no,
