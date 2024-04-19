@@ -1203,11 +1203,11 @@ def filter_payments(start_date, end_date, payments):
     return filtered_payments
 
 
-@app.route("/savings_account", methods=["GET"])
+@app.route("/savings_account/<year>", methods=["GET"])
 @login_required
-def get_payments():
-    payments = query.get_savings()
-    persons = query.get_persons()
+def get_payments(year):
+    payments = query.get_savings(year)
+    persons = query.get_persons(year)
     form = DateFilterForm(request.args)
     # Filter payments based on date range
     start_date = form.start_date.data
@@ -1279,16 +1279,16 @@ def savings_account_details(person_id):
     return render_template("query/savings_account_details.html", person=person)
 
 
-@app.route("/income", methods=["GET"])
+@app.route("/income/<year>", methods=["GET"])
 @login_required
 @role_required(["Admin", "Secretary", "Sub-Admin"])
-def income_statement():
-    incomes = query.get_income()
+def income_statement(year):
+    incomes = query.get_income(year)
     expenses = query.get_expenses()
     total_income = sum(income.balance for income in incomes)
     total_expenses = sum(expense.balance for expense in expenses)
 
-    net_income = query.get_net_income()
+    net_income = query.get_net_income(year)
     current_year = os.getenv("CURRENT_YEAR")
     query_year = query.year
     year_range = [year for year in range(int(current_year), int(query_year))]
@@ -1417,11 +1417,11 @@ def admin_search():
     return render_template('query/search.html', data = result,by_ref_no=payments_dict)
 
 
-@app.route("/banks_report")
+@app.route("/banks_report/<year>")
 @login_required
 @role_required(["Admin", "Secretary", "Sub-Admin"])
-def bank_report():
-    banks = query.get_banks()
+def bank_report(year):
+    banks = query.get_banks(year)
     return render_template("query/banks.html", banks=banks)
 
 
@@ -1454,18 +1454,19 @@ def companies_report():
 @app.route("/company/<company_id>")
 @login_required
 @role_required(["Admin", "Secretary", "Sub-Admin"])
-def individual_company_report(company_id):
+def individual_company_report(company_id,year):
     # Query the bank and its associated payments
     company = query.get_company(company_id)
     payments = company.payments_made
+    payments_by_year = [payment for payment in payments if payment.date.year == int(year)]
 
     # Calculate the total amount received by the bank
-    total_amount = sum(payment.amount for payment in payments)
+    total_amount = sum(payment.amount for payment in payments_by_year)
     # Render the bank report template with the data
     return render_template(
         "query/company_report.html",
         company=company,
-        payments=payments,
+        payments=payments_by_year,
         total_amount=total_amount,
     )
 
@@ -1502,18 +1503,18 @@ def individual_bank_report(bank_id):
 
 
 
-@app.route("/trial_balance")
+@app.route("/trial_balance/<year>")
 @login_required
 @role_required(["Admin", "Secretary", "Sub-Admin"])
-def trial_balance():
+def trial_balance(year):
 
     cash_and_bank = query.get_cash_and_banks()
-    accounts_receivable = query.get_accounts_receivable()
-    company_receivable = query.get_company_receivables()
-    total_investments = query.get_total_investment()
-    total_liabilities = query.get_total_liabilities()
-    net_income = query.get_net_income()
-    accounts_payable = query.get_accounts_payable()
+    accounts_receivable = query.get_accounts_receivable(year)
+    company_receivable = query.get_company_receivables(year)
+    total_investments = query.get_total_investment(year)
+    total_liabilities = query.get_total_liabilities(year)
+    net_income = query.get_net_income(year)
+    accounts_payable = query.get_accounts_payable(year)
 
     fixed_assets = Asset.query.all()
     liabilities = Liability.query.all()
@@ -1548,10 +1549,10 @@ def trial_balance():
     return render_template("query/trial-balance.html", **context)
 
 
-@app.route("/balance_sheet")
+@app.route("/balance_sheet/<year>")
 @login_required
 @role_required(["Admin", "Secretary", "Sub-Admin"])
-def balance_sheet():
+def balance_sheet(year):
     fixed_assets = Asset.query.all()
     expenses = Expense.query.all()
     total_fixed_assets = sum(a.balance for a in fixed_assets)
@@ -1565,7 +1566,7 @@ def balance_sheet():
     
     total_assets = total_current_assets + total_fixed_assets
 
-    net_income = query.get_net_income()
+    net_income = query.get_net_income(year)
     accounts_payable = query.get_accounts_payable()
     liabilities = Liability.query.all()
     total_liabilities = query.get_total_liabilities()

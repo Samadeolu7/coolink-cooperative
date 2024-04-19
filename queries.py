@@ -1,4 +1,4 @@
-from sqlalchemy import select, or_,func
+from sqlalchemy import extract, select, or_,func
 from sqlalchemy.orm import selectinload
 from models import *
 from datetime import datetime, timedelta
@@ -1437,12 +1437,13 @@ class Queries:
         person = Person.query.filter_by(id=person_id).first()
         return person
 
-    def get_savings(self):
-        payments = SavingPayment.query.order_by(SavingPayment.id.desc()).all()
+
+    def get_savings(self, year):
+        payments = SavingPayment.query.filter(extract('year', SavingPayment.date) == year).order_by(SavingPayment.id.desc()).all()
         return payments
 
-    def get_individual_savings(self, person_id):
-        payments = SavingPayment.query.filter_by(id=person_id).all()
+    def get_individual_savings(self, person_id, year):
+        payments = SavingPayment.query.filter_by(id=person_id).filter(extract('year', SavingPayment.date) == year).all()
         return payments
 
     def get_loans(self):
@@ -1463,13 +1464,13 @@ class Queries:
         bank = Bank.query.all()
         return bank
 
-    def get_income(self):
-        loans = Income.query.all()
-        return loans
+    def get_income(self, year):
+        incomes = Income.query.filter(extract('year', Income.date) == year).all()
+        return incomes
 
-    def get_net_income(self):
-        income = Income.query.all()
-        expense = Expense.query.all()
+    def get_net_income(self,year):
+        income = Income.query.filter(extract('year', Income.date) == year).all()
+        expense = Expense.query.filter(extract('year', Income.date) == year).all()
         net_income = sum([i.balance for i in income if i.balance]) - sum(
             [e.balance for e in expense if e.balance]
         )
@@ -1479,16 +1480,16 @@ class Queries:
         loans = Loan.query.filter_by(person_id=person_id).first()
         return loans
 
-    def get_investments(self):
-        investment = Investment.query.all()
+    def get_investments(self,year):
+        investment = Investment.query.filter(extract('year', Income.date) == year).all()
         return investment
 
-    def get_expenses(self):
-        expence = Expense.query.all()
+    def get_expenses(self,year):
+        expence = Expense.query.filter(extract('year', Income.date) == year).all()
         return expence
 
-    def get_cash_and_banks(self):
-        bank = Bank.query.all()
+    def get_cash_and_banks(self,year):
+        bank = Bank.query.filter(extract('year', Income.date) == year).all()
         total = sum([b.new_balance for b in bank if b.new_balance])
         return total
 
@@ -1502,8 +1503,8 @@ class Queries:
         total = sum([p.total_balance for p in persons if p.total_balance])
         return total
 
-    def get_total_investment(self):
-        investment = Investment.query.all()
+    def get_total_investment(self,year):
+        investment = Investment.query.filter(extract('year', Income.date) == year).all()
         total = sum([i.balance for i in investment if i.balance])
         return total
 
@@ -1512,13 +1513,13 @@ class Queries:
         total = sum([c.amount_accumulated for c in company if c.amount_accumulated])
         return total
 
-    def get_fixed_assets(self):
-        asset = Asset.query.all()
+    def get_fixed_assets(self,year):
+        asset = Asset.query.filter(extract('year', Income.date) == year).all()
         total = sum([a.balance for a in asset if a.balance])
         return total
 
-    def get_total_liabilities(self):
-        liability = Liability.query.all()
+    def get_total_liabilities(self,year):
+        liability = Liability.query.filter(extract('year', Income.date) == year).all()
         total = sum(l.balance for l in liability if l.balance)
         return total
     
