@@ -971,8 +971,8 @@ def direct_loan():
 
     if request.method == "POST":
         if form.validate_on_submit():
-            employee = query.get_registered_person(form.name.data)
-            employee_id = employee.person_id
+            employee = query.get_person(form.name.data)
+            employee_id = employee.id
             person = Person.query.filter_by(id=employee_id).first()
             duration = int(form.duration.data)
             end_date = form.start_date.data + relativedelta(months=duration)
@@ -985,10 +985,14 @@ def direct_loan():
                 description=form.description.data,
                 ref_no=form.ref_no.data,
                 bank_id=form.bank.data,
+                sub_admin_approved=True,
+                admin_approved=False,
+                is_approved = True
             )
             db.session.add(loan)
             db.session.commit()
             flash("Loan created successfully.", "success")
+            return redirect(url_for("get_loan_details", person_id=person.id))
         else:
             flash(form.errors, "error")
             return redirect(url_for("get_loan_details", person_id=person.id))
