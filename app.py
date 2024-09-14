@@ -965,7 +965,7 @@ def direct_loan():
     form = LoanForm()
     form.name.choices = [
         (person.person.id, (f"{person.name} ({person.person.employee_id})"))
-        for person in query.get_registered()
+        for person in query.get_persons()
     ]
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
     form.amount.render_kw = {'readonly': True}
