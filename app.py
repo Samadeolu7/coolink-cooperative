@@ -958,6 +958,49 @@ def request_loan():
     return render_template("forms/loan_form.html", form=form)
 
 
+@app.route("/loan/direct", methods=["POST"])
+@login_required
+@role_required(["Admin", "Secretary"])
+def direct_loan():
+    form = LoanForm()
+    form.name.choices = [
+        (person.person.id, (f"{person.name} ({person.person.employee_id})"))
+        for person in query.get_registered()
+    ]
+    form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
+    form.amount.render_kw = {'readonly': True}
+
+    if request.method == "POST":
+        if form.validate_on_submit():
+            employee = query.get_registered_person(form.name.data)
+            employee_id = employee.person_id
+            person = Person.query.filter_by(id=employee_id).first()
+            duration = int(form.duration.data)
+            end_date = form.start_date.data + relativedelta(months=duration)
+            loan = Loan(
+                person_id=person.id,
+                amount=form.amount.data,
+                interest_rate=form.interest_rate.data,
+                start_date=form.start_date.data,
+                end_date=end_date,
+                description=form.description.data,
+                ref_no=form.ref_no.data,
+                bank_id=form.bank.data,
+            )
+            db.session.add(loan)
+            db.session.commit()
+            flash("Loan created successfully.", "success")
+            return redirect(url_for("get_loan_details", person_id=person.id))
+
+            # if test == True:
+            #     return flash("Loan created successfully.", "success")
+            # else:
+            #     return flash(test, "error")
+
+    form.start_date.data = pd.to_datetime("today")
+    return render_template("forms/loan_form.html", form=form)
+
+
 @app.route("/approval", methods=["GET", "POST"])
 @login_required
 @role_required(["Admin","Sub-Admin"])
