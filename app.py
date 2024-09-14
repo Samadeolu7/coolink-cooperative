@@ -958,7 +958,7 @@ def request_loan():
     return render_template("forms/loan_form.html", form=form)
 
 
-@app.route("/loans/direct", methods=["POST"])
+@app.route("/loans/direct", methods=["GET", "POST"])
 @login_required
 @role_required(["Admin", "Secretary"])
 def direct_loan():
