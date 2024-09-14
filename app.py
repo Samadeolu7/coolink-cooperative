@@ -962,13 +962,12 @@ def request_loan():
 @login_required
 @role_required(["Admin", "Secretary"])
 def direct_loan():
-    form = LoanForm()
+    form = LoanDirectForm()
     form.name.choices = [
         (person.person.id, (f"{person.name} ({person.person.employee_id})"))
         for person in query.get_persons()
     ]
     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
-    form.amount.render_kw = {'readonly': True}
 
     if request.method == "POST":
         if form.validate_on_submit():
@@ -998,7 +997,7 @@ def direct_loan():
             #     return flash(test, "error")
 
     form.start_date.data = pd.to_datetime("today")
-    return render_template("forms/loan_form.html", form=form)
+    return render_template("forms/loan_direct.html", form=form)
 
 
 @app.route("/approval", methods=["GET", "POST"])
