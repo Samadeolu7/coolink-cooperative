@@ -989,12 +989,9 @@ def direct_loan():
             db.session.add(loan)
             db.session.commit()
             flash("Loan created successfully.", "success")
+        else:
+            flash(form.errors, "error")
             return redirect(url_for("get_loan_details", person_id=person.id))
-
-            # if test == True:
-            #     return flash("Loan created successfully.", "success")
-            # else:
-            #     return flash(test, "error")
 
     form.start_date.data = pd.to_datetime("today")
     return render_template("forms/loan_direct.html", form=form)
