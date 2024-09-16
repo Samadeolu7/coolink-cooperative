@@ -981,12 +981,14 @@ class Queries:
 
     def approve_loan(self, loan_id):
         try:
+
             loan = Loan.query.get(loan_id)
 
             if not loan:
                 raise ValueError("Loan not found.")
 
             if not loan.admin_approved:
+
                 loan.is_approved = True
                 loan.admin_approved = True
 
@@ -995,7 +997,9 @@ class Queries:
                 # Update the person's loan balance by adding the loan amount and interest
                 person = Person.query.get(loan.person_id)
                 person.loan_balance += loan.amount
+
                 self.delete_registered(person.id)
+
                 # Create a loan payment record for the loan amount
                 loan_payment = LoanPayment(
                     amount=loan.amount,
@@ -1431,7 +1435,9 @@ class Queries:
     def delete_registered(self, id):
   
         person = LoanFormPayment.query.filter_by(person_id=id).first()
-        db.session.delete(person)
+        if person:
+            db.session.delete(person)
+  
 
     def get_person(self, person_id):
         person = Person.query.filter_by(id=person_id).first()
