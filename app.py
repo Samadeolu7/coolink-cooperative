@@ -958,47 +958,47 @@ def request_loan():
     return render_template("forms/loan_form.html", form=form)
 
 
-@app.route("/loans/direct", methods=["GET", "POST"])
-@login_required
-@role_required(["Admin", "Secretary"])
-def direct_loan():
-    form = LoanDirectForm()
-    form.name.choices = [
-        (person.id, (f"{person.name} ({person.employee_id})"))
-        for person in query.get_persons()
-    ]
-    form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
+# @app.route("/loans/direct", methods=["GET", "POST"])
+# @login_required
+# @role_required(["Admin", "Secretary"])
+# def direct_loan():
+#     form = LoanDirectForm()
+#     form.name.choices = [
+#         (person.id, (f"{person.name} ({person.employee_id})"))
+#         for person in query.get_persons()
+#     ]
+#     form.bank.choices = [(bank.id, bank.name) for bank in query.get_banks()]
 
-    if request.method == "POST":
-        if form.validate_on_submit():
-            employee = query.get_person(form.name.data)
-            employee_id = employee.id
-            person = Person.query.filter_by(id=employee_id).first()
-            duration = int(form.duration.data)
-            end_date = form.start_date.data + relativedelta(months=duration)
-            loan = Loan(
-                person_id=person.id,
-                amount=form.amount.data,
-                interest_rate=form.interest_rate.data,
-                start_date=form.start_date.data,
-                end_date=end_date,
-                description=form.description.data,
-                ref_no=form.ref_no.data,
-                bank_id=form.bank.data,
-                sub_admin_approved=True,
-                admin_approved=False,
-                is_approved = True
-            )
-            db.session.add(loan)
-            db.session.commit()
-            flash("Loan created successfully.", "success")
-            return redirect(url_for("get_loan_details", person_id=person.id))
-        else:
-            flash(form.errors, "error")
-            return redirect(url_for("get_loan_details", person_id=person.id))
+#     if request.method == "POST":
+#         if form.validate_on_submit():
+#             employee = query.get_person(form.name.data)
+#             employee_id = employee.id
+#             person = Person.query.filter_by(id=employee_id).first()
+#             duration = int(form.duration.data)
+#             end_date = form.start_date.data + relativedelta(months=duration)
+#             loan = Loan(
+#                 person_id=person.id,
+#                 amount=form.amount.data,
+#                 interest_rate=form.interest_rate.data,
+#                 start_date=form.start_date.data,
+#                 end_date=end_date,
+#                 description=form.description.data,
+#                 ref_no=form.ref_no.data,
+#                 bank_id=form.bank.data,
+#                 sub_admin_approved=True,
+#                 admin_approved=False,
+#                 is_approved = True
+#             )
+#             db.session.add(loan)
+#             db.session.commit()
+#             flash("Loan created successfully.", "success")
+#             return redirect(url_for("get_loan_details", person_id=person.id))
+#         else:
+#             flash(form.errors, "error")
+#             return redirect(url_for("get_loan_details", person_id=person.id))
 
-    form.start_date.data = pd.to_datetime("today")
-    return render_template("forms/loan_direct.html", form=form)
+#     form.start_date.data = pd.to_datetime("today")
+#     return render_template("forms/loan_direct.html", form=form)
 
 
 @app.route("/approval", methods=["GET", "POST"])
